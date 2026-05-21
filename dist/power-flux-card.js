@@ -1280,6 +1280,8 @@ console.log(
           battery_soc: "",
           battery_charge: "",
           battery_discharge: "",
+          venus: "",
+          venus_soc: "",
           house: "",
           consumer_1: "",
           consumer_2: "",
@@ -2225,6 +2227,7 @@ console.log(
       const hasGridCombined = !!(entities.grid_combined && entities.grid_combined !== "");
       const hasGrid = !!(entities.grid && entities.grid !== "") || hasGridCombined;
       const hasBattery = !!(entities.battery && entities.battery !== "");
+      const hasVenus = !!(entities.venus && entities.venus !== "");
 
       const styleSolar = hasSolar ? '' : 'display: none;';
       const styleGrid = hasGrid ? '' : 'display: none;';
@@ -2278,6 +2281,12 @@ console.log(
         battery *= -1;
       }
       const battSoc = (hasBattery && entities.battery_soc) ? getVal(entities.battery_soc) : 0;
+
+      let venus = hasVenus ? getValKw(entities.venus, this.config.venus_unit_kw === true) : 0;
+      if (this.config.invert_venus) {
+        venus *= -1;
+      }
+      const venusSoc = (hasVenus && entities.venus_soc) ? getVal(entities.venus_soc) : 0;
 
       const solarVal = Math.max(0, solar);
 
@@ -2690,9 +2699,11 @@ console.log(
                     <div class="value" style="${this.config.color_text_battery ? 'color: var(--text-battery-color);' : getColorStyle('--neon-green')}">${this.config.battery_show_power ? this._formatPower(battery) : Math.round(battSoc) + '%'}</div>
                 </div>` : ''}
                 
-                <div class="bubble venus node-venus ${tintClass} ${glowClass}">
+                <div class="bubble venus node-venus ${tintClass} ${glowClass}"
+                    @click=${() => hasVenus && this._handleClick(entities.venus)}>
                     <ha-icon icon="mdi:battery-charging" class="icon-custom" style="color: var(--venus-color);"></ha-icon>
-                    <div class="value" style="color: var(--venus-color);">—</div>
+                    ${hasVenus && entities.venus_soc ? html`<div class="sub secondary-val" style="color: var(--venus-color); opacity: 0.7;">${Math.round(venusSoc)}%</div>` : ''}
+                    <div class="value" style="color: var(--venus-color);">${hasVenus ? this._formatPower(venus) : '—'}</div>
                 </div>
                 
                 <div class="bubble house node-house ${showDonut ? 'donut' : ''} ${tintClass}" 
