@@ -630,6 +630,110 @@ class PowerFluxCardEditor extends LitElement {
       `;
     }
 
+    _renderVenusView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._localize('editor.venus_section')}</h2>
+        </div>
+        
+        ${this._renderEntitySelector(entitySelectorSchema, entities.venus || "", 'venus', this._localize('editor.venus_entity'))}
+
+        <div class="separator"></div>
+
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+            ${this._localize('editor.venus_separate_hint')}
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.venus_charge || "", 'venus_charge', this._localize('editor.venus_charge_sensor'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.venus_discharge || "", 'venus_discharge', this._localize('editor.venus_discharge_sensor'))}
+
+        <div class="separator"></div>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${textSelectorSchema}
+            .value=${this._config.venus_label}
+            .configValue=${'venus_label'}
+            .label=${this._localize('editor.label') + " (Optional)"}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${iconSelectorSchema}
+            .value=${this._config.venus_icon}
+            .configValue=${'venus_icon'}
+            .label=${this._localize('editor.icon') + " (Optional)"}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <div class="separator"></div>
+
+        ${this._renderEntitySelector(entitySelectorSchema, entities.venus_soc || "", 'venus_soc', this._localize('editor.venus_soc_label'))}
+
+        <div class="separator"></div>
+
+        ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_venus || "", 'secondary_venus', this._localize('editor.venus_secondary_sensor'))}
+
+        ${this._renderColorPickerQuint('color_venus', 'color_pipe_venus', 'color_text_venus', 'color_icon_venus', 'color_secondary_venus', '#06b6d4')}
+        
+        <div class="separator"></div>
+        
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.show_label_venus === true} 
+                .configValue=${'show_label_venus'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.label_toggle')}</div>
+        </div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.venus_unit_kw === true}
+                .configValue=${'venus_unit_kw'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.venus_unit_kw')}</div>
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.show_flow_rate_venus !== false} 
+                .configValue=${'show_flow_rate_venus'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.invert_venus === true} 
+                .configValue=${'invert_venus'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.invert_venus')}</div>
+        </div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.venus_charge_via_house === true}
+                    .configValue=${'venus_charge_via_house'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.venus_charge_via_house')}</div>
+            </div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.venus_show_power === true}
+                    .configValue=${'venus_show_power'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.venus_show_power')}</div>
+            </div>
+      `;
+    }
+
     _renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
         <div class="header">
@@ -877,6 +981,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'solar') return this._renderSolarView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'grid') return this._renderGridView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'battery') return this._renderBatteryView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'venus') return this._renderVenusView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
 
 
@@ -898,6 +1003,11 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="menu-item" @click=${() => this._goSubView('battery')}>
             <div class="menu-icon"><ha-icon icon="mdi:battery-high"></ha-icon> ${this._localize('editor.battery_section')}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+
+        <div class="menu-item" @click=${() => this._goSubView('venus')}>
+            <div class="menu-icon"><ha-icon icon="mdi:battery-charging-high"></ha-icon> ${this._localize('editor.venus_section')}</div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
         </div>
         
