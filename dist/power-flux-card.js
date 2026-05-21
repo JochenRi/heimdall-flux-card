@@ -2575,23 +2575,23 @@ console.log(
         return getAnimStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null);
       };
 
-      const pathSolarHouse = "M 50 160 Q 50 265 165 265";
-      const pathSolarBatt = "M 50 70 Q 210 -20 370 70";
-      const pathGridImport = "M 210 160 L 210 220";
-      const pathGridExport = "M 95 115 Q 130 145 165 115";
-      const pathHouseExport = "M 210 220 L 210 160";
+      const pathSolarHouse = "M 55 170 Q 55 290 265 290";
+      const pathSolarBatt = "M 55 80 Q 215 -10 375 80";
+      const pathGridImport = "M 215 170 L 310 245";
+      const pathGridExport = "M 100 125 Q 135 155 170 125";
+      const pathHouseExport = "M 310 245 L 215 170";
       const exportFromSolar = solarVal > 1;
       const activeExportPath = exportFromSolar ? pathGridExport : pathHouseExport;
-      const exportTextX = exportFromSolar ? '130' : '185';
-      const exportTextY = exportFromSolar ? '145' : '195';
-      const pathGridToBatt = "M 255 115 Q 290 145 325 115";
-      const pathBattHouse = "M 370 160 Q 370 265 255 265";
-      const pathHouseToBatt = "M 255 265 Q 370 265 370 160";
-      const pathHouseC1 = "M 165 265 Q 50 265 50 370";
-      const pathHouseC2 = "M 210 310 L 210 370";
-      const pathHouseC3 = "M 255 265 Q 370 265 370 370";
-      const pathHouseC4 = "M 165 265 Q 90 370 130 470";
-      const pathHouseC5 = "M 255 265 Q 330 370 290 470";
+      const exportTextX = exportFromSolar ? '140' : '265';
+      const exportTextY = exportFromSolar ? '160' : '215';
+      const pathGridToBatt = "M 260 125 Q 295 165 330 125";
+      const pathBattHouse = "M 375 170 Q 375 290 355 290";
+      const pathHouseToBatt = "M 355 290 Q 375 290 375 170";
+      const pathHouseC1 = "M 265 290 Q 85 290 85 400";
+      const pathHouseC2 = "M 310 335 L 310 400";
+      const pathHouseC3 = "M 355 290 Q 535 290 535 400";
+      const pathHouseC4 = "M 265 290 Q 175 400 195 510";
+      const pathHouseC5 = "M 355 290 Q 445 400 425 510";
 
       const houseTextStyle = this.config.color_text_house
         ? 'color: var(--text-house-color);'
@@ -2646,7 +2646,7 @@ console.log(
                     
                     <text x="235" y="195" class="${textClass} text-grid" style="${getTextStyle(gridToHouse, 'grid')} ${styleGrid}">${this._formatPower(gridToHouse)}</text>
                     <text x="${exportTextX}" y="${exportTextY}" class="${textClass} text-export" style="${getTextStyle(gridExport, 'grid')} ${styleGrid}">${this._formatPower(gridExport)}</text>
-                    <text x="290" y="145" class="${textClass} text-grid" style="${getTextStyle(gridToBatt, 'grid')} ${styleGridBatt}">${this._formatPower(gridToBatt)}</text>
+                    <text x="295" y="115" class="${textClass} text-grid" style="${getTextStyle(gridToBatt, 'grid')} ${styleGridBatt}">${this._formatPower(gridToBatt)}</text>
                     
                     <text x="320" y="235" class="${textClass} text-battery" style="${getTextStyle(batteryDischarge, 'battery')} ${styleBattery}">${this._formatPower(batteryDischarge)}</text>
 
