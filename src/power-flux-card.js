@@ -1441,7 +1441,7 @@ console.log(
       };
 
       const pathSolarHouse = "M 55 170 Q 55 290 265 290";
-      const pathSolarBatt = "M 55 80 Q 215 -10 375 80";
+      const pathSolarBatt = "M 55 80 Q 215 35 375 80";
       const pathGridImport = "M 215 170 L 310 245";
       const pathGridExport = "M 100 125 Q 135 155 170 125";
       const pathHouseExport = "M 310 245 L 215 170";
@@ -1453,7 +1453,7 @@ console.log(
       const pathBattHouse = "M 375 170 Q 375 290 355 290";
       const pathHouseToBatt = "M 355 290 Q 375 290 375 170";
       // Venus pipes (mirrors battery pattern, geometrically distinct from LG paths)
-      const pathSolarVenus = "M 55 80 Q 295 -50 535 80";
+      const pathSolarVenus = "M 55 80 Q 295 15 535 80";
       const pathVenusHouse = "M 535 170 Q 415 250 355 290";
       const pathHouseToVenus = "M 355 290 Q 415 250 535 170";
       const pathHouseC1 = "M 265 290 Q 85 290 85 400";
