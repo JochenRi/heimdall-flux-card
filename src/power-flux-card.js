@@ -211,6 +211,8 @@ console.log(
         --neon-yellow: #ffdd00;
         --neon-blue: #3b82f6;
         --neon-green: #00ff88;
+        --neon-cyan: #06b6d4;
+        --venus-color: var(--neon-cyan);
         --neon-pink: #ff0080;
         --neon-red: #ff3333;
         --export-purple: #a855f7;
@@ -261,6 +263,8 @@ console.log(
         --neon-yellow: #c8a800;
         --neon-blue: #2563eb;
         --neon-green: #059669;
+        --neon-cyan: #0891b2;
+        --venus-color: var(--neon-cyan);
         --neon-pink: #db2777;
         --neon-red: #dc2626;
         --export-purple: #7c3aed;
@@ -423,6 +427,7 @@ console.log(
       .bubble.tinted.grid.exporting { background: color-mix(in srgb, var(--export-color), transparent 85%); }
       .bubble.grid.exporting { border-color: var(--export-color); }
       .bubble.tinted.battery { background: color-mix(in srgb, var(--neon-green), transparent 85%); }
+      .bubble.tinted.venus { background: color-mix(in srgb, var(--venus-color), transparent 85%); }
       .bubble.tinted.c1 { background: color-mix(in srgb, var(--consumer-1-color), transparent 85%); }
       .bubble.tinted.c2 { background: color-mix(in srgb, var(--consumer-2-color), transparent 85%); }
       .bubble.tinted.c3 { background: color-mix(in srgb, var(--consumer-3-color), transparent 85%); }
@@ -481,6 +486,7 @@ console.log(
 
       .solar { border-color: var(--neon-yellow); }
       .battery { border-color: var(--neon-green); }
+      .venus { border-color: var(--venus-color); }
       .grid { border-color: var(--neon-blue); }
       .c1 { border-color: var(--consumer-1-color); }
       .c2 { border-color: var(--consumer-2-color); }
@@ -491,6 +497,7 @@ console.log(
 
       .glow.solar { box-shadow: 0 0 15px color-mix(in srgb, var(--neon-yellow), transparent 60%); }
       .glow.battery { box-shadow: 0 0 15px color-mix(in srgb, var(--neon-green), transparent 60%); }
+      .glow.venus { box-shadow: 0 0 15px color-mix(in srgb, var(--venus-color), transparent 60%); }
       .glow.grid { box-shadow: 0 0 15px color-mix(in srgb, var(--neon-blue), transparent 60%); }
       .glow.grid.exporting { box-shadow: 0 0 15px color-mix(in srgb, var(--export-color), transparent 60%); }
       .glow.c1 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-1-color), transparent 60%); }
@@ -502,6 +509,7 @@ console.log(
       .node-solar { top: 80px; left: 10px; }     
       .node-grid { top: 80px; left: 170px; }     
       .node-battery { top: 80px; left: 330px; }  
+      .node-venus { top: 80px; left: 490px; }   
       .node-house { top: 245px; left: 265px; }   
       .node-c1 { top: 400px; left: 40px; }
       .node-c2 { top: 400px; left: 265px; }
@@ -1493,6 +1501,11 @@ console.log(
                     ${renderSecondaryOrLabel(labelBatteryText, showLabelBattery, entities.secondary_battery, hasSecondaryBattery, 'secondary_battery')}
                     <div class="value" style="${this.config.color_text_battery ? 'color: var(--text-battery-color);' : getColorStyle('--neon-green')}">${this.config.battery_show_power ? this._formatPower(battery) : Math.round(battSoc) + '%'}</div>
                 </div>` : ''}
+                
+                <div class="bubble venus node-venus ${tintClass} ${glowClass}">
+                    <ha-icon icon="mdi:battery-charging" class="icon-custom" style="color: var(--venus-color);"></ha-icon>
+                    <div class="value" style="color: var(--venus-color);">—</div>
+                </div>
                 
                 <div class="bubble house node-house ${showDonut ? 'donut' : ''} ${tintClass}" 
                     style="${houseBubbleStyle}"
