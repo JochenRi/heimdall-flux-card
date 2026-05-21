@@ -2381,12 +2381,12 @@ console.log(
       // Use house entity for display if defined, otherwise use calculated value
       const houseDisplay = (entities.house && entities.house !== "") ? getVal(entities.house) : house;
 
-      // Solar→Batt arc only visible when battery is actively charging and not via house
-      const styleSolarBatt = (hasSolar && hasBattery && (batteryCharge > 0 || !hideInactive)) ? '' : 'display: none;';
+      // Solar→Batt arc visibility — consistent with other pipes (only check entity config)
+      const styleSolarBatt = (hasSolar && hasBattery) ? '' : 'display: none;';
 
       // Venus pipe visibility (mirrors battery pattern)
       const styleVenus = hasVenus ? '' : 'display: none;';
-      const styleSolarVenus = (hasSolar && hasVenus && (venusCharge > 0 || !hideInactive)) ? '' : 'display: none;';
+      const styleSolarVenus = (hasSolar && hasVenus) ? '' : 'display: none;';
 
       const isTopArcActive = (solarToBatt > 0) && !batteryChargeViaHouse;
       const hasTopRow = hasSolar || hasGrid || hasBattery;
