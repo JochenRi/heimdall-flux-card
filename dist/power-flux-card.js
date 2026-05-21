@@ -2706,6 +2706,7 @@ console.log(
         if (type === 'solar') isVisible = showFlowSolar;
         else if (type === 'grid') isVisible = showFlowGrid;
         else if (type === 'battery') isVisible = showFlowBattery;
+        else if (type === 'venus') isVisible = showFlowVenus;
 
         if (!isVisible) return "display: none;";
         return val > 5 ? "opacity: 1;" : "opacity: 0;";
