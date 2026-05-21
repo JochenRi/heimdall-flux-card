@@ -1040,6 +1040,17 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-selector>
         </div>
 
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 100, step: 5, mode: "slider" } }}
+                .value=${this._config.animation_threshold !== undefined ? this._config.animation_threshold : 1}
+                .configValue=${'animation_threshold'}
+                .label=${this._localize('editor.animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
         <div class="switch-row">
             <ha-switch
                 .checked=${this._config.show_neon_glow !== false} 

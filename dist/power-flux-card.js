@@ -16,6 +16,7 @@ const lang_de = {
     "editor.options_section": "Darstellung & Optionen",
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
+    "editor.animation_threshold": "Animation erst ab (W)",
     "editor.invert_battery": "Wert umkehren (+/-)",
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.compact_view": "Kompakte Ansicht (evcc)",
@@ -103,6 +104,7 @@ const lang_en = {
     "editor.options_section": "Appearance & Options",
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
+    "editor.animation_threshold": "Animate flows above (W)",
     "editor.invert_battery": "Invert Power Value (+/-)",
     "editor.label_toggle": "Show Label in Bubble",
     "editor.compact_view": "Compact View (evcc)",
@@ -1222,6 +1224,17 @@ class PowerFluxCardEditor extends LitElement {
                 .value=${this._config.pipe_label_size !== undefined ? this._config.pipe_label_size : 10}
                 .configValue=${'pipe_label_size'}
                 .label=${this._localize('editor.pipe_label_size')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 100, step: 5, mode: "slider" } }}
+                .value=${this._config.animation_threshold !== undefined ? this._config.animation_threshold : 1}
+                .configValue=${'animation_threshold'}
+                .label=${this._localize('editor.animation_threshold')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
         </div>
@@ -2666,8 +2679,12 @@ console.log(
       const gridIconColor = (isGridActive && this.config.color_icon_grid) ? 'var(--icon-grid-color)' : gridColor;
       const gridTextColor = (isGridActive && this.config.color_text_grid) ? 'var(--text-grid-color)' : gridColor;
 
+      // Animation threshold: pipes only animate (and labels show) when flow > this value
+      // Default 1 = legacy behavior. User can raise to ignore standby drift (e.g. Tesla 2W idle).
+      const animThreshold = this.config.animation_threshold !== undefined ? this.config.animation_threshold : 1;
+
       const getAnimStyle = (val, opVar = null) => {
-        if (val <= 1) return "opacity: 0;";
+        if (val <= animThreshold) return "opacity: 0;";
 
         // --- Dynamic speed based on power ---
         // Higher power = faster animation (shorter duration)
@@ -2711,7 +2728,7 @@ console.log(
       const getPipeStyle = (val, opVar = null) => {
         const op = opVar ? `calc(var(${opVar}, 1) * 0.2)` : '0.2';
         if (!hideInactive) return `opacity: ${op};`;
-        return val > 1 ? `opacity: ${op};` : "opacity: 0;";
+        return val > animThreshold ? `opacity: ${op};` : "opacity: 0;";
       };
 
       const getTextStyle = (val, type) => {
@@ -2722,7 +2739,7 @@ console.log(
         else if (type === 'venus') isVisible = showFlowVenus;
 
         if (!isVisible) return "display: none;";
-        return val > 5 ? "opacity: 1;" : "opacity: 0;";
+        return val > animThreshold ? "opacity: 1;" : "opacity: 0;";
       };
 
       const getColorStyle = (colorVar) => {

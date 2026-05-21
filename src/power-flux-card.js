@@ -1331,8 +1331,12 @@ console.log(
       const gridIconColor = (isGridActive && this.config.color_icon_grid) ? 'var(--icon-grid-color)' : gridColor;
       const gridTextColor = (isGridActive && this.config.color_text_grid) ? 'var(--text-grid-color)' : gridColor;
 
+      // Animation threshold: pipes only animate (and labels show) when flow > this value
+      // Default 1 = legacy behavior. User can raise to ignore standby drift (e.g. Tesla 2W idle).
+      const animThreshold = this.config.animation_threshold !== undefined ? this.config.animation_threshold : 1;
+
       const getAnimStyle = (val, opVar = null) => {
-        if (val <= 1) return "opacity: 0;";
+        if (val <= animThreshold) return "opacity: 0;";
 
         // --- Dynamic speed based on power ---
         // Higher power = faster animation (shorter duration)
@@ -1376,7 +1380,7 @@ console.log(
       const getPipeStyle = (val, opVar = null) => {
         const op = opVar ? `calc(var(${opVar}, 1) * 0.2)` : '0.2';
         if (!hideInactive) return `opacity: ${op};`;
-        return val > 1 ? `opacity: ${op};` : "opacity: 0;";
+        return val > animThreshold ? `opacity: ${op};` : "opacity: 0;";
       };
 
       const getTextStyle = (val, type) => {
@@ -1387,7 +1391,7 @@ console.log(
         else if (type === 'venus') isVisible = showFlowVenus;
 
         if (!isVisible) return "display: none;";
-        return val > 5 ? "opacity: 1;" : "opacity: 0;";
+        return val > animThreshold ? "opacity: 1;" : "opacity: 0;";
       };
 
       const getColorStyle = (colorVar) => {
