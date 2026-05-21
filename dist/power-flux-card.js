@@ -2392,7 +2392,7 @@ console.log(
 
       const isTopArcActive = (solarToBatt > 0) && !batteryChargeViaHouse;
       const hasTopRow = hasSolar || hasGrid || hasBattery;
-      const topShift = !hasTopRow ? 190 : ((isTopArcActive || (!hideInactive && hasSolar && hasBattery && batteryCharge > 0 && !batteryChargeViaHouse)) ? 0 : 50);
+      const topShift = !hasTopRow ? 190 : 0;
       const anyRow2Visible = showC4 || showC5;
       let baseHeight = anyRow2Visible ? 620 : (anyBottomVisible ? 520 : 340);
       const contentHeight = baseHeight - topShift;
