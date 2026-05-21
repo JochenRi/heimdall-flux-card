@@ -1,289 +1,95 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-blue.svg)](https://github.com/hacs/plugin)
-[![HACS validation](https://img.shields.io/github/actions/workflow/status/jayjojayson/power-flux-card/validate.yml?label=HACS%20Validation)](https://github.com/jayjojayson/power-flux-card/actions?query=workflow%3Avalidate)
-[![GitHub release](https://img.shields.io/github/release/jayjojayson/power-flux-card?include_prereleases=&sort=semver&color=blue)](https://github.com/jayjojayson/power-flux-card/releases)
-![Downloads](https://img.shields.io/github/downloads/jayjojayson/power-flux-card/total?label=Downloads&color=blue)
-[![README Deutsch](https://img.shields.io/badge/README-DE-orange)](https://github.com/jayjojayson/power-flux-card/blob/main/docs/README-de.md)
-[![Support](https://img.shields.io/badge/%20-Support%20Me-steelblue?style=flat&logo=paypal&logoColor=white)](https://www.paypal.me/quadFlyerFW)
-[![Stars](https://img.shields.io/github/stars/jayjojayson/power-flux-card)](https://github.com/jayjojayson/power-flux-card/stargazers)
+# HEIMDALL Flux Card
 
+A power flow card for Home Assistant, adapted for **dual-battery setups**.
 
-# Power Flux Card 
-
-The ⚡ Power Flux Card is an advanced, animated energy flow card for Home Assistant. It visualizes the power distribution between Solar, Grid, Battery, and Consumers with beautiful neon effects and diffrent animations.
-
-If you like the Card, I would appreciate a Star rating ⭐ from you. 🤗
-
-<img width="49%" height="auto" alt="power-flux-card" src="https://github.com/jayjojayson/power-flux-card/blob/main/docs/images/power-flux-card-ani.gif" /> <img width="49%" height="auto" alt="power-flux-card" src="https://github.com/jayjojayson/power-flux-card/blob/main/docs/images/power-flux-card.jpg" />  
-<img width="49%" height="auto" alt="power-flux-card" src="https://github.com/jayjojayson/power-flux-card/blob/main/docs/images/power-flux-card-compact.jpg" /> <img width="49%" height="auto" alt="power-flux-card" src="https://github.com/jayjojayson/power-flux-card/blob/main/docs/images/power-flux-card-compact2.jpg" />
-
-### ✨ Features
-
-- **Real-time Animation**: Visualizes energy flow with moving particles.
-- **Multiple Sources & Consumers**: Supports Solar, Grid, Battery, and up to 3 additional consumers (e.g., EV, Heater, Pool).
-- **Compact View**: A minimalist bar chart view (inspired by evcc).
-- **Customizable Appearance**:
-  - **Neon Glow**: Glowing effects for active power lines.
-  - **Donut Chart**: Optional donut chart around the house icon showing energy mix.
-  - **Comet Tail / Dashed Lines**: Choose your preferred animation style.
-  - **Zoom**: Adjustable scale to fit your dashboard.
-  - **Custom Colors**: Define custom colors for each source and consumer via the editor.
-  - **Background Color**: Enable a slightly tinted background for the circles in the default view.
-- **More Info**: Click on any source/consumer for detailed information in a more-info dialog.
-- **Grid Import/Export**: Supports both separate Import/Export entities or a combined entity with positive/negative values.
-- **Grid-to-Battery**: Optional direct sensor for Grid-to-Battery flow, bypassing the standard calculation.
-- **Secondary Sensors**: Optionally display a secondary sensor value in the main circles (e.g., daily yield for Solar, current charge/discharge power for Battery) and consumer bubbles.
-- **Localization**: Fully translated in English and German.
-- **Visual Editor**: easy configuration via the Home Assistant UI.
-
-[![Support](https://img.shields.io/badge/Features-Video%20german-steelblue?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=HGFBJJRWGW0)
+> ⚠️ **This is a personal fork of [Power Flux Card](https://github.com/jayjojayson/power-flux-card) by [@jayjojayson](https://github.com/jayjojayson) (MIT License).**
+>
+> If you need a **universal single-battery solution**, please use the original card.
+> The original is mature, actively maintained, and supports all standard energy-flow setups.
+>
+> ⭐ **Please star and support the original**: https://github.com/jayjojayson/power-flux-card
+> ☕ **Support the original author**: https://www.paypal.me/quadFlyerFW
 
 ---
 
-### 🚀 Installation
+## Why this fork exists
 
-### HACS (Recommended)
+The original Power Flux Card supports one battery system. This fork extends it for the specific use case of the **HEIMDALL home energy management system**, which coordinates **two independent battery systems** (LG RESU + Marstek Venus) and five large consumers (EV, washing machine, dryer, dishwasher, heat pump).
 
-- Add this repository via the link in Home Assistant.
- 
-   [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jayjojayson&repository=power-flux-card&category=plugin)
-
-- The "Power Flux Card" should now be available in HACS. Click on "INSTALL".
-- The resource will be automatically added to your Lovelace configuration.
-- Create the file `power-flux-card.js` in the `/config/www/` folder.
-
-#### HACS (manual)
-1. Ensure HACS is installed.
-2. Add this repository as a custom repository in HACS.
-3. Search for "Power Flux Card" and install it.
-4. Reload resources if prompted.
-
-#### Manual Installation
-1. Download `power-flux-card.js` from the [Releases](../../releases) page.
-2. Upload it to `www/community/power-flux-card/` folder in Home Assistant.
-3. Add the resource in your Dashboard configuration:
-   - URL: `/local/community/power-flux-card/power-flux-card.js`
-   - Type: JavaScript Module
+This is not a replacement for the original — it is a specialized derivative for a specific topology.
 
 ---
 
-### ⚙️ Configuration
+## Differences from upstream
 
-You can configure the card directly via the visual editor in Home Assistant.
+| Feature                       | Upstream Power Flux Card | HEIMDALL Flux Card        |
+|-------------------------------|--------------------------|---------------------------|
+| Battery systems supported     | 1                        | 2 (independent)           |
+| Top-row bubbles               | 3 (Solar, Grid, Battery) | 4 (Solar, Grid, Bat1, Bat2)|
+| Consumer bubbles              | up to 5 (3+2 layout)     | 5 (3+2 layout, same)      |
+| Pipe count                    | ~10                      | 12                        |
+| Solar→Battery pipes           | 1                        | 2 (one per battery)       |
+| Compact-View                  | 1 dominant-flow bar      | 2 bars side by side       |
+| Donut-Chart segments          | 3 (PV/Battery/Grid)      | 4 (PV/Bat1/Bat2/Grid)     |
+| Editor                        | full visual editor       | full visual editor (mirrored for 2nd battery) |
+| Languages                     | DE / EN                  | DE / EN                   |
+| License                       | MIT                      | MIT (preserved)           |
 
-**Main Entities:**
-- **Solar**: Power generation (W).
-- **Grid**: Grid power (W). Positive = Import, Negative = Export (or separate entities).
-- **Battery**: Battery power (W) and State of Charge (%).
+---
 
-**Additional Consumers:**
-- You can add up to 3 individual consumers (e.g., Car, Heater, Pool) with custom icons and labels.
+## Installation
 
-**Options:**
-- **Zoom**: Adjust the size of the card.
-- **Neon Glow**: Enable/disable the glowing effect.
-- **Donut Chart**: Show the energy mix as a ring around the house.
-- **Comet Tail / Dashed Line**: Change the flow animation style.
-- **Compact View**: Switch to the bar chart layout.
-- **Color Options**: Define custom colors for each source and consumer.
-- **Grid Import/Export**: Configure separate or combined entities.
-- **Grid-to-Battery**: Optional direct sensor for Grid-to-Battery flow.
-- **Separate Battery Sensors**: Optional separate sensors for battery charge and discharge.
-- **Secondary Sensors**: Display alternative values in the main circles (e.g., daily yield, current charge power).
+> 🚧 **Status: Work in progress.** First functional release coming soon.
+> Installation instructions will be added with the first release tag.
 
+For now, this repository contains the upstream code with attribution adjustments. Layout and logic changes are being implemented incrementally.
 
-<details>
-   <summary> <b>Custom Colors with card_mod and Jinja2 Templates</b></summary> 
+---
 
-With the [card_mod](https://github.com/thomasloven/lovelace-card-mod) integration, you can dynamically override the CSS variables of the Power Flux Card using Jinja2 templates. This allows you to change colors based on sensor values — e.g., green solar icon during production, grey when idle.
+## Configuration
 
-### Available CSS Variables
+The configuration interface is identical to the upstream card, with these additions:
+- A **second battery section** in the visual editor
+- Sign-mode selector per battery (signed power vs. split charge/discharge entities)
+- Animation toggles consolidated in a single editor panel
 
-| Variable | Description |
-|---|---|
-| `--neon-yellow` | Bubble color Solar |
-| `--neon-blue` | Bubble color Grid |
-| `--neon-green` | Bubble color Battery |
-| `--neon-pink` | Bubble color House |
-| `--pipe-solar-color` | Pipe color Solar |
-| `--pipe-grid-color` | Pipe color Grid |
-| `--pipe-battery-color` | Pipe color Battery |
-| `--icon-solar-color` | Icon color Solar |
-| `--icon-grid-color` | Icon color Grid |
-| `--icon-battery-color` | Icon color Battery |
-| `--icon-house-color` | Icon color House |
-| `--icon-consumer-1-color` | Icon color Consumer 1 |
-| `--text-solar-color` | Text color Solar |
-| `--text-grid-color` | Text color Grid |
-| `--text-battery-color` | Text color Battery |
-| `--text-house-color` | Text color House |
-| `--text-consumer-1-color` | Text color Consumer 1 |
-| `--consumer-1-color` | Bubble color Consumer 1 |
-| `--consumer-2-color` | Bubble color Consumer 2 |
-| `--consumer-3-color` | Bubble color Consumer 3 |
-| `--export-color` | Color for Export |
-| `--pipe-solar-opacity` | Pipe opacity Solar (0 = hidden, 1 = visible) |
-| `--pipe-grid-opacity` | Pipe opacity Grid (0 = hidden, 1 = visible) |
-| `--pipe-battery-opacity` | Pipe opacity Battery (0 = hidden, 1 = visible) |
-| `--pipe-consumer-1-opacity` | Pipe opacity Consumer 1 (0 = hidden, 1 = visible) |
-| `--pipe-consumer-2-opacity` | Pipe opacity Consumer 2 (0 = hidden, 1 = visible) |
-| `--pipe-consumer-3-opacity` | Pipe opacity Consumer 3 (0 = hidden, 1 = visible) |
-| `--pipe-consumer-4-opacity` | Pipe opacity Consumer 4 (0 = hidden, 1 = visible) |
-| `--pipe-consumer-5-opacity` | Pipe opacity Consumer 5 (0 = hidden, 1 = visible) |
+Full configuration reference will be added with the first release.
 
-### Example 1: Solar Icon — green during production, grey when idle
+---
 
-```yaml
-type: custom:power-flux-card
-entities:
-  solar: sensor.solar_power
-  grid: sensor.grid_power
-  battery: sensor.battery_power
-  battery_soc: sensor.battery_soc
-card_mod:
-  style: |
-    :host {
-      {% if states('sensor.solar_power') | float > 0 %}
-        --icon-solar-color: #00ff88 !important;
-      {% else %}
-        --icon-solar-color: #9e9e9e !important;
-      {% endif %}
-    }
-```
+## 🙏 Credits & Acknowledgements
 
-### Example 2: Grid text color — red on export, blue on import
+This card is based on **[Power Flux Card](https://github.com/jayjojayson/power-flux-card)** (MIT License) — Copyright © [jayjojayson](https://github.com/jayjojayson).
 
-```yaml
-type: custom:power-flux-card
-entities:
-  solar: sensor.solar_power
-  grid_combined: sensor.grid_power_combined
-  battery: sensor.battery_power
-  battery_soc: sensor.battery_soc
-card_mod:
-  style: |
-    :host {
-      {% if states('sensor.grid_power_combined') | float < 0 %}
-        --text-grid-color: #ff3333 !important;
-      {% else %}
-        --text-grid-color: #3b82f6 !important;
-      {% endif %}
-    }
-```
+The upstream project provides the **entire foundation** of this card:
 
-### Example 3: Battery bubble — color based on State of Charge (SoC)
+- The complete card architecture (lit-html, ES modules, visual editor)
+- The SVG layout system, bubble framework, and pipe animation engine
+- The compact-view (evcc-inspired bar layout)
+- The visual editor with all its options and translations
+- The neon-glow, comet-tail, donut-chart, and tinted-background effects
+- The German/English localization framework
 
-```yaml
-type: custom:power-flux-card
-entities:
-  solar: sensor.solar_power
-  grid: sensor.grid_power
-  battery: sensor.battery_power
-  battery_soc: sensor.battery_soc
-card_mod:
-  style: |
-    :host {
-      {% set soc = states('sensor.battery_soc') | float %}
-      {% if soc > 80 %}
-        --neon-green: #00ff88 !important;
-      {% elif soc > 30 %}
-        --neon-green: #f59e0b !important;
-      {% else %}
-        --neon-green: #ff3333 !important;
-      {% endif %}
-    }
-```
+➡️ **Please star the original**: https://github.com/jayjojayson/power-flux-card
+➡️ **Support the original author**: https://www.paypal.me/quadFlyerFW
 
-### Example 4: Consumer 1 pipe — visible only at high power, otherwise transparent
+The original README, unmodified, is preserved at [`docs/UPSTREAM-README.md`](docs/UPSTREAM-README.md) for reference.
 
-```yaml
-type: custom:power-flux-card
-entities:
-  solar: sensor.solar_power
-  grid: sensor.grid_power
-  battery: sensor.battery_power
-  battery_soc: sensor.battery_soc
-  consumer_1: sensor.wallbox_power
-card_mod:
-  style: |
-    :host {
-      {% if states('sensor.wallbox_power') | float > 500 %}
-        --pipe-consumer-1-color: #a855f7 !important;
-        --icon-consumer-1-color: #a855f7 !important;
-      {% else %}
-        --pipe-consumer-1-color: rgba(168, 85, 247, 0.2) !important;
-        --icon-consumer-1-color: #9e9e9e !important;
-      {% endif %}
-    }
-```
+### Modifications in this fork
 
-### Example 5: Solar pipe — hide below 30 W threshold
+All modifications by **Johannes ([@JochenRi](https://github.com/JochenRi))** for the HEIMDALL home energy management system:
 
-Hides the solar pipe when solar power falls below 30 W.
+- Top-row layout extended from 3 to 4 bubbles (second battery added)
+- New pipe paths: Solar→Battery1 and Solar→Battery2 routed as separate geometric paths
+- Per-battery signed-power logic with sign-mode selector
+- Compact-View redesigned as two side-by-side bars (one per battery)
+- Donut-Chart extended from 3 to 4 segments
+- Editor mirrored for second battery section
 
-```yaml
-type: custom:power-flux-card
-entities:
-  solar: sensor.solar_power
-  grid: sensor.grid_power
-  house: sensor.house_power
-card_mod:
-  style: |
-    :host {
-      --pipe-solar-opacity: {{ 1 if (states('sensor.solar_power') | float(0)) >= 30 else 0 }};
-    }
-```
+---
 
-> **Note:** The Power Flux Card uses Shadow DOM (LitElement). Only CSS Custom Properties on `:host` work. The card reads the opacity variables internally and applies them directly to the pipe paths.
+## 📄 License
 
-### Example 6: Multiple pipes — each hidden individually below 30 W
+MIT License — see [LICENSE](LICENSE).
 
-Hides solar, grid and battery pipes independently as soon as their value falls below 30 W.
-
-```yaml
-type: custom:power-flux-card
-entities:
-  solar: sensor.solar_power
-  grid: sensor.grid_power
-  battery: sensor.battery_power
-  house: sensor.house_power
-card_mod:
-  style: |
-    :host {
-      --pipe-solar-opacity:   {{ 1 if (states('sensor.solar_power')   | float(0))       >= 30 else 0.2 }};
-      --pipe-grid-opacity:    {{ 1 if (states('sensor.grid_power')    | float(0)) | abs >= 30 else 0.2 }};
-      --pipe-battery-opacity: {{ 1 if (states('sensor.battery_power') | float(0)) | abs >= 30 else 0.2 }};
-    }
-```
-
-> **Tip:** `| abs` is used for grid and battery since these sensors can report negative values (export / discharge). The threshold always refers to the absolute value.
-
-### Example 7: All 5 consumer pipes — hide below individual thresholds
-
-Each consumer pipe is controlled independently with its own threshold.
-
-```yaml
-type: custom:power-flux-card
-entities:
-  solar: sensor.solar_power
-  grid: sensor.grid_power
-  house: sensor.house_power
-  consumer_1: sensor.wallbox_power
-  consumer_2: sensor.heating_power
-  consumer_3: sensor.pool_power
-  consumer_4: sensor.dishwasher_power
-  consumer_5: sensor.dryer_power
-card_mod:
-  style: |
-    :host {
-      --pipe-consumer-1-opacity: {{ 1 if (states('sensor.wallbox_power')    | float(0)) >= 100 else 0 }};
-      --pipe-consumer-2-opacity: {{ 1 if (states('sensor.heating_power')    | float(0)) >= 50  else 0 }};
-      --pipe-consumer-3-opacity: {{ 1 if (states('sensor.pool_power')       | float(0)) >= 50  else 0 }};
-      --pipe-consumer-4-opacity: {{ 1 if (states('sensor.dishwasher_power') | float(0)) >= 30  else 0 }};
-      --pipe-consumer-5-opacity: {{ 1 if (states('sensor.dryer_power')      | float(0)) >= 30  else 0 }};
-    }
-```
-
-> **Note:** Each `--pipe-consumer-X-opacity` controls both the background pipe and the animated flow particles together. Set to `0` to fully hide, `1` to fully show.
-
-> **Note:** card_mod must be installed separately via HACS. Templates are evaluated on every state update, so colors change in real time.
-</details>
+This project preserves all copyright notices from the upstream project. The MIT license terms apply to both the upstream code and the modifications.
