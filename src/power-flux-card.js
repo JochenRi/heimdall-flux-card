@@ -1442,20 +1442,20 @@ console.log(
 
       const pathSolarHouse = "M 55 170 Q 55 290 265 290";
       const pathSolarBatt = "M 55 80 Q 215 35 375 80";
-      const pathGridImport = "M 215 170 L 310 245";
+      const pathGridImport = "M 215 170 Q 215 290 265 290";
       const pathGridExport = "M 100 125 Q 135 155 170 125";
-      const pathHouseExport = "M 310 245 L 215 170";
+      const pathHouseExport = "M 265 290 Q 215 290 215 170";
       const exportFromSolar = solarVal > 1;
       const activeExportPath = exportFromSolar ? pathGridExport : pathHouseExport;
-      const exportTextX = exportFromSolar ? '140' : '265';
-      const exportTextY = exportFromSolar ? '160' : '215';
+      const exportTextX = exportFromSolar ? '140' : '225';
+      const exportTextY = exportFromSolar ? '160' : '255';
       const pathGridToBatt = "M 260 125 Q 295 165 330 125";
       const pathBattHouse = "M 375 170 Q 375 290 355 290";
       const pathHouseToBatt = "M 355 290 Q 375 290 375 170";
       // Venus pipes (mirrors battery pattern, geometrically distinct from LG paths)
       const pathSolarVenus = "M 55 80 Q 295 15 535 80";
-      const pathVenusHouse = "M 535 170 Q 415 250 355 290";
-      const pathHouseToVenus = "M 355 290 Q 415 250 535 170";
+      const pathVenusHouse = "M 535 170 Q 535 290 355 290";
+      const pathHouseToVenus = "M 355 290 Q 535 290 535 170";
       const pathHouseC1 = "M 265 290 Q 85 290 85 400";
       const pathHouseC2 = "M 310 335 L 310 400";
       const pathHouseC3 = "M 355 290 Q 535 290 535 400";
@@ -1521,7 +1521,7 @@ console.log(
                     <text x="100" y="235" class="${textClass} text-solar" style="${getTextStyle(solarToHouse, 'solar')} ${styleSolar}">${this._formatPower(solarToHouse)}</text>
                     <text x="210" y="45" class="${textClass} text-solar" style="${getTextStyle(solarToBatt, 'solar')} ${styleSolarBatt}">${this._formatPower(solarToBatt)}</text>
                     
-                    <text x="235" y="195" class="${textClass} text-grid" style="${getTextStyle(gridToHouse, 'grid')} ${styleGrid}">${this._formatPower(gridToHouse)}</text>
+                    <text x="225" y="255" class="${textClass} text-grid" style="${getTextStyle(gridToHouse, 'grid')} ${styleGrid}">${this._formatPower(gridToHouse)}</text>
                     <text x="${exportTextX}" y="${exportTextY}" class="${textClass} text-export" style="${getTextStyle(gridExport, 'grid')} ${styleGrid}">${this._formatPower(gridExport)}</text>
                     <text x="295" y="115" class="${textClass} text-grid" style="${getTextStyle(gridToBatt, 'grid')} ${styleGridBatt}">${this._formatPower(gridToBatt)}</text>
                     
