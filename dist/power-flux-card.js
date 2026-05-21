@@ -1687,15 +1687,15 @@ console.log(
       .glow.c4 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-4-color), transparent 60%); }
       .glow.c5 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-5-color), transparent 60%); }
 
-      .node-solar { top: 70px; left: 5px; }     
-      .node-grid { top: 70px; left: 165px; }     
-      .node-battery { top: 70px; left: 325px; }  
-      .node-house { top: 220px; left: 165px; }   
-      .node-c1 { top: 370px; left: 5px; }
-      .node-c2 { top: 370px; left: 165px; }
-      .node-c3 { top: 370px; left: 325px; }
-      .node-c4 { top: 470px; left: 85px; }
-      .node-c5 { top: 470px; left: 245px; }
+      .node-solar { top: 80px; left: 10px; }     
+      .node-grid { top: 80px; left: 170px; }     
+      .node-battery { top: 80px; left: 330px; }  
+      .node-house { top: 245px; left: 265px; }   
+      .node-c1 { top: 400px; left: 40px; }
+      .node-c2 { top: 400px; left: 265px; }
+      .node-c3 { top: 400px; left: 490px; }
+      .node-c4 { top: 510px; left: 150px; }
+      .node-c5 { top: 510px; left: 380px; }
 
       svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
       
