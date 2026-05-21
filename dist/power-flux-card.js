@@ -2383,8 +2383,6 @@ console.log(
 
       // Solar→Batt arc only visible when battery is actively charging and not via house
       const styleSolarBatt = (hasSolar && hasBattery && !batteryChargeViaHouse && (batteryCharge > 0 || !hideInactive)) ? '' : 'display: none;';
-      // Grid→Batt pipe: only hide if entities missing; actual visibility handled by getPipeStyle (hideInactive)
-      const styleGridBatt = (hasGrid && hasBattery) ? '' : 'display: none;';
 
       // Venus pipe visibility (mirrors battery pattern)
       const styleVenus = hasVenus ? '' : 'display: none;';
@@ -2637,7 +2635,6 @@ console.log(
       const activeExportPath = exportFromSolar ? pathGridExport : pathHouseExport;
       const exportTextX = exportFromSolar ? '140' : '225';
       const exportTextY = exportFromSolar ? '160' : '255';
-      const pathGridToBatt = "M 260 125 Q 295 165 330 125";
       const pathBattHouse = "M 375 170 Q 375 290 355 290";
       const pathHouseToBatt = "M 355 290 Q 375 290 375 170";
       // Venus pipes (mirrors battery pattern, geometrically distinct from LG paths)
@@ -2669,8 +2666,6 @@ console.log(
                     
                     <path class="bg-path bg-grid" d="${pathGridImport}" style="${getPipeStyle(gridToHouse, '--pipe-grid-opacity')} ${styleGrid}" />
                     <path class="bg-path bg-export" d="${activeExportPath}" style="${getPipeStyle(gridExport, '--pipe-grid-opacity')} ${styleGrid}" />
-                    <path class="bg-path bg-grid" d="${pathGridToBatt}" style="${getPipeStyle(gridToBatt, '--pipe-grid-opacity')} ${styleGridBatt}" />
-                    
                     <path class="bg-path bg-battery" d="${pathBattHouse}" style="${getPipeStyle(batteryDischarge, '--pipe-battery-opacity')} ${styleBattery}" />
 
                     <path class="bg-path bg-battery" d="${pathHouseToBatt}" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getPipeStyle(batteryCharge, '--pipe-battery-opacity') + ' ' + styleBattery : 'display:none;'}" />
@@ -2690,7 +2685,6 @@ console.log(
                     
                     <path class="flow-line flow-grid" d="${pathGridImport}" style="${getAnimStyle(gridToHouse, '--pipe-grid-opacity')} ${styleGrid}" />
                     <path class="flow-line flow-export" d="${activeExportPath}" style="${getAnimStyle(gridExport, '--pipe-grid-opacity')} ${styleGrid}" />
-                    <path class="flow-line flow-grid" d="${pathGridToBatt}" style="${getAnimStyle(gridToBatt, '--pipe-grid-opacity')} ${styleGridBatt}" />
                     
                     <path class="flow-line flow-battery" d="${pathBattHouse}" style="${getAnimStyle(batteryDischarge, '--pipe-battery-opacity')} ${styleBattery}" />
 
@@ -2711,7 +2705,6 @@ console.log(
                     
                     <text x="225" y="255" class="${textClass} text-grid" style="${getTextStyle(gridToHouse, 'grid')} ${styleGrid}">${this._formatPower(gridToHouse)}</text>
                     <text x="${exportTextX}" y="${exportTextY}" class="${textClass} text-export" style="${getTextStyle(gridExport, 'grid')} ${styleGrid}">${this._formatPower(gridExport)}</text>
-                    <text x="295" y="115" class="${textClass} text-grid" style="${getTextStyle(gridToBatt, 'grid')} ${styleGridBatt}">${this._formatPower(gridToBatt)}</text>
                     
                     <text x="320" y="235" class="${textClass} text-battery" style="${getTextStyle(batteryDischarge, 'battery')} ${styleBattery}">${this._formatPower(batteryDischarge)}</text>
 
