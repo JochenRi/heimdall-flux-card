@@ -227,6 +227,7 @@ console.log(
         --pipe-solar-color: var(--neon-yellow);
         --pipe-grid-color: var(--neon-blue);
         --pipe-battery-color: var(--neon-green);
+        --pipe-venus-color: var(--venus-color);
         --pipe-consumer-1-color: var(--consumer-1-color);
         --pipe-consumer-2-color: var(--consumer-2-color);
         --pipe-consumer-3-color: var(--consumer-3-color);
@@ -525,6 +526,7 @@ console.log(
       .bg-solar { stroke: var(--pipe-solar-color); opacity: var(--pipe-solar-opacity, 1); }
       .bg-grid { stroke: var(--pipe-grid-color); opacity: var(--pipe-grid-opacity, 1); }
       .bg-battery { stroke: var(--pipe-battery-color); opacity: var(--pipe-battery-opacity, 1); }
+      .bg-venus { stroke: var(--pipe-venus-color); opacity: var(--pipe-venus-opacity, 1); }
       .bg-export { stroke: var(--export-color); }
       .bg-c1 { stroke: var(--pipe-consumer-1-color); opacity: var(--pipe-consumer-1-opacity, 1); }
       .bg-c2 { stroke: var(--pipe-consumer-2-color); opacity: var(--pipe-consumer-2-opacity, 1); }
@@ -539,6 +541,7 @@ console.log(
       .flow-solar { stroke: var(--pipe-solar-color); opacity: var(--pipe-solar-opacity, 1); }
       .flow-grid { stroke: var(--pipe-grid-color); opacity: var(--pipe-grid-opacity, 1); }
       .flow-battery { stroke: var(--pipe-battery-color); opacity: var(--pipe-battery-opacity, 1); }
+      .flow-venus { stroke: var(--pipe-venus-color); opacity: var(--pipe-venus-opacity, 1); }
       .flow-export { stroke: var(--export-color); }
 
       @keyframes dash { to { stroke-dashoffset: -1500; } }
@@ -551,6 +554,7 @@ console.log(
       .text-grid { fill: var(--pipe-grid-color); }
       .text-export { fill: var(--export-color); }
       .text-battery { fill: var(--pipe-battery-color); }
+      .text-venus { fill: var(--pipe-venus-color); }
     `;
     }
 
@@ -1154,6 +1158,34 @@ console.log(
         }
       }
 
+      // VENUS charge/discharge (mirrors battery pattern)
+      const venusCharge = venus > 0 ? venus : 0;
+      const venusDischarge = venus < 0 ? Math.abs(venus) : 0;
+
+      let solarToVenus = 0;
+      let gridToVenus = 0;
+
+      // Venus charge via house toggle (mirrors battery_charge_via_house)
+      const venusChargeViaHouse = this.config.venus_charge_via_house === true;
+
+      if (hasVenus && venusCharge > 0) {
+        if (venusChargeViaHouse) {
+          // Venus charges via house: no direct solar→venus or grid→venus pipes
+          solarToVenus = 0;
+          gridToVenus = 0;
+        } else {
+          // Calculate: solar prioritized (PV surplus AFTER batteryCharge goes to venus)
+          const solarAfterBatt = Math.max(0, solarVal - solarToBatt);
+          if (solarAfterBatt >= venusCharge) {
+            solarToVenus = venusCharge;
+            gridToVenus = 0;
+          } else {
+            solarToVenus = solarAfterBatt;
+            gridToVenus = venusCharge - solarAfterBatt;
+          }
+        }
+      }
+
       const solarToHouse = Math.max(0, solarVal - solarToBatt - gridExport);
       const gridToHouse = Math.max(0, gridImport - gridToBatt);
       const house = solarToHouse + gridToHouse + batteryDischarge;
@@ -1165,6 +1197,10 @@ console.log(
       const styleSolarBatt = (hasSolar && hasBattery && batteryCharge > 0 && !batteryChargeViaHouse) ? '' : 'display: none;';
       // Grid→Batt pipe: only hide if entities missing; actual visibility handled by getPipeStyle (hideInactive)
       const styleGridBatt = (hasGrid && hasBattery) ? '' : 'display: none;';
+
+      // Venus pipe visibility (mirrors battery pattern)
+      const styleVenus = hasVenus ? '' : 'display: none;';
+      const styleSolarVenus = (hasSolar && hasVenus && venusCharge > 0 && !venusChargeViaHouse) ? '' : 'display: none;';
 
       const isTopArcActive = (solarToBatt > 0) && !batteryChargeViaHouse;
       const hasTopRow = hasSolar || hasGrid || hasBattery;
@@ -1416,6 +1452,10 @@ console.log(
       const pathGridToBatt = "M 260 125 Q 295 165 330 125";
       const pathBattHouse = "M 375 170 Q 375 290 355 290";
       const pathHouseToBatt = "M 355 290 Q 375 290 375 170";
+      // Venus pipes (mirrors battery pattern, geometrically distinct from LG paths)
+      const pathSolarVenus = "M 55 80 Q 295 -50 535 80";
+      const pathVenusHouse = "M 535 170 Q 415 250 355 290";
+      const pathHouseToVenus = "M 355 290 Q 415 250 535 170";
       const pathHouseC1 = "M 265 290 Q 85 290 85 400";
       const pathHouseC2 = "M 310 335 L 310 400";
       const pathHouseC3 = "M 355 290 Q 535 290 535 400";
@@ -1447,6 +1487,10 @@ console.log(
 
                     <path class="bg-path bg-battery" d="${pathHouseToBatt}" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getPipeStyle(batteryCharge, '--pipe-battery-opacity') + ' ' + styleBattery : 'display:none;'}" />
 
+                    <path class="bg-path bg-venus" d="${pathSolarVenus}" style="${getPipeStyle(solarToVenus, '--pipe-solar-opacity')} ${styleSolarVenus}" />
+                    <path class="bg-path bg-venus" d="${pathVenusHouse}" style="${getPipeStyle(venusDischarge, '--pipe-venus-opacity')} ${styleVenus}" />
+                    <path class="bg-path bg-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getPipeStyle(venusCharge, '--pipe-venus-opacity') + ' ' + styleVenus : 'display:none;'}" />
+
                     <path d="${pathHouseC1}" fill="none" stroke="${this._getConsumerPipeColor(1)}" stroke-width="6" style="${getConsumerPipeStyle(c1PipeActive, c1Val, 1)}" />
                     <path d="${pathHouseC2}" fill="none" stroke="${this._getConsumerPipeColor(2)}" stroke-width="6" style="${getConsumerPipeStyle(showC2, c2Val, 2)}" />
                     <path d="${pathHouseC3}" fill="none" stroke="${this._getConsumerPipeColor(3)}" stroke-width="6" style="${getConsumerPipeStyle(showC3, c3Val, 3)}" />
@@ -1464,6 +1508,10 @@ console.log(
 
                     <path class="flow-line flow-battery" d="${pathHouseToBatt}" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getAnimStyle(batteryCharge, '--pipe-battery-opacity') + ' ' + styleBattery : 'display:none;'}" />
 
+                    <path class="flow-line flow-venus" d="${pathSolarVenus}" style="${getAnimStyle(solarToVenus, '--pipe-solar-opacity')} ${styleSolarVenus}" />
+                    <path class="flow-line flow-venus" d="${pathVenusHouse}" style="${getAnimStyle(venusDischarge, '--pipe-venus-opacity')} ${styleVenus}" />
+                    <path class="flow-line flow-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getAnimStyle(venusCharge, '--pipe-venus-opacity') + ' ' + styleVenus : 'display:none;'}" />
+
                     <path class="flow-line" d="${pathHouseC1}" stroke="${this._getConsumerPipeColor(1)}" style="${getConsumerAnimStyle(c1PipeActive, c1Val, 1)}" />
                     <path class="flow-line" d="${pathHouseC2}" stroke="${this._getConsumerPipeColor(2)}" style="${getConsumerAnimStyle(showC2, c2Val, 2)}" />
                     <path class="flow-line" d="${pathHouseC3}" stroke="${this._getConsumerPipeColor(3)}" style="${getConsumerAnimStyle(showC3, c3Val, 3)}" />
@@ -1480,6 +1528,10 @@ console.log(
                     <text x="320" y="235" class="${textClass} text-battery" style="${getTextStyle(batteryDischarge, 'battery')} ${styleBattery}">${this._formatPower(batteryDischarge)}</text>
 
                     <text x="320" y="235" class="${textClass} text-battery" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getTextStyle(batteryCharge, 'battery') + ' ' + styleBattery : 'display:none;'}">${this._formatPower(batteryCharge)}</text>
+
+                    <text x="290" y="40" class="${textClass} text-solar" style="${getTextStyle(solarToVenus, 'solar')} ${styleSolarVenus}">${this._formatPower(solarToVenus)}</text>
+                    <text x="450" y="235" class="${textClass} text-venus" style="${getTextStyle(venusDischarge, 'venus')} ${styleVenus}">${this._formatPower(venusDischarge)}</text>
+                    <text x="450" y="235" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
 
                 </svg>
 
