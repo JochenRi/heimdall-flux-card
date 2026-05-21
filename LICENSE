@@ -1,6 +1,7 @@
 MIT License
 
-Copyright (c) 2026 jayjojayson
+Copyright (c) 2026 jayjojayson (Power Flux Card — upstream)
+Copyright (c) 2026 Johannes (@JochenRi) (HEIMDALL Flux Card — modifications)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +20,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+This project is a fork of Power Flux Card by jayjojayson:
+https://github.com/jayjojayson/power-flux-card
+
+The original upstream code retains all its original copyright. Modifications
+made in this fork are additionally copyrighted by Johannes (@JochenRi) and
+released under the same MIT license. See README.md for a list of modifications.
