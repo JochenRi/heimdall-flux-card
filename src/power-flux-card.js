@@ -1441,7 +1441,7 @@ console.log(
       };
 
       const pathSolarHouse = "M 55 170 Q 195 250 265 290";
-      const pathSolarBatt = "M 55 80 Q 215 -15 375 80";
+      const pathSolarBatt = "M 55 80 Q 215 35 375 80";
       const pathGridImport = "M 215 170 Q 215 290 265 290";
       const pathGridExport = "M 100 125 Q 135 155 170 125";
       const pathHouseExport = "M 265 290 Q 215 290 215 170";
@@ -1453,7 +1453,7 @@ console.log(
       const pathBattHouse = "M 375 170 Q 375 290 355 290";
       const pathHouseToBatt = "M 355 290 Q 375 290 375 170";
       // Venus pipes (mirrors battery pattern, geometrically distinct from LG paths)
-      const pathSolarVenus = "M 55 80 Q 295 -45 535 80";
+      const pathSolarVenus = "M 55 80 Q 295 15 535 80";
       const pathVenusHouse = "M 535 170 Q 415 250 355 290";
       const pathHouseToVenus = "M 355 290 Q 415 250 535 170";
       const pathHouseC1 = "M 265 290 Q 85 290 85 400";
@@ -1473,8 +1473,8 @@ console.log(
         
         <div class="scale-wrapper" style="transform: scale(${scale}); margin-left: ${centerMarginLeft}px;">
             
-            <div class="absolute-container" style="height: ${baseHeight + 60}px; top: -${topShift + 60}px;">
-                <svg height="${baseHeight + 60}" viewBox="0 -60 620 ${baseHeight + 60}" preserveAspectRatio="xMidYMid meet">
+            <div class="absolute-container" style="height: ${baseHeight}px; top: -${topShift}px;">
+                <svg height="${baseHeight}" viewBox="0 0 620 ${baseHeight}" preserveAspectRatio="xMidYMid meet">
                     
                     <path class="bg-path bg-solar" d="${pathSolarHouse}" style="${getPipeStyle(solarToHouse, '--pipe-solar-opacity')} ${styleSolar}" />
                     <path class="bg-path bg-solar" d="${pathSolarBatt}" style="${getPipeStyle(solarToBatt, '--pipe-solar-opacity')} ${styleSolarBatt}" />
