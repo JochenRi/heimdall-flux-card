@@ -15,6 +15,7 @@ const lang_de = {
     "editor.consumers_section": "Zusätzliche Verbraucher",
     "editor.options_section": "Darstellung & Optionen",
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
+    "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
     "editor.invert_battery": "Wert umkehren (+/-)",
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.compact_view": "Kompakte Ansicht (evcc)",
@@ -101,6 +102,7 @@ const lang_en = {
     "editor.consumers_section": "Additional Consumers",
     "editor.options_section": "Appearance & Options",
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
+    "editor.pipe_label_size": "Pipe Label Font Size (px)",
     "editor.invert_battery": "Invert Power Value (+/-)",
     "editor.label_toggle": "Show Label in Bubble",
     "editor.compact_view": "Compact View (evcc)",
@@ -1209,6 +1211,17 @@ class PowerFluxCardEditor extends LitElement {
                 .value=${this._config.zoom !== undefined ? this._config.zoom : 0.9}
                 .configValue=${'zoom'}
                 .label=${this._localize('editor.zoom_label')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 8, max: 20, step: 1, mode: "slider" } }}
+                .value=${this._config.pipe_label_size !== undefined ? this._config.pipe_label_size : 10}
+                .configValue=${'pipe_label_size'}
+                .label=${this._localize('editor.pipe_label_size')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
         </div>

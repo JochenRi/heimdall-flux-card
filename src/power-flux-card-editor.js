@@ -1029,6 +1029,17 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-selector>
         </div>
 
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 8, max: 20, step: 1, mode: "slider" } }}
+                .value=${this._config.pipe_label_size !== undefined ? this._config.pipe_label_size : 10}
+                .configValue=${'pipe_label_size'}
+                .label=${this._localize('editor.pipe_label_size')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
         <div class="switch-row">
             <ha-switch
                 .checked=${this._config.show_neon_glow !== false} 
