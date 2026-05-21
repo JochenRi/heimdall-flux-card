@@ -1580,7 +1580,7 @@ console.log(
       
       /* --- STANDARD VIEW STYLES --- */
       .scale-wrapper {
-        width: 420px; 
+        width: 620px; 
         transform-origin: top left; 
         transition: transform 0.1s linear;
       }
@@ -2341,10 +2341,10 @@ console.log(
       const hasTopRow = hasSolar || hasGrid || hasBattery;
       const topShift = !hasTopRow ? 190 : ((isTopArcActive || (!hideInactive && hasSolar && hasBattery && batteryCharge > 0 && !batteryChargeViaHouse)) ? 0 : 50);
       const anyRow2Visible = showC4 || showC5;
-      let baseHeight = anyRow2Visible ? 580 : (anyBottomVisible ? 480 : 340);
+      let baseHeight = anyRow2Visible ? 620 : (anyBottomVisible ? 520 : 340);
       const contentHeight = baseHeight - topShift;
 
-      const designWidth = 420;
+      const designWidth = 620;
       const availableWidth = this._cardWidth || designWidth;
       let scale = availableWidth / designWidth;
       const userZoom = this.config.zoom !== undefined ? this.config.zoom : 0.9;
@@ -2354,7 +2354,7 @@ console.log(
       if (scale > 1.5) scale = 1.5;
 
       const finalCardHeightPx = contentHeight * scale;
-      const visualWidth = 420 * scale;
+      const visualWidth = 620 * scale;
       const centerMarginLeft = Math.max(0, (availableWidth - visualWidth) / 2);
 
       let houseGradientVal = '';
@@ -2605,7 +2605,7 @@ console.log(
         <div class="scale-wrapper" style="transform: scale(${scale}); margin-left: ${centerMarginLeft}px;">
             
             <div class="absolute-container" style="height: ${baseHeight}px; top: -${topShift}px;">
-                <svg height="${baseHeight}" viewBox="0 0 420 ${baseHeight}" preserveAspectRatio="xMidYMid meet">
+                <svg height="${baseHeight}" viewBox="0 0 620 ${baseHeight}" preserveAspectRatio="xMidYMid meet">
                     
                     <path class="bg-path bg-solar" d="${pathSolarHouse}" style="${getPipeStyle(solarToHouse, '--pipe-solar-opacity')} ${styleSolar}" />
                     <path class="bg-path bg-solar" d="${pathSolarBatt}" style="${getPipeStyle(solarToBatt, '--pipe-solar-opacity')} ${styleSolarBatt}" />
