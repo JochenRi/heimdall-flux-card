@@ -1205,7 +1205,7 @@ class PowerFluxCardEditor extends LitElement {
         <div>
             <ha-selector
                 .hass=${this.hass}
-                .selector=${{ number: { min: 0.5, max: 1.5, step: 0.05, mode: "slider" } }}
+                .selector=${{ number: { min: 0.5, max: 1.0, step: 0.05, mode: "slider" } }}
                 .value=${this._config.zoom !== undefined ? this._config.zoom : 0.9}
                 .configValue=${'zoom'}
                 .label=${this._localize('editor.zoom_label')}
@@ -2531,12 +2531,13 @@ console.log(
 
       const designWidth = 620;
       const availableWidth = this._cardWidth || designWidth;
-      let scale = availableWidth / designWidth;
+      const baseScale = availableWidth / designWidth;
       const userZoom = this.config.zoom !== undefined ? this.config.zoom : 0.9;
-      scale = scale * userZoom;
+      let scale = baseScale * userZoom;
 
+      // Smart-cap: never scale beyond available card width to avoid overflow
+      if (scale > baseScale) scale = baseScale;
       if (scale < 0.5) scale = 0.5;
-      if (scale > 1.5) scale = 1.5;
 
       const finalCardHeightPx = contentHeight * scale;
       const visualWidth = 620 * scale;
