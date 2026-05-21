@@ -1486,6 +1486,7 @@ console.log(
           'color_icon_solar': '--icon-solar-color',
           'color_icon_grid': '--icon-grid-color',
           'color_icon_battery': '--icon-battery-color',
+          'color_icon_venus': '--icon-venus-color',
           'color_icon_house': '--icon-house-color',
           'color_icon_consumer_1': '--icon-consumer-1-color',
           'color_icon_consumer_2': '--icon-consumer-2-color',
@@ -1495,6 +1496,7 @@ console.log(
           'color_text_solar': '--text-solar-color',
           'color_text_grid': '--text-grid-color',
           'color_text_battery': '--text-battery-color',
+          'color_text_venus': '--text-venus-color',
           'color_text_house': '--text-house-color',
           'color_text_consumer_1': '--text-consumer-1-color',
           'color_text_consumer_2': '--text-consumer-2-color',
@@ -1504,6 +1506,7 @@ console.log(
           'color_secondary_solar': '--secondary-solar-color',
           'color_secondary_grid': '--secondary-grid-color',
           'color_secondary_battery': '--secondary-battery-color',
+          'color_secondary_venus': '--secondary-venus-color',
           'color_secondary_house': '--secondary-house-color',
           'color_secondary_consumer_1': '--secondary-consumer-1-color',
           'color_secondary_consumer_2': '--secondary-consumer-2-color',
@@ -1558,6 +1561,7 @@ console.log(
         --icon-solar-color: var(--neon-yellow);
         --icon-grid-color: var(--neon-blue);
         --icon-battery-color: var(--neon-green);
+        --icon-venus-color: var(--venus-color);
         --icon-house-color: var(--neon-pink);
         --icon-consumer-1-color: var(--consumer-1-color);
         --icon-consumer-2-color: var(--consumer-2-color);
@@ -1567,6 +1571,7 @@ console.log(
         --text-solar-color: var(--neon-yellow);
         --text-grid-color: var(--neon-blue);
         --text-battery-color: var(--neon-green);
+        --text-venus-color: var(--venus-color);
         --text-house-color: var(--neon-pink);
         --text-consumer-1-color: var(--consumer-1-color);
         --text-consumer-2-color: var(--consumer-2-color);
@@ -1576,6 +1581,7 @@ console.log(
         --secondary-solar-color: #888888;
         --secondary-grid-color: #888888;
         --secondary-battery-color: #888888;
+        --secondary-venus-color: #888888;
         --secondary-house-color: #888888;
         --secondary-consumer-1-color: #888888;
         --secondary-consumer-2-color: #888888;
@@ -1897,6 +1903,14 @@ console.log(
         const rectHeight = 14 * soc;
         const rectY = 18 - rectHeight;
         const strokeColor = colorOverride || 'var(--icon-battery-color)';
+        const rectColor = soc > 0.2 ? strokeColor : 'var(--neon-red)';
+        return html`<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="16" rx="2" ry="2"></rect><line x1="10" y1="2" x2="14" y2="2"></line><rect x="7" y="${rectY}" width="10" height="${rectHeight}" fill="${rectColor}" stroke="none"></rect></svg>`;
+      }
+      if (type === 'venus') {
+        const soc = Math.min(Math.max(val, 0), 100) / 100;
+        const rectHeight = 14 * soc;
+        const rectY = 18 - rectHeight;
+        const strokeColor = colorOverride || 'var(--icon-venus-color)';
         const rectColor = soc > 0.2 ? strokeColor : 'var(--neon-red)';
         return html`<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="16" rx="2" ry="2"></rect><line x1="10" y1="2" x2="14" y2="2"></line><rect x="7" y="${rectY}" width="10" height="${rectHeight}" fill="${rectColor}" stroke="none"></rect></svg>`;
       }
@@ -2291,11 +2305,13 @@ console.log(
       const showFlowSolar = this.config.show_flow_rate_solar !== undefined ? this.config.show_flow_rate_solar : globalFlowRate;
       const showFlowGrid = this.config.show_flow_rate_grid !== undefined ? this.config.show_flow_rate_grid : globalFlowRate;
       const showFlowBattery = this.config.show_flow_rate_battery !== undefined ? this.config.show_flow_rate_battery : globalFlowRate;
+      const showFlowVenus = this.config.show_flow_rate_venus !== undefined ? this.config.show_flow_rate_venus : globalFlowRate;
 
       // LABEL TOGGLES
       const showLabelSolar = this.config.show_label_solar === true;
       const showLabelGrid = this.config.show_label_grid === true;
       const showLabelBattery = this.config.show_label_battery === true;
+      const showLabelVenus = this.config.show_label_venus === true;
       const showLabelHouse = this.config.show_label_house === true;
 
       const useColoredValues = this.config.use_colored_values === true;
@@ -2310,6 +2326,7 @@ console.log(
       const labelSolarText = this.config.solar_label || this._localize('card.label_solar');
       const labelGridText = this.config.grid_label || this._localize('card.label_grid');
       const labelBatteryText = this.config.battery_label || (entities.battery && this.hass.states[entities.battery] && this.hass.states[entities.battery].state > 0 ? '+' : '-') + " " + this._localize('card.label_battery');
+      const labelVenusText = this.config.venus_label || (entities.venus && this.hass.states[entities.venus] && this.hass.states[entities.venus].state > 0 ? '+' : '-') + " " + this._localize('card.label_venus');
       const labelHouseText = this.config.house_label || this._localize('card.label_house');
       // Secondary Sensor für Haus
       const hasSecondaryHouse = !!(entities.secondary_house && entities.secondary_house !== "");
@@ -2335,6 +2352,7 @@ console.log(
           'secondary_solar': '--secondary-solar-color',
           'secondary_grid': '--secondary-grid-color',
           'secondary_battery': '--secondary-battery-color',
+          'secondary_venus': '--secondary-venus-color',
           'secondary_house': '--secondary-house-color',
           'secondary_consumer_1': '--secondary-consumer-1-color',
           'secondary_consumer_2': '--secondary-consumer-2-color',
@@ -2354,11 +2372,13 @@ console.log(
       const iconSolar = this.config.solar_icon;
       const iconGrid = this.config.grid_icon;
       const iconBattery = this.config.battery_icon;
+      const iconVenus = this.config.venus_icon;
 
       // SECONDARY SENSORS (display only)
       const hasSecondarySolar = !!(entities.secondary_solar && entities.secondary_solar !== "");
       const hasSecondaryGrid = !!(entities.secondary_grid && entities.secondary_grid !== "");
       const hasSecondaryBattery = !!(entities.secondary_battery && entities.secondary_battery !== "");
+      const hasSecondaryVenus = !!(entities.secondary_venus && entities.secondary_venus !== "");
       
       // Determine existence of main entities
       const hasSolar = !!(entities.solar && entities.solar !== "");
@@ -2712,7 +2732,7 @@ console.log(
 
       const renderMainIcon = (type, val, customIcon, color = null) => {
         if (customIcon) {
-          const style = color ? `color: ${color};` : (type === 'solar' ? 'color: var(--icon-solar-color);' : (type === 'grid' ? 'color: var(--icon-grid-color);' : (type === 'battery' ? 'color: var(--icon-battery-color);' : (type === 'house' ? 'color: var(--icon-house-color);' : ''))));
+          const style = color ? `color: ${color};` : (type === 'solar' ? 'color: var(--icon-solar-color);' : (type === 'grid' ? 'color: var(--icon-grid-color);' : (type === 'battery' ? 'color: var(--icon-battery-color);' : (type === 'venus' ? 'color: var(--icon-venus-color);' : (type === 'house' ? 'color: var(--icon-house-color);' : '')))));
           return html`<ha-icon icon="${customIcon}" class="icon-custom" style="${style}"></ha-icon>`;
         }
         return this._renderIcon(type, val, color);
