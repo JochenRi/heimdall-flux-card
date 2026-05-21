@@ -2899,9 +2899,9 @@ console.log(
                 
                 <div class="bubble venus node-venus ${tintClass} ${glowClass}"
                     @click=${() => hasVenus && this._handleClick(entities.venus)}>
-                    <ha-icon icon="mdi:battery-charging" class="icon-custom" style="color: var(--venus-color);"></ha-icon>
-                    ${hasVenus && entities.venus_soc ? html`<div class="sub secondary-val" style="color: var(--venus-color); opacity: 0.7;">${Math.round(venusSoc)}%</div>` : ''}
-                    <div class="value" style="color: var(--venus-color);">${hasVenus ? this._formatPower(venus) : '—'}</div>
+                    ${renderMainIcon('venus', venusSoc, iconVenus)}
+                    ${renderSecondaryOrLabel(labelVenusText, showLabelVenus, entities.secondary_venus, hasSecondaryVenus, 'secondary_venus')}
+                    <div class="value" style="${this.config.color_text_venus ? 'color: var(--text-venus-color);' : 'color: var(--venus-color);'}">${hasVenus ? (this.config.venus_show_power ? this._formatPower(venus) : Math.round(venusSoc) + '%') : '—'}</div>
                 </div>
                 
                 <div class="bubble house node-house ${showDonut ? 'donut' : ''} ${tintClass}" 
