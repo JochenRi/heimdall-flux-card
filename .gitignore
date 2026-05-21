@@ -1,0 +1,16 @@
+# Node / npm
+node_modules/
+npm-debug.log*
+yarn-error.log
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Build artifacts (we keep dist/ committed per upstream convention)
+*.log
+
+# OS files
+Thumbs.db
