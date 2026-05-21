@@ -1877,7 +1877,7 @@ console.log(
       @keyframes dash { to { stroke-dashoffset: -1500; } }
 
       .flow-text {
-        font-size: 10px; font-weight: bold; text-anchor: middle; fill: #fff; transition: opacity 0.3s ease;
+        font-size: var(--pipe-label-size, 10px); font-weight: bold; text-anchor: middle; fill: #fff; transition: opacity 0.3s ease;
       }
       .flow-text.no-shadow { filter: none; }
       .text-solar { fill: var(--pipe-solar-color); }
@@ -2810,7 +2810,7 @@ console.log(
       const strokeWidthVal = showDashedLine ? 4 : 8;
 
       return html`
-      <ha-card style="height: ${finalCardHeightPx}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px;">
+      <ha-card style="height: ${finalCardHeightPx}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px;">
         
         <div class="scale-wrapper" style="transform: scale(${scale}); margin-left: ${centerMarginLeft}px;">
             
