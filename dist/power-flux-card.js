@@ -1186,6 +1186,27 @@ class PowerFluxCardEditor extends LitElement {
 customElements.define("power-flux-card-editor", PowerFluxCardEditor);
 
 
+/*
+ * HEIMDALL Flux Card
+ * A power flow card adapted for dual-battery setups.
+ *
+ * Based on Power Flux Card (MIT License)
+ *   Copyright (c) 2026 jayjojayson
+ *   Upstream: https://github.com/jayjojayson/power-flux-card
+ *
+ * Fork modifications (MIT License)
+ *   Copyright (c) 2026 Johannes (@JochenRi)
+ *   Repository: https://github.com/JochenRi/heimdall-flux-card
+ *
+ * The upstream project provides the entire foundation of this card:
+ * card architecture, SVG layout, bubble framework, pipe animation engine,
+ * compact-view, visual editor, and DE/EN localization.
+ *
+ * Please support the original author:
+ *   https://github.com/jayjojayson/power-flux-card  (star)
+ *   https://www.paypal.me/quadFlyerFW                (donate)
+ */
+
 
 
 
