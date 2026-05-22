@@ -1955,6 +1955,11 @@ console.log(
       .text-export { fill: var(--export-color); }
       .text-battery { fill: var(--pipe-battery-color); }
       .text-venus { fill: var(--pipe-venus-color); }
+      .text-consumer-1 { fill: var(--pipe-consumer-1-color); }
+      .text-consumer-2 { fill: var(--pipe-consumer-2-color); }
+      .text-consumer-3 { fill: var(--pipe-consumer-3-color); }
+      .text-consumer-4 { fill: var(--pipe-consumer-4-color); }
+      .text-consumer-5 { fill: var(--pipe-consumer-5-color); }
     `;
     }
 
@@ -2967,7 +2972,7 @@ console.log(
                     <text x="450" y="235" class="${textClass} text-venus" style="${getTextStyle(venusDischarge, 'venus')} ${styleVenus}">${this._formatPower(venusDischarge)}</text>
                     <text x="450" y="235" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
 
-                    <text x="${130 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')} fill: ${this._getConsumerPipeColor(1)};">${this._formatPower(c1Val)}</text>
+                    <text x="${130 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}">${this._formatPower(c1Val)}</text>
 
                 </svg>
 
