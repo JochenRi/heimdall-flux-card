@@ -3088,7 +3088,6 @@ console.log(
 
       const getConsumerPipeStyle = (isActive, val, idx = null) => {
         if (!isActive) return "display: none;";
-        if (idx && val <= getConsumerThreshold(idx)) return "opacity: 0;";
         return getPipeStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null);
       };
 
