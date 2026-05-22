@@ -1100,6 +1100,42 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
             </div>
 
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_power')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_2_show_power !== false}
+                    .configValue=${'consumer_2_show_power'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_consumer_2 === true}
+                    .configValue=${'show_flow_rate_consumer_2'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_2_label_offset_x !== undefined ? this._config.consumer_2_label_offset_x : 0}
+                .configValue=${'consumer_2_label_offset_x'}
+                .label=${this._localize('editor.consumer_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_2_label_offset_y !== undefined ? this._config.consumer_2_label_offset_y : -25}
+                .configValue=${'consumer_2_label_offset_y'}
+                .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_2 || "", 'secondary_consumer_2', this._localize('editor.secondary_sensor'))}
 
             ${this._renderColorPickerQuint('color_consumer_2', 'color_pipe_consumer_2', 'color_text_consumer_2', 'color_icon_consumer_2', 'color_secondary_consumer_2', '#f97316')}
@@ -1132,6 +1168,43 @@ class PowerFluxCardEditor extends LitElement {
                     @change=${this._valueChanged}
                 ></ha-switch>
             </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_power')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_3_show_power !== false}
+                    .configValue=${'consumer_3_show_power'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_consumer_3 === true}
+                    .configValue=${'show_flow_rate_consumer_3'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_3_label_offset_x !== undefined ? this._config.consumer_3_label_offset_x : 0}
+                .configValue=${'consumer_3_label_offset_x'}
+                .label=${this._localize('editor.consumer_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_3_label_offset_y !== undefined ? this._config.consumer_3_label_offset_y : -25}
+                .configValue=${'consumer_3_label_offset_y'}
+                .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_3 || "", 'secondary_consumer_3', this._localize('editor.secondary_sensor'))}
             ${this._renderColorPickerQuint('color_consumer_3', 'color_pipe_consumer_3', 'color_text_consumer_3', 'color_icon_consumer_3', 'color_secondary_consumer_3', '#06b6d4')}
         </div>
@@ -1162,6 +1235,43 @@ class PowerFluxCardEditor extends LitElement {
                     @change=${this._valueChanged}
                 ></ha-switch>
             </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_power')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_4_show_power !== false}
+                    .configValue=${'consumer_4_show_power'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_consumer_4 === true}
+                    .configValue=${'show_flow_rate_consumer_4'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_4_label_offset_x !== undefined ? this._config.consumer_4_label_offset_x : 0}
+                .configValue=${'consumer_4_label_offset_x'}
+                .label=${this._localize('editor.consumer_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_4_label_offset_y !== undefined ? this._config.consumer_4_label_offset_y : -25}
+                .configValue=${'consumer_4_label_offset_y'}
+                .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_4 || "", 'secondary_consumer_4', this._localize('editor.secondary_sensor'))}
             ${this._renderColorPickerQuint('color_consumer_4', 'color_pipe_consumer_4', 'color_text_consumer_4', 'color_icon_consumer_4', 'color_secondary_consumer_4', '#eab308')}
         </div>
@@ -1192,6 +1302,43 @@ class PowerFluxCardEditor extends LitElement {
                     @change=${this._valueChanged}
                 ></ha-switch>
             </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_power')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_5_show_power !== false}
+                    .configValue=${'consumer_5_show_power'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_consumer_5 === true}
+                    .configValue=${'show_flow_rate_consumer_5'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_5_label_offset_x !== undefined ? this._config.consumer_5_label_offset_x : 0}
+                .configValue=${'consumer_5_label_offset_x'}
+                .label=${this._localize('editor.consumer_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_5_label_offset_y !== undefined ? this._config.consumer_5_label_offset_y : -25}
+                .configValue=${'consumer_5_label_offset_y'}
+                .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_5 || "", 'secondary_consumer_5', this._localize('editor.secondary_sensor'))}
             ${this._renderColorPickerQuint('color_consumer_5', 'color_pipe_consumer_5', 'color_text_consumer_5', 'color_icon_consumer_5', 'color_secondary_consumer_5', '#6366f1')}
         </div>
@@ -2384,6 +2531,10 @@ console.log(
       const showFlowBattery = this.config.show_flow_rate_battery !== undefined ? this.config.show_flow_rate_battery : globalFlowRate;
       const showFlowVenus = this.config.show_flow_rate_venus !== undefined ? this.config.show_flow_rate_venus : globalFlowRate;
       const showFlowConsumer1 = this.config.show_flow_rate_consumer_1 === true;
+      const showFlowConsumer2 = this.config.show_flow_rate_consumer_2 === true;
+      const showFlowConsumer3 = this.config.show_flow_rate_consumer_3 === true;
+      const showFlowConsumer4 = this.config.show_flow_rate_consumer_4 === true;
+      const showFlowConsumer5 = this.config.show_flow_rate_consumer_5 === true;
 
       // LABEL TOGGLES
       const showLabelSolar = this.config.show_label_solar === true;
@@ -2788,6 +2939,10 @@ console.log(
         else if (type === 'battery') isVisible = showFlowBattery;
         else if (type === 'venus') isVisible = showFlowVenus;
         else if (type === 'consumer_1') isVisible = showFlowConsumer1;
+        else if (type === 'consumer_2') isVisible = showFlowConsumer2;
+        else if (type === 'consumer_3') isVisible = showFlowConsumer3;
+        else if (type === 'consumer_4') isVisible = showFlowConsumer4;
+        else if (type === 'consumer_5') isVisible = showFlowConsumer5;
 
         if (!isVisible) return "display: none;";
         return val > animThreshold ? "opacity: 1;" : "opacity: 0;";
@@ -2973,6 +3128,10 @@ console.log(
                     <text x="450" y="235" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
 
                     <text x="${130 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}">${this._formatPower(c1Val)}</text>
+                    <text x="${310 + (this.config.consumer_2_label_offset_x !== undefined ? this.config.consumer_2_label_offset_x : 0)}" y="${367 + (this.config.consumer_2_label_offset_y !== undefined ? this.config.consumer_2_label_offset_y : -25)}" class="${textClass} text-consumer-2" style="${getTextStyle(c2Val, 'consumer_2')}">${this._formatPower(c2Val)}</text>
+                    <text x="${490 + (this.config.consumer_3_label_offset_x !== undefined ? this.config.consumer_3_label_offset_x : 0)}" y="${320 + (this.config.consumer_3_label_offset_y !== undefined ? this.config.consumer_3_label_offset_y : -25)}" class="${textClass} text-consumer-3" style="${getTextStyle(c3Val, 'consumer_3')}">${this._formatPower(c3Val)}</text>
+                    <text x="${202 + (this.config.consumer_4_label_offset_x !== undefined ? this.config.consumer_4_label_offset_x : 0)}" y="${400 + (this.config.consumer_4_label_offset_y !== undefined ? this.config.consumer_4_label_offset_y : -25)}" class="${textClass} text-consumer-4" style="${getTextStyle(c4Val, 'consumer_4')}">${this._formatPower(c4Val)}</text>
+                    <text x="${418 + (this.config.consumer_5_label_offset_x !== undefined ? this.config.consumer_5_label_offset_x : 0)}" y="${400 + (this.config.consumer_5_label_offset_y !== undefined ? this.config.consumer_5_label_offset_y : -25)}" class="${textClass} text-consumer-5" style="${getTextStyle(c5Val, 'consumer_5')}">${this._formatPower(c5Val)}</text>
 
                 </svg>
 

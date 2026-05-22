@@ -992,6 +992,10 @@ console.log(
       const showFlowBattery = this.config.show_flow_rate_battery !== undefined ? this.config.show_flow_rate_battery : globalFlowRate;
       const showFlowVenus = this.config.show_flow_rate_venus !== undefined ? this.config.show_flow_rate_venus : globalFlowRate;
       const showFlowConsumer1 = this.config.show_flow_rate_consumer_1 === true;
+      const showFlowConsumer2 = this.config.show_flow_rate_consumer_2 === true;
+      const showFlowConsumer3 = this.config.show_flow_rate_consumer_3 === true;
+      const showFlowConsumer4 = this.config.show_flow_rate_consumer_4 === true;
+      const showFlowConsumer5 = this.config.show_flow_rate_consumer_5 === true;
 
       // LABEL TOGGLES
       const showLabelSolar = this.config.show_label_solar === true;
@@ -1396,6 +1400,10 @@ console.log(
         else if (type === 'battery') isVisible = showFlowBattery;
         else if (type === 'venus') isVisible = showFlowVenus;
         else if (type === 'consumer_1') isVisible = showFlowConsumer1;
+        else if (type === 'consumer_2') isVisible = showFlowConsumer2;
+        else if (type === 'consumer_3') isVisible = showFlowConsumer3;
+        else if (type === 'consumer_4') isVisible = showFlowConsumer4;
+        else if (type === 'consumer_5') isVisible = showFlowConsumer5;
 
         if (!isVisible) return "display: none;";
         return val > animThreshold ? "opacity: 1;" : "opacity: 0;";
@@ -1581,6 +1589,10 @@ console.log(
                     <text x="450" y="235" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
 
                     <text x="${130 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}">${this._formatPower(c1Val)}</text>
+                    <text x="${310 + (this.config.consumer_2_label_offset_x !== undefined ? this.config.consumer_2_label_offset_x : 0)}" y="${367 + (this.config.consumer_2_label_offset_y !== undefined ? this.config.consumer_2_label_offset_y : -25)}" class="${textClass} text-consumer-2" style="${getTextStyle(c2Val, 'consumer_2')}">${this._formatPower(c2Val)}</text>
+                    <text x="${490 + (this.config.consumer_3_label_offset_x !== undefined ? this.config.consumer_3_label_offset_x : 0)}" y="${320 + (this.config.consumer_3_label_offset_y !== undefined ? this.config.consumer_3_label_offset_y : -25)}" class="${textClass} text-consumer-3" style="${getTextStyle(c3Val, 'consumer_3')}">${this._formatPower(c3Val)}</text>
+                    <text x="${202 + (this.config.consumer_4_label_offset_x !== undefined ? this.config.consumer_4_label_offset_x : 0)}" y="${400 + (this.config.consumer_4_label_offset_y !== undefined ? this.config.consumer_4_label_offset_y : -25)}" class="${textClass} text-consumer-4" style="${getTextStyle(c4Val, 'consumer_4')}">${this._formatPower(c4Val)}</text>
+                    <text x="${418 + (this.config.consumer_5_label_offset_x !== undefined ? this.config.consumer_5_label_offset_x : 0)}" y="${400 + (this.config.consumer_5_label_offset_y !== undefined ? this.config.consumer_5_label_offset_y : -25)}" class="${textClass} text-consumer-5" style="${getTextStyle(c5Val, 'consumer_5')}">${this._formatPower(c5Val)}</text>
 
                 </svg>
 
