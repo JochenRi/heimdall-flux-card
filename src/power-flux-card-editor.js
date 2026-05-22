@@ -850,7 +850,6 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
             </div>
 
-            ${this._config.show_flow_rate_consumer_1 === true ? html`
             <ha-selector
                 .hass=${this.hass}
                 .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
@@ -868,7 +867,6 @@ class PowerFluxCardEditor extends LitElement {
                 .label=${this._localize('editor.consumer_label_offset_y')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
-            ` : ''}
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_1 || "", 'secondary_consumer_1', this._localize('editor.secondary_sensor'))}
 
