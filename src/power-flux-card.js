@@ -1343,17 +1343,38 @@ console.log(
 
       // Animation threshold: pipes only animate (and labels show) when flow > this value
       // Default 1 = legacy behavior. User can raise to ignore standby drift (e.g. Tesla 2W idle).
+      // Global fallback threshold. Used only when a per-bubble threshold is not set.
+      // Legacy: existing cards with `animation_threshold` in YAML still get that value as fallback.
+      // New cards without it default to 1 (effectively off).
       const animThreshold = this.config.animation_threshold !== undefined ? this.config.animation_threshold : 1;
 
-      // Per-consumer threshold override: falls back to global animThreshold if not set.
-      // Lets BWWP show 18W standby while Tesla 2W standby stays hidden.
+      // Per-bubble threshold helpers: fall back to global animThreshold when bubble-specific value is unset.
+      // This lets each bubble have its own standby filter (e.g. BWWP shows 18W idle, Tesla hides 2W idle).
+      const getSolarThreshold = () => this.config.solar_animation_threshold !== undefined ? this.config.solar_animation_threshold : animThreshold;
+      const getGridThreshold = () => this.config.grid_animation_threshold !== undefined ? this.config.grid_animation_threshold : animThreshold;
+      const getBatteryThreshold = () => this.config.battery_animation_threshold !== undefined ? this.config.battery_animation_threshold : animThreshold;
+      const getVenusThreshold = () => this.config.venus_animation_threshold !== undefined ? this.config.venus_animation_threshold : animThreshold;
       const getConsumerThreshold = (idx) => {
         const override = this.config[`consumer_${idx}_animation_threshold`];
         return override !== undefined ? override : animThreshold;
       };
 
-      const getAnimStyle = (val, opVar = null) => {
-        if (val <= animThreshold) return "opacity: 0;";
+      // Resolve threshold by bubble type — used by getAnimStyle/getTextStyle.
+      const getThresholdByType = (type) => {
+        if (type === 'solar') return getSolarThreshold();
+        if (type === 'grid') return getGridThreshold();
+        if (type === 'battery') return getBatteryThreshold();
+        if (type === 'venus') return getVenusThreshold();
+        if (typeof type === 'string' && type.startsWith('consumer_')) {
+          const idx = parseInt(type.split('_')[1], 10);
+          return getConsumerThreshold(idx);
+        }
+        return animThreshold;
+      };
+
+      const getAnimStyle = (val, opVar = null, type = null) => {
+        const threshold = type ? getThresholdByType(type) : animThreshold;
+        if (val <= threshold) return "opacity: 0;";
 
         // --- Dynamic speed based on power ---
         // Higher power = faster animation (shorter duration)
@@ -1394,26 +1415,27 @@ console.log(
         return `opacity: ${opStr}; animation-duration: ${duration}s; stroke-dasharray: ${dynamicDash};`;
       };
 
+      // Background pipe is always visible (topology indicator).
+      // Animation visibility is governed separately by getAnimStyle + per-bubble thresholds.
       const getPipeStyle = (val, opVar = null) => {
         const op = opVar ? `calc(var(${opVar}, 1) * 0.2)` : '0.2';
-        if (!hideInactive) return `opacity: ${op};`;
-        return val > animThreshold ? `opacity: ${op};` : "opacity: 0;";
+        return `opacity: ${op};`;
       };
 
       const getTextStyle = (val, type) => {
         let isVisible = false;
-        let threshold = animThreshold;
         if (type === 'solar') isVisible = showFlowSolar;
         else if (type === 'grid') isVisible = showFlowGrid;
         else if (type === 'battery') isVisible = showFlowBattery;
         else if (type === 'venus') isVisible = showFlowVenus;
-        else if (type === 'consumer_1') { isVisible = showFlowConsumer1; threshold = getConsumerThreshold(1); }
-        else if (type === 'consumer_2') { isVisible = showFlowConsumer2; threshold = getConsumerThreshold(2); }
-        else if (type === 'consumer_3') { isVisible = showFlowConsumer3; threshold = getConsumerThreshold(3); }
-        else if (type === 'consumer_4') { isVisible = showFlowConsumer4; threshold = getConsumerThreshold(4); }
-        else if (type === 'consumer_5') { isVisible = showFlowConsumer5; threshold = getConsumerThreshold(5); }
+        else if (type === 'consumer_1') isVisible = showFlowConsumer1;
+        else if (type === 'consumer_2') isVisible = showFlowConsumer2;
+        else if (type === 'consumer_3') isVisible = showFlowConsumer3;
+        else if (type === 'consumer_4') isVisible = showFlowConsumer4;
+        else if (type === 'consumer_5') isVisible = showFlowConsumer5;
 
         if (!isVisible) return "display: none;";
+        const threshold = getThresholdByType(type);
         return val > threshold ? "opacity: 1;" : "opacity: 0;";
       };
 
@@ -1507,8 +1529,8 @@ console.log(
 
       const getConsumerAnimStyle = (isActive, val, idx = null) => {
         if (!isActive) return "display: none;";
-        if (idx && val <= getConsumerThreshold(idx)) return "opacity: 0;";
-        return getAnimStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null);
+        const type = idx ? `consumer_${idx}` : null;
+        return getAnimStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null, type);
       };
 
       const pathSolarHouse = "M 55 170 Q 55 290 265 290";
@@ -1563,19 +1585,19 @@ console.log(
                     <path d="${pathHouseC4}" fill="none" stroke="${this._getConsumerPipeColor(4)}" stroke-width="6" style="${getConsumerPipeStyle(showC4, c4Val, 4)}" />
                     <path d="${pathHouseC5}" fill="none" stroke="${this._getConsumerPipeColor(5)}" stroke-width="6" style="${getConsumerPipeStyle(showC5, c5Val, 5)}" />
 
-                    <path class="flow-line flow-solar" d="${pathSolarHouse}" style="${getAnimStyle(solarToHouse, '--pipe-solar-opacity')} ${styleSolar}" />
-                    <path class="flow-line flow-solar" d="${pathSolarBatt}" style="${getAnimStyle(solarToBatt, '--pipe-solar-opacity')} ${styleSolarBatt}" />
+                    <path class="flow-line flow-solar" d="${pathSolarHouse}" style="${getAnimStyle(solarToHouse, '--pipe-solar-opacity', 'solar')} ${styleSolar}" />
+                    <path class="flow-line flow-solar" d="${pathSolarBatt}" style="${getAnimStyle(solarToBatt, '--pipe-solar-opacity', 'solar')} ${styleSolarBatt}" />
                     
-                    <path class="flow-line flow-grid" d="${pathGridImport}" style="${getAnimStyle(gridToHouse, '--pipe-grid-opacity')} ${styleGrid}" />
-                    <path class="flow-line flow-export" d="${activeExportPath}" style="${getAnimStyle(gridExport, '--pipe-grid-opacity')} ${styleGrid}" />
+                    <path class="flow-line flow-grid" d="${pathGridImport}" style="${getAnimStyle(gridToHouse, '--pipe-grid-opacity', 'grid')} ${styleGrid}" />
+                    <path class="flow-line flow-export" d="${activeExportPath}" style="${getAnimStyle(gridExport, '--pipe-grid-opacity', 'grid')} ${styleGrid}" />
                     
-                    <path class="flow-line flow-battery" d="${pathBattHouse}" style="${getAnimStyle(batteryDischarge, '--pipe-battery-opacity')} ${styleBattery}" />
+                    <path class="flow-line flow-battery" d="${pathBattHouse}" style="${getAnimStyle(batteryDischarge, '--pipe-battery-opacity', 'battery')} ${styleBattery}" />
 
-                    <path class="flow-line flow-battery" d="${pathHouseToBatt}" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getAnimStyle(batteryCharge, '--pipe-battery-opacity') + ' ' + styleBattery : 'display:none;'}" />
+                    <path class="flow-line flow-battery" d="${pathHouseToBatt}" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getAnimStyle(batteryCharge, '--pipe-battery-opacity', 'battery') + ' ' + styleBattery : 'display:none;'}" />
 
-                    <path class="flow-line flow-venus" d="${pathSolarVenus}" style="${getAnimStyle(solarToVenus, '--pipe-solar-opacity')} ${styleSolarVenus}" />
-                    <path class="flow-line flow-venus" d="${pathVenusHouse}" style="${getAnimStyle(venusDischarge, '--pipe-venus-opacity')} ${styleVenus}" />
-                    <path class="flow-line flow-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getAnimStyle(venusCharge, '--pipe-venus-opacity') + ' ' + styleVenus : 'display:none;'}" />
+                    <path class="flow-line flow-venus" d="${pathSolarVenus}" style="${getAnimStyle(solarToVenus, '--pipe-solar-opacity', 'solar')} ${styleSolarVenus}" />
+                    <path class="flow-line flow-venus" d="${pathVenusHouse}" style="${getAnimStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
+                    <path class="flow-line flow-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getAnimStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path class="flow-line" d="${pathHouseC1}" stroke="${this._getConsumerPipeColor(1)}" style="${getConsumerAnimStyle(c1PipeActive, c1Val, 1)}" />
                     <path class="flow-line" d="${pathHouseC2}" stroke="${this._getConsumerPipeColor(2)}" style="${getConsumerAnimStyle(showC2, c2Val, 2)}" />

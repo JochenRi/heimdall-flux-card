@@ -440,6 +440,17 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-switch>
             <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
         </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.solar_animation_threshold !== undefined ? this._config.solar_animation_threshold : 1}
+                .configValue=${'solar_animation_threshold'}
+                .label=${this._localize('editor.bubble_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
       `;
     }
 
@@ -517,6 +528,17 @@ class PowerFluxCardEditor extends LitElement {
                 @change=${this._valueChanged}
             ></ha-switch>
             <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.grid_animation_threshold !== undefined ? this._config.grid_animation_threshold : 1}
+                .configValue=${'grid_animation_threshold'}
+                .label=${this._localize('editor.bubble_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
         </div>
       `;
     }
@@ -601,6 +623,17 @@ class PowerFluxCardEditor extends LitElement {
                 @change=${this._valueChanged}
             ></ha-switch>
             <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.battery_animation_threshold !== undefined ? this._config.battery_animation_threshold : 1}
+                .configValue=${'battery_animation_threshold'}
+                .label=${this._localize('editor.bubble_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
         </div>
 
         <div class="switch-row">
@@ -705,6 +738,17 @@ class PowerFluxCardEditor extends LitElement {
                 @change=${this._valueChanged}
             ></ha-switch>
             <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.venus_animation_threshold !== undefined ? this._config.venus_animation_threshold : 1}
+                .configValue=${'venus_animation_threshold'}
+                .label=${this._localize('editor.bubble_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
         </div>
 
         <div class="switch-row">
@@ -1264,17 +1308,6 @@ class PowerFluxCardEditor extends LitElement {
                 .value=${this._config.pipe_label_size !== undefined ? this._config.pipe_label_size : 10}
                 .configValue=${'pipe_label_size'}
                 .label=${this._localize('editor.pipe_label_size')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
-
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 100, step: 5, mode: "slider" } }}
-                .value=${this._config.animation_threshold !== undefined ? this._config.animation_threshold : 1}
-                .configValue=${'animation_threshold'}
-                .label=${this._localize('editor.animation_threshold')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
         </div>
