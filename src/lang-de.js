@@ -16,6 +16,7 @@ export default {
     "editor.consumer_show_flow_rate": "Watt-Wert an Pipe anzeigen",
     "editor.consumer_label_offset_x": "Watt-Label horizontal verschieben (px)",
     "editor.consumer_label_offset_y": "Watt-Label vertikal verschieben (px)",
+    "editor.consumer_animation_threshold": "Animation erst ab (W) — überschreibt global",
     "editor.invert_battery": "Wert umkehren (+/-)",
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.compact_view": "Kompakte Ansicht (evcc)",

@@ -868,6 +868,15 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_1_animation_threshold !== undefined ? this._config.consumer_1_animation_threshold : 0}
+                .configValue=${'consumer_1_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_1 || "", 'secondary_consumer_1', this._localize('editor.secondary_sensor'))}
 
             ${this._renderColorPickerQuint('color_consumer_1', 'color_pipe_consumer_1', 'color_text_consumer_1', 'color_icon_consumer_1', 'color_secondary_consumer_1', '#a855f7')}
@@ -940,6 +949,15 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_2_animation_threshold !== undefined ? this._config.consumer_2_animation_threshold : 0}
+                .configValue=${'consumer_2_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_2 || "", 'secondary_consumer_2', this._localize('editor.secondary_sensor'))}
 
             ${this._renderColorPickerQuint('color_consumer_2', 'color_pipe_consumer_2', 'color_text_consumer_2', 'color_icon_consumer_2', 'color_secondary_consumer_2', '#f97316')}
@@ -1006,6 +1024,15 @@ class PowerFluxCardEditor extends LitElement {
                 .value=${this._config.consumer_3_label_offset_y !== undefined ? this._config.consumer_3_label_offset_y : -25}
                 .configValue=${'consumer_3_label_offset_y'}
                 .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_3_animation_threshold !== undefined ? this._config.consumer_3_animation_threshold : 0}
+                .configValue=${'consumer_3_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
@@ -1076,6 +1103,15 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_4_animation_threshold !== undefined ? this._config.consumer_4_animation_threshold : 0}
+                .configValue=${'consumer_4_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_4 || "", 'secondary_consumer_4', this._localize('editor.secondary_sensor'))}
             ${this._renderColorPickerQuint('color_consumer_4', 'color_pipe_consumer_4', 'color_text_consumer_4', 'color_icon_consumer_4', 'color_secondary_consumer_4', '#eab308')}
         </div>
@@ -1140,6 +1176,15 @@ class PowerFluxCardEditor extends LitElement {
                 .value=${this._config.consumer_5_label_offset_y !== undefined ? this._config.consumer_5_label_offset_y : -25}
                 .configValue=${'consumer_5_label_offset_y'}
                 .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_5_animation_threshold !== undefined ? this._config.consumer_5_animation_threshold : 0}
+                .configValue=${'consumer_5_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 

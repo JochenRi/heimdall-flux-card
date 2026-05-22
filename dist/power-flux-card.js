@@ -21,6 +21,7 @@ const lang_de = {
     "editor.consumer_show_flow_rate": "Watt-Wert an Pipe anzeigen",
     "editor.consumer_label_offset_x": "Watt-Label horizontal verschieben (px)",
     "editor.consumer_label_offset_y": "Watt-Label vertikal verschieben (px)",
+    "editor.consumer_animation_threshold": "Animation erst ab (W) — überschreibt global",
     "editor.invert_battery": "Wert umkehren (+/-)",
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.compact_view": "Kompakte Ansicht (evcc)",
@@ -113,6 +114,7 @@ const lang_en = {
     "editor.consumer_show_flow_rate": "Show watt value on pipe",
     "editor.consumer_label_offset_x": "Watt label horizontal offset (px)",
     "editor.consumer_label_offset_y": "Watt label vertical offset (px)",
+    "editor.consumer_animation_threshold": "Animate above (W) — overrides global",
     "editor.invert_battery": "Invert Power Value (+/-)",
     "editor.label_toggle": "Show Label in Bubble",
     "editor.compact_view": "Compact View (evcc)",
@@ -1064,6 +1066,15 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_1_animation_threshold !== undefined ? this._config.consumer_1_animation_threshold : 0}
+                .configValue=${'consumer_1_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_1 || "", 'secondary_consumer_1', this._localize('editor.secondary_sensor'))}
 
             ${this._renderColorPickerQuint('color_consumer_1', 'color_pipe_consumer_1', 'color_text_consumer_1', 'color_icon_consumer_1', 'color_secondary_consumer_1', '#a855f7')}
@@ -1136,6 +1147,15 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_2_animation_threshold !== undefined ? this._config.consumer_2_animation_threshold : 0}
+                .configValue=${'consumer_2_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_2 || "", 'secondary_consumer_2', this._localize('editor.secondary_sensor'))}
 
             ${this._renderColorPickerQuint('color_consumer_2', 'color_pipe_consumer_2', 'color_text_consumer_2', 'color_icon_consumer_2', 'color_secondary_consumer_2', '#f97316')}
@@ -1202,6 +1222,15 @@ class PowerFluxCardEditor extends LitElement {
                 .value=${this._config.consumer_3_label_offset_y !== undefined ? this._config.consumer_3_label_offset_y : -25}
                 .configValue=${'consumer_3_label_offset_y'}
                 .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_3_animation_threshold !== undefined ? this._config.consumer_3_animation_threshold : 0}
+                .configValue=${'consumer_3_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
@@ -1272,6 +1301,15 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_4_animation_threshold !== undefined ? this._config.consumer_4_animation_threshold : 0}
+                .configValue=${'consumer_4_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_4 || "", 'secondary_consumer_4', this._localize('editor.secondary_sensor'))}
             ${this._renderColorPickerQuint('color_consumer_4', 'color_pipe_consumer_4', 'color_text_consumer_4', 'color_icon_consumer_4', 'color_secondary_consumer_4', '#eab308')}
         </div>
@@ -1336,6 +1374,15 @@ class PowerFluxCardEditor extends LitElement {
                 .value=${this._config.consumer_5_label_offset_y !== undefined ? this._config.consumer_5_label_offset_y : -25}
                 .configValue=${'consumer_5_label_offset_y'}
                 .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_5_animation_threshold !== undefined ? this._config.consumer_5_animation_threshold : 0}
+                .configValue=${'consumer_5_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
@@ -2884,6 +2931,13 @@ console.log(
       // Default 1 = legacy behavior. User can raise to ignore standby drift (e.g. Tesla 2W idle).
       const animThreshold = this.config.animation_threshold !== undefined ? this.config.animation_threshold : 1;
 
+      // Per-consumer threshold override: falls back to global animThreshold if not set.
+      // Lets BWWP show 18W standby while Tesla 2W standby stays hidden.
+      const getConsumerThreshold = (idx) => {
+        const override = this.config[`consumer_${idx}_animation_threshold`];
+        return override !== undefined ? override : animThreshold;
+      };
+
       const getAnimStyle = (val, opVar = null) => {
         if (val <= animThreshold) return "opacity: 0;";
 
@@ -2934,18 +2988,19 @@ console.log(
 
       const getTextStyle = (val, type) => {
         let isVisible = false;
+        let threshold = animThreshold;
         if (type === 'solar') isVisible = showFlowSolar;
         else if (type === 'grid') isVisible = showFlowGrid;
         else if (type === 'battery') isVisible = showFlowBattery;
         else if (type === 'venus') isVisible = showFlowVenus;
-        else if (type === 'consumer_1') isVisible = showFlowConsumer1;
-        else if (type === 'consumer_2') isVisible = showFlowConsumer2;
-        else if (type === 'consumer_3') isVisible = showFlowConsumer3;
-        else if (type === 'consumer_4') isVisible = showFlowConsumer4;
-        else if (type === 'consumer_5') isVisible = showFlowConsumer5;
+        else if (type === 'consumer_1') { isVisible = showFlowConsumer1; threshold = getConsumerThreshold(1); }
+        else if (type === 'consumer_2') { isVisible = showFlowConsumer2; threshold = getConsumerThreshold(2); }
+        else if (type === 'consumer_3') { isVisible = showFlowConsumer3; threshold = getConsumerThreshold(3); }
+        else if (type === 'consumer_4') { isVisible = showFlowConsumer4; threshold = getConsumerThreshold(4); }
+        else if (type === 'consumer_5') { isVisible = showFlowConsumer5; threshold = getConsumerThreshold(5); }
 
         if (!isVisible) return "display: none;";
-        return val > animThreshold ? "opacity: 1;" : "opacity: 0;";
+        return val > threshold ? "opacity: 1;" : "opacity: 0;";
       };
 
       const getColorStyle = (colorVar) => {
@@ -3033,11 +3088,13 @@ console.log(
 
       const getConsumerPipeStyle = (isActive, val, idx = null) => {
         if (!isActive) return "display: none;";
+        if (idx && val <= getConsumerThreshold(idx)) return "opacity: 0;";
         return getPipeStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null);
       };
 
       const getConsumerAnimStyle = (isActive, val, idx = null) => {
         if (!isActive) return "display: none;";
+        if (idx && val <= getConsumerThreshold(idx)) return "opacity: 0;";
         return getAnimStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null);
       };
 

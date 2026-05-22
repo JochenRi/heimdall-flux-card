@@ -1345,6 +1345,13 @@ console.log(
       // Default 1 = legacy behavior. User can raise to ignore standby drift (e.g. Tesla 2W idle).
       const animThreshold = this.config.animation_threshold !== undefined ? this.config.animation_threshold : 1;
 
+      // Per-consumer threshold override: falls back to global animThreshold if not set.
+      // Lets BWWP show 18W standby while Tesla 2W standby stays hidden.
+      const getConsumerThreshold = (idx) => {
+        const override = this.config[`consumer_${idx}_animation_threshold`];
+        return override !== undefined ? override : animThreshold;
+      };
+
       const getAnimStyle = (val, opVar = null) => {
         if (val <= animThreshold) return "opacity: 0;";
 
@@ -1395,18 +1402,19 @@ console.log(
 
       const getTextStyle = (val, type) => {
         let isVisible = false;
+        let threshold = animThreshold;
         if (type === 'solar') isVisible = showFlowSolar;
         else if (type === 'grid') isVisible = showFlowGrid;
         else if (type === 'battery') isVisible = showFlowBattery;
         else if (type === 'venus') isVisible = showFlowVenus;
-        else if (type === 'consumer_1') isVisible = showFlowConsumer1;
-        else if (type === 'consumer_2') isVisible = showFlowConsumer2;
-        else if (type === 'consumer_3') isVisible = showFlowConsumer3;
-        else if (type === 'consumer_4') isVisible = showFlowConsumer4;
-        else if (type === 'consumer_5') isVisible = showFlowConsumer5;
+        else if (type === 'consumer_1') { isVisible = showFlowConsumer1; threshold = getConsumerThreshold(1); }
+        else if (type === 'consumer_2') { isVisible = showFlowConsumer2; threshold = getConsumerThreshold(2); }
+        else if (type === 'consumer_3') { isVisible = showFlowConsumer3; threshold = getConsumerThreshold(3); }
+        else if (type === 'consumer_4') { isVisible = showFlowConsumer4; threshold = getConsumerThreshold(4); }
+        else if (type === 'consumer_5') { isVisible = showFlowConsumer5; threshold = getConsumerThreshold(5); }
 
         if (!isVisible) return "display: none;";
-        return val > animThreshold ? "opacity: 1;" : "opacity: 0;";
+        return val > threshold ? "opacity: 1;" : "opacity: 0;";
       };
 
       const getColorStyle = (colorVar) => {
@@ -1494,11 +1502,13 @@ console.log(
 
       const getConsumerPipeStyle = (isActive, val, idx = null) => {
         if (!isActive) return "display: none;";
+        if (idx && val <= getConsumerThreshold(idx)) return "opacity: 0;";
         return getPipeStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null);
       };
 
       const getConsumerAnimStyle = (isActive, val, idx = null) => {
         if (!isActive) return "display: none;";
+        if (idx && val <= getConsumerThreshold(idx)) return "opacity: 0;";
         return getAnimStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null);
       };
 

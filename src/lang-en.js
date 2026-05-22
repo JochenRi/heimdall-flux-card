@@ -16,6 +16,7 @@ export default {
     "editor.consumer_show_flow_rate": "Show watt value on pipe",
     "editor.consumer_label_offset_x": "Watt label horizontal offset (px)",
     "editor.consumer_label_offset_y": "Watt label vertical offset (px)",
+    "editor.consumer_animation_threshold": "Animate above (W) — overrides global",
     "editor.invert_battery": "Invert Power Value (+/-)",
     "editor.label_toggle": "Show Label in Bubble",
     "editor.compact_view": "Compact View (evcc)",
