@@ -1481,6 +1481,28 @@ class PowerFluxCardEditor extends LitElement {
             <div class="switch-label">${this._localize('editor.demo_mode')}</div>
         </div>
 
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.card_offset_x !== undefined ? this._config.card_offset_x : 0}
+                .configValue=${'card_offset_x'}
+                .label=${this._localize('editor.card_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.card_offset_y !== undefined ? this._config.card_offset_y : 0}
+                .configValue=${'card_offset_y'}
+                .label=${this._localize('editor.card_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
         <div class="switch-row">
             <ha-switch
                 .checked=${this._config.show_consumer_always === true}

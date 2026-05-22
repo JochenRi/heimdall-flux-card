@@ -13,6 +13,8 @@ export default {
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
     "editor.bubble_animation_threshold": "Animate above (W)",
     "editor.demo_mode": "Demo mode (1000W on all pipes)",
+    "editor.card_offset_x": "Card horizontal offset (px)",
+    "editor.card_offset_y": "Card vertical offset (px)",
     "editor.bubble_label_offset_x": "Watt label horizontal offset (px)",
     "editor.bubble_label_offset_y": "Watt label vertical offset (px)",
     "editor.consumer_show_power": "Show power instead of secondary sensor (big)",

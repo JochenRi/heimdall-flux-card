@@ -18,6 +18,8 @@ const lang_de = {
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
     "editor.bubble_animation_threshold": "Animation erst ab (W)",
     "editor.demo_mode": "Demo-Modus (1000W an allen Pipes)",
+    "editor.card_offset_x": "Card horizontal verschieben (px)",
+    "editor.card_offset_y": "Card vertikal verschieben (px)",
     "editor.bubble_label_offset_x": "Watt-Label horizontal verschieben (px)",
     "editor.bubble_label_offset_y": "Watt-Label vertikal verschieben (px)",
     "editor.consumer_show_power": "Zeige Leistung statt Zweitsensor (groß)",
@@ -114,6 +116,8 @@ const lang_en = {
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
     "editor.bubble_animation_threshold": "Animate above (W)",
     "editor.demo_mode": "Demo mode (1000W on all pipes)",
+    "editor.card_offset_x": "Card horizontal offset (px)",
+    "editor.card_offset_y": "Card vertical offset (px)",
     "editor.bubble_label_offset_x": "Watt label horizontal offset (px)",
     "editor.bubble_label_offset_y": "Watt label vertical offset (px)",
     "editor.consumer_show_power": "Show power instead of secondary sensor (big)",
@@ -1683,6 +1687,28 @@ class PowerFluxCardEditor extends LitElement {
                 @change=${this._valueChanged}
             ></ha-switch>
             <div class="switch-label">${this._localize('editor.demo_mode')}</div>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.card_offset_x !== undefined ? this._config.card_offset_x : 0}
+                .configValue=${'card_offset_x'}
+                .label=${this._localize('editor.card_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.card_offset_y !== undefined ? this._config.card_offset_y : 0}
+                .configValue=${'card_offset_y'}
+                .label=${this._localize('editor.card_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
         </div>
 
         <div class="switch-row">
@@ -3307,7 +3333,7 @@ console.log(
       return html`
       <ha-card style="height: ${finalCardHeightPx}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px;">
         
-        <div class="scale-wrapper" style="transform: scale(${scale}); margin-left: ${centerMarginLeft}px;">
+        <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-left: ${centerMarginLeft}px;">
             
             <div class="absolute-container" style="height: ${baseHeight}px; top: -${topShift}px;">
                 <svg height="${baseHeight}" viewBox="0 0 620 ${baseHeight}" preserveAspectRatio="xMidYMid meet">

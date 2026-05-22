@@ -13,6 +13,8 @@ export default {
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
     "editor.bubble_animation_threshold": "Animation erst ab (W)",
     "editor.demo_mode": "Demo-Modus (1000W an allen Pipes)",
+    "editor.card_offset_x": "Card horizontal verschieben (px)",
+    "editor.card_offset_y": "Card vertikal verschieben (px)",
     "editor.bubble_label_offset_x": "Watt-Label horizontal verschieben (px)",
     "editor.bubble_label_offset_y": "Watt-Label vertikal verschieben (px)",
     "editor.consumer_show_power": "Zeige Leistung statt Zweitsensor (groß)",
