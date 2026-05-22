@@ -3045,7 +3045,7 @@ console.log(
 
       let solarToHouse = Math.max(0, solarVal - solarToBatt - gridExport);
       let gridToHouse = Math.max(0, gridImport - gridToBatt);
-      const house = solarToHouse + gridToHouse + batteryDischarge;
+      const house = solarToHouse + gridToHouse + batteryDischarge + venusDischarge;
 
       // Demo mode: override all pipe flow values to 1000W for testing/positioning labels.
       // Bubble main values (solar/grid/battery/venus/SoC) remain real - only pipe flows are faked.
@@ -3164,26 +3164,30 @@ console.log(
             houseTextCol = useColoredValues ? 'var(--neon-pink)' : '';
           }
         } else if (house > 0) {
-          // Live-Modus (Original-Verhalten, 3 Segmente, Neon-Farben)
+          // Live-Modus: 4 Segmente (PV/LG/Venus/Netz) mit Bubble-Farben.
+          // Konsistent zum Tages-Mix-Modus, nur basierend auf momentanen Leistungswerten
+          // statt Tages-kWh. Vor Phase 4.16 fehlte hier das Venus-Segment komplett.
           const pctSolar = (solarToHouse / house) * 100;
-          const pctGrid = (gridToHouse / house) * 100;
           const pctBatt = (batteryDischarge / house) * 100;
+          const pctVenus = (venusDischarge / house) * 100;
+          const pctGrid = (gridToHouse / house) * 100;
 
           let stops = [];
           let current = 0;
-          if (pctSolar > 0) { stops.push(`var(--neon-yellow) ${current}% ${current + pctSolar}%`); current += pctSolar; }
-          if (pctBatt > 0) { stops.push(`var(--neon-green) ${current}% ${current + pctBatt}%`); current += pctBatt; }
-          if (pctGrid > 0) { stops.push(`var(--neon-blue) ${current}% ${current + pctGrid}%`); current += pctGrid; }
-          if (current < 99.9) { stops.push(`var(--neon-pink) ${current}% 100%`); }
+          if (pctSolar > 0) { stops.push(`var(--pipe-solar-color) ${current}% ${current + pctSolar}%`); current += pctSolar; }
+          if (pctBatt > 0) { stops.push(`var(--pipe-battery-color) ${current}% ${current + pctBatt}%`); current += pctBatt; }
+          if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${current}% ${current + pctVenus}%`); current += pctVenus; }
+          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${current}% 100%`); }
 
           houseGradientVal = `conic-gradient(from 330deg, ${stops.join(', ')})`;
 
           if (useColoredValues) {
-            const maxVal = Math.max(solarToHouse, gridToHouse, batteryDischarge);
+            const maxVal = Math.max(solarToHouse, batteryDischarge, venusDischarge, gridToHouse);
             if (maxVal > 0) {
-              if (maxVal === solarToHouse) houseTextCol = 'var(--neon-yellow)';
-              else if (maxVal === gridToHouse) houseTextCol = 'var(--neon-blue)';
-              else if (maxVal === batteryDischarge) houseTextCol = 'var(--neon-green)';
+              if (maxVal === solarToHouse) houseTextCol = 'var(--pipe-solar-color)';
+              else if (maxVal === batteryDischarge) houseTextCol = 'var(--pipe-battery-color)';
+              else if (maxVal === venusDischarge) houseTextCol = 'var(--pipe-venus-color)';
+              else if (maxVal === gridToHouse) houseTextCol = 'var(--pipe-grid-color)';
             } else {
               houseTextCol = 'var(--neon-pink)';
             }
