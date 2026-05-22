@@ -986,6 +986,7 @@ console.log(
       const showFlowGrid = this.config.show_flow_rate_grid !== undefined ? this.config.show_flow_rate_grid : globalFlowRate;
       const showFlowBattery = this.config.show_flow_rate_battery !== undefined ? this.config.show_flow_rate_battery : globalFlowRate;
       const showFlowVenus = this.config.show_flow_rate_venus !== undefined ? this.config.show_flow_rate_venus : globalFlowRate;
+      const showFlowConsumer1 = this.config.show_flow_rate_consumer_1 === true;
 
       // LABEL TOGGLES
       const showLabelSolar = this.config.show_label_solar === true;
@@ -1389,6 +1390,7 @@ console.log(
         else if (type === 'grid') isVisible = showFlowGrid;
         else if (type === 'battery') isVisible = showFlowBattery;
         else if (type === 'venus') isVisible = showFlowVenus;
+        else if (type === 'consumer_1') isVisible = showFlowConsumer1;
 
         if (!isVisible) return "display: none;";
         return val > animThreshold ? "opacity: 1;" : "opacity: 0;";
@@ -1572,6 +1574,8 @@ console.log(
                     <text x="290" y="40" class="${textClass} text-solar" style="${getTextStyle(solarToVenus, 'solar')} ${styleSolarVenus}">${this._formatPower(solarToVenus)}</text>
                     <text x="450" y="235" class="${textClass} text-venus" style="${getTextStyle(venusDischarge, 'venus')} ${styleVenus}">${this._formatPower(venusDischarge)}</text>
                     <text x="450" y="235" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
+
+                    <text x="130" y="320" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}" fill="${this._getConsumerColor(1)}">${this._formatPower(c1Val)}</text>
 
                 </svg>
 

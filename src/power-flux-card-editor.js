@@ -841,6 +841,15 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
             </div>
 
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_consumer_1 === true}
+                    .configValue=${'show_flow_rate_consumer_1'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_1 || "", 'secondary_consumer_1', this._localize('editor.secondary_sensor'))}
 
             ${this._renderColorPickerQuint('color_consumer_1', 'color_pipe_consumer_1', 'color_text_consumer_1', 'color_icon_consumer_1', 'color_secondary_consumer_1', '#a855f7')}

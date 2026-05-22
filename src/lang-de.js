@@ -13,6 +13,7 @@ export default {
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
     "editor.animation_threshold": "Animation erst ab (W)",
     "editor.consumer_show_power": "Zeige Leistung statt Zweitsensor (groß)",
+    "editor.consumer_show_flow_rate": "Watt-Wert an Pipe anzeigen",
     "editor.invert_battery": "Wert umkehren (+/-)",
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.compact_view": "Kompakte Ansicht (evcc)",

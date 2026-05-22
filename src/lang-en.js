@@ -13,6 +13,7 @@ export default {
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
     "editor.animation_threshold": "Animate flows above (W)",
     "editor.consumer_show_power": "Show power instead of secondary sensor (big)",
+    "editor.consumer_show_flow_rate": "Show watt value on pipe",
     "editor.invert_battery": "Invert Power Value (+/-)",
     "editor.label_toggle": "Show Label in Bubble",
     "editor.compact_view": "Compact View (evcc)",
