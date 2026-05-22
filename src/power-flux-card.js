@@ -1415,11 +1415,15 @@ console.log(
         return `opacity: ${opStr}; animation-duration: ${duration}s; stroke-dasharray: ${dynamicDash};`;
       };
 
-      // Background pipe is always visible (topology indicator).
-      // Animation visibility is governed separately by getAnimStyle + per-bubble thresholds.
-      const getPipeStyle = (val, opVar = null) => {
+      // Background pipe: always visible by default (preserves topology).
+      // When hide_inactive_flows is enabled, the pipe also respects the per-bubble
+      // threshold and hides when flow is below it. This lets users choose between
+      // "always show topology" (false, default) and "only show active flows" (true).
+      const getPipeStyle = (val, opVar = null, type = null) => {
         const op = opVar ? `calc(var(${opVar}, 1) * 0.2)` : '0.2';
-        return `opacity: ${op};`;
+        if (!hideInactive) return `opacity: ${op};`;
+        const threshold = type ? getThresholdByType(type) : animThreshold;
+        return val > threshold ? `opacity: ${op};` : "opacity: 0;";
       };
 
       const getTextStyle = (val, type) => {
@@ -1524,7 +1528,8 @@ console.log(
 
       const getConsumerPipeStyle = (isActive, val, idx = null) => {
         if (!isActive) return "display: none;";
-        return getPipeStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null);
+        const type = idx ? `consumer_${idx}` : null;
+        return getPipeStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null, type);
       };
 
       const getConsumerAnimStyle = (isActive, val, idx = null) => {
@@ -1566,18 +1571,18 @@ console.log(
             <div class="absolute-container" style="height: ${baseHeight}px; top: -${topShift}px;">
                 <svg height="${baseHeight}" viewBox="0 0 620 ${baseHeight}" preserveAspectRatio="xMidYMid meet">
                     
-                    <path class="bg-path bg-solar" d="${pathSolarHouse}" style="${getPipeStyle(solarToHouse, '--pipe-solar-opacity')} ${styleSolar}" />
-                    <path class="bg-path bg-solar" d="${pathSolarBatt}" style="${getPipeStyle(solarToBatt, '--pipe-solar-opacity')} ${styleSolarBatt}" />
+                    <path class="bg-path bg-solar" d="${pathSolarHouse}" style="${getPipeStyle(solarToHouse, '--pipe-solar-opacity', 'solar')} ${styleSolar}" />
+                    <path class="bg-path bg-solar" d="${pathSolarBatt}" style="${getPipeStyle(solarToBatt, '--pipe-solar-opacity', 'solar')} ${styleSolarBatt}" />
                     
-                    <path class="bg-path bg-grid" d="${pathGridImport}" style="${getPipeStyle(gridToHouse, '--pipe-grid-opacity')} ${styleGrid}" />
-                    <path class="bg-path bg-export" d="${activeExportPath}" style="${getPipeStyle(gridExport, '--pipe-grid-opacity')} ${styleGrid}" />
-                    <path class="bg-path bg-battery" d="${pathBattHouse}" style="${getPipeStyle(batteryDischarge, '--pipe-battery-opacity')} ${styleBattery}" />
+                    <path class="bg-path bg-grid" d="${pathGridImport}" style="${getPipeStyle(gridToHouse, '--pipe-grid-opacity', 'grid')} ${styleGrid}" />
+                    <path class="bg-path bg-export" d="${activeExportPath}" style="${getPipeStyle(gridExport, '--pipe-grid-opacity', 'grid')} ${styleGrid}" />
+                    <path class="bg-path bg-battery" d="${pathBattHouse}" style="${getPipeStyle(batteryDischarge, '--pipe-battery-opacity', 'battery')} ${styleBattery}" />
 
-                    <path class="bg-path bg-battery" d="${pathHouseToBatt}" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getPipeStyle(batteryCharge, '--pipe-battery-opacity') + ' ' + styleBattery : 'display:none;'}" />
+                    <path class="bg-path bg-battery" d="${pathHouseToBatt}" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getPipeStyle(batteryCharge, '--pipe-battery-opacity', 'battery') + ' ' + styleBattery : 'display:none;'}" />
 
-                    <path class="bg-path bg-venus" d="${pathSolarVenus}" style="${getPipeStyle(solarToVenus, '--pipe-solar-opacity')} ${styleSolarVenus}" />
-                    <path class="bg-path bg-venus" d="${pathVenusHouse}" style="${getPipeStyle(venusDischarge, '--pipe-venus-opacity')} ${styleVenus}" />
-                    <path class="bg-path bg-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getPipeStyle(venusCharge, '--pipe-venus-opacity') + ' ' + styleVenus : 'display:none;'}" />
+                    <path class="bg-path bg-venus" d="${pathSolarVenus}" style="${getPipeStyle(solarToVenus, '--pipe-solar-opacity', 'solar')} ${styleSolarVenus}" />
+                    <path class="bg-path bg-venus" d="${pathVenusHouse}" style="${getPipeStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
+                    <path class="bg-path bg-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getPipeStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path d="${pathHouseC1}" fill="none" stroke="${this._getConsumerPipeColor(1)}" stroke-width="6" style="${getConsumerPipeStyle(c1PipeActive, c1Val, 1)}" />
                     <path d="${pathHouseC2}" fill="none" stroke="${this._getConsumerPipeColor(2)}" stroke-width="6" style="${getConsumerPipeStyle(showC2, c2Val, 2)}" />
