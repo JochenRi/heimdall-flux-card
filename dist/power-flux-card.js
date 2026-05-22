@@ -17,6 +17,7 @@ const lang_de = {
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
     "editor.bubble_animation_threshold": "Animation erst ab (W)",
+    "editor.demo_mode": "Demo-Modus (1000W an allen Pipes)",
     "editor.bubble_label_offset_x": "Watt-Label horizontal verschieben (px)",
     "editor.bubble_label_offset_y": "Watt-Label vertikal verschieben (px)",
     "editor.consumer_show_power": "Zeige Leistung statt Zweitsensor (groß)",
@@ -112,6 +113,7 @@ const lang_en = {
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
     "editor.bubble_animation_threshold": "Animate above (W)",
+    "editor.demo_mode": "Demo mode (1000W on all pipes)",
     "editor.bubble_label_offset_x": "Watt label horizontal offset (px)",
     "editor.bubble_label_offset_y": "Watt label vertical offset (px)",
     "editor.consumer_show_power": "Show power instead of secondary sensor (big)",
@@ -1676,6 +1678,15 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="switch-row">
             <ha-switch
+                .checked=${this._config.demo_mode === true}
+                .configValue=${'demo_mode'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.demo_mode')}</div>
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
                 .checked=${this._config.show_consumer_always === true}
                 .configValue=${'show_consumer_always'}
                 @change=${this._valueChanged}
@@ -2815,8 +2826,8 @@ console.log(
       let c1Val = entities.consumer_1 ? getValKw(entities.consumer_1, this.config.consumer_1_unit_kw === true) : 0;
       if (this.config.invert_consumer_1) { c1Val *= -1; }
       c1Val = Math.abs(c1Val);
-      const c2Val = entities.consumer_2 ? getValKw(entities.consumer_2, this.config.consumer_2_unit_kw === true) : 0;
-      const c3Val = entities.consumer_3 ? getValKw(entities.consumer_3, this.config.consumer_3_unit_kw === true) : 0;
+      let c2Val = entities.consumer_2 ? getValKw(entities.consumer_2, this.config.consumer_2_unit_kw === true) : 0;
+      let c3Val = entities.consumer_3 ? getValKw(entities.consumer_3, this.config.consumer_3_unit_kw === true) : 0;
 
       const alwaysShowConsumer = this.config.show_consumer_always === true;
       const showC1 = (entities.consumer_1 && (alwaysShowConsumer || Math.round(c1Val) > 0));
@@ -2870,8 +2881,8 @@ console.log(
       const hasBattChargeSensor = !!(entities.battery_charge && entities.battery_charge !== "");
       const hasBattDischargeSensor = !!(entities.battery_discharge && entities.battery_discharge !== "");
 
-      const batteryCharge = hasBattChargeSensor ? Math.abs(getVal(entities.battery_charge)) : (battery > 0 ? battery : 0);
-      const batteryDischarge = hasBattDischargeSensor ? Math.abs(getVal(entities.battery_discharge)) : (battery < 0 ? Math.abs(battery) : 0);
+      let batteryCharge = hasBattChargeSensor ? Math.abs(getVal(entities.battery_charge)) : (battery > 0 ? battery : 0);
+      let batteryDischarge = hasBattDischargeSensor ? Math.abs(getVal(entities.battery_discharge)) : (battery < 0 ? Math.abs(battery) : 0);
 
       let solarToBatt = 0;
       let gridToBatt = 0;
@@ -2902,8 +2913,8 @@ console.log(
       }
 
       // VENUS charge/discharge (mirrors battery pattern)
-      const venusCharge = venus > 0 ? venus : 0;
-      const venusDischarge = venus < 0 ? Math.abs(venus) : 0;
+      let venusCharge = venus > 0 ? venus : 0;
+      let venusDischarge = venus < 0 ? Math.abs(venus) : 0;
 
       let solarToVenus = 0;
       let gridToVenus = 0;
@@ -2929,9 +2940,28 @@ console.log(
         }
       }
 
-      const solarToHouse = Math.max(0, solarVal - solarToBatt - gridExport);
-      const gridToHouse = Math.max(0, gridImport - gridToBatt);
+      let solarToHouse = Math.max(0, solarVal - solarToBatt - gridExport);
+      let gridToHouse = Math.max(0, gridImport - gridToBatt);
       const house = solarToHouse + gridToHouse + batteryDischarge;
+
+      // Demo mode: override all pipe flow values to 1000W for testing/positioning labels.
+      // Bubble main values (solar/grid/battery/venus/SoC) remain real - only pipe flows are faked.
+      if (this.config.demo_mode === true) {
+        solarToHouse = 1000;
+        gridToHouse = 1000;
+        batteryDischarge = 1000;
+        batteryCharge = 1000;
+        venusDischarge = 1000;
+        venusCharge = 1000;
+        solarToBatt = 1000;
+        solarToVenus = 1000;
+        gridExport = 1000;
+        c1Val = 1000;
+        c2Val = 1000;
+        c3Val = 1000;
+        c4Val = 1000;
+        c5Val = 1000;
+      }
 
       // Use house entity for display if defined, otherwise use calculated value
       const houseDisplay = (entities.house && entities.house !== "") ? getVal(entities.house) : house;

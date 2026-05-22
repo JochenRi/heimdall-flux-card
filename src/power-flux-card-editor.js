@@ -1474,6 +1474,15 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="switch-row">
             <ha-switch
+                .checked=${this._config.demo_mode === true}
+                .configValue=${'demo_mode'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.demo_mode')}</div>
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
                 .checked=${this._config.show_consumer_always === true}
                 .configValue=${'show_consumer_always'}
                 @change=${this._valueChanged}
