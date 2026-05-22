@@ -17,6 +17,7 @@ const lang_de = {
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
     "editor.animation_threshold": "Animation erst ab (W)",
+    "editor.consumer_show_power": "Zeige Leistung statt Zweitsensor (groß)",
     "editor.invert_battery": "Wert umkehren (+/-)",
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.compact_view": "Kompakte Ansicht (evcc)",
@@ -105,6 +106,7 @@ const lang_en = {
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
     "editor.animation_threshold": "Animate flows above (W)",
+    "editor.consumer_show_power": "Show power instead of secondary sensor (big)",
     "editor.invert_battery": "Invert Power Value (+/-)",
     "editor.label_toggle": "Show Label in Bubble",
     "editor.compact_view": "Compact View (evcc)",
@@ -1016,6 +1018,15 @@ class PowerFluxCardEditor extends LitElement {
                 <ha-switch
                     .checked=${this._config.consumer_1_unit_kw === true}
                     .configValue=${'consumer_1_unit_kw'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_power')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_1_show_power !== false}
+                    .configValue=${'consumer_1_show_power'}
                     @change=${this._valueChanged}
                 ></ha-switch>
             </div>

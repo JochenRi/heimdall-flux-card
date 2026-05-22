@@ -12,6 +12,7 @@ export default {
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
     "editor.animation_threshold": "Animation erst ab (W)",
+    "editor.consumer_show_power": "Zeige Leistung statt Zweitsensor (groß)",
     "editor.invert_battery": "Wert umkehren (+/-)",
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.compact_view": "Kompakte Ansicht (evcc)",
