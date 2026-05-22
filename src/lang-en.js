@@ -12,6 +12,8 @@ export default {
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
     "editor.bubble_animation_threshold": "Animate above (W)",
+    "editor.bubble_label_offset_x": "Watt label horizontal offset (px)",
+    "editor.bubble_label_offset_y": "Watt label vertical offset (px)",
     "editor.consumer_show_power": "Show power instead of secondary sensor (big)",
     "editor.consumer_show_flow_rate": "Show watt value on pipe",
     "editor.consumer_label_offset_x": "Watt label horizontal offset (px)",

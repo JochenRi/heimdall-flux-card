@@ -17,6 +17,8 @@ const lang_de = {
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
     "editor.bubble_animation_threshold": "Animation erst ab (W)",
+    "editor.bubble_label_offset_x": "Watt-Label horizontal verschieben (px)",
+    "editor.bubble_label_offset_y": "Watt-Label vertikal verschieben (px)",
     "editor.consumer_show_power": "Zeige Leistung statt Zweitsensor (groß)",
     "editor.consumer_show_flow_rate": "Watt-Wert an Pipe anzeigen",
     "editor.consumer_label_offset_x": "Watt-Label horizontal verschieben (px)",
@@ -110,6 +112,8 @@ const lang_en = {
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
     "editor.bubble_animation_threshold": "Animate above (W)",
+    "editor.bubble_label_offset_x": "Watt label horizontal offset (px)",
+    "editor.bubble_label_offset_y": "Watt label vertical offset (px)",
     "editor.consumer_show_power": "Show power instead of secondary sensor (big)",
     "editor.consumer_show_flow_rate": "Show watt value on pipe",
     "editor.consumer_label_offset_x": "Watt label horizontal offset (px)",
@@ -649,6 +653,28 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
         </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.solar_label_offset_x !== undefined ? this._config.solar_label_offset_x : 0}
+                .configValue=${'solar_label_offset_x'}
+                .label=${this._localize('editor.bubble_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.solar_label_offset_y !== undefined ? this._config.solar_label_offset_y : 0}
+                .configValue=${'solar_label_offset_y'}
+                .label=${this._localize('editor.bubble_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
       `;
     }
 
@@ -735,6 +761,28 @@ class PowerFluxCardEditor extends LitElement {
                 .value=${this._config.grid_animation_threshold !== undefined ? this._config.grid_animation_threshold : 1}
                 .configValue=${'grid_animation_threshold'}
                 .label=${this._localize('editor.bubble_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.grid_label_offset_x !== undefined ? this._config.grid_label_offset_x : 0}
+                .configValue=${'grid_label_offset_x'}
+                .label=${this._localize('editor.bubble_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.grid_label_offset_y !== undefined ? this._config.grid_label_offset_y : 0}
+                .configValue=${'grid_label_offset_y'}
+                .label=${this._localize('editor.bubble_label_offset_y')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
         </div>
@@ -830,6 +878,28 @@ class PowerFluxCardEditor extends LitElement {
                 .value=${this._config.battery_animation_threshold !== undefined ? this._config.battery_animation_threshold : 1}
                 .configValue=${'battery_animation_threshold'}
                 .label=${this._localize('editor.bubble_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.battery_label_offset_x !== undefined ? this._config.battery_label_offset_x : 0}
+                .configValue=${'battery_label_offset_x'}
+                .label=${this._localize('editor.bubble_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.battery_label_offset_y !== undefined ? this._config.battery_label_offset_y : 0}
+                .configValue=${'battery_label_offset_y'}
+                .label=${this._localize('editor.bubble_label_offset_y')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
         </div>
@@ -945,6 +1015,28 @@ class PowerFluxCardEditor extends LitElement {
                 .value=${this._config.venus_animation_threshold !== undefined ? this._config.venus_animation_threshold : 1}
                 .configValue=${'venus_animation_threshold'}
                 .label=${this._localize('editor.bubble_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.venus_label_offset_x !== undefined ? this._config.venus_label_offset_x : 0}
+                .configValue=${'venus_label_offset_x'}
+                .label=${this._localize('editor.bubble_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.venus_label_offset_y !== undefined ? this._config.venus_label_offset_y : 0}
+                .configValue=${'venus_label_offset_y'}
+                .label=${this._localize('editor.bubble_label_offset_y')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
         </div>
@@ -3229,19 +3321,19 @@ console.log(
                     <path class="flow-line" d="${pathHouseC4}" stroke="${this._getConsumerPipeColor(4)}" style="${getConsumerAnimStyle(showC4, c4Val, 4)}" />
                     <path class="flow-line" d="${pathHouseC5}" stroke="${this._getConsumerPipeColor(5)}" style="${getConsumerAnimStyle(showC5, c5Val, 5)}" />
 
-                    <text x="100" y="235" class="${textClass} text-solar" style="${getTextStyle(solarToHouse, 'solar')} ${styleSolar}">${this._formatPower(solarToHouse)}</text>
+                    <text x="${100 + (this.config.solar_label_offset_x !== undefined ? this.config.solar_label_offset_x : 0)}" y="${235 + (this.config.solar_label_offset_y !== undefined ? this.config.solar_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(solarToHouse, 'solar')} ${styleSolar}">${this._formatPower(solarToHouse)}</text>
                     <text x="210" y="45" class="${textClass} text-solar" style="${getTextStyle(solarToBatt, 'solar')} ${styleSolarBatt}">${this._formatPower(solarToBatt)}</text>
                     
-                    <text x="225" y="255" class="${textClass} text-grid" style="${getTextStyle(gridToHouse, 'grid')} ${styleGrid}">${this._formatPower(gridToHouse)}</text>
+                    <text x="${225 + (this.config.grid_label_offset_x !== undefined ? this.config.grid_label_offset_x : 0)}" y="${255 + (this.config.grid_label_offset_y !== undefined ? this.config.grid_label_offset_y : 0)}" class="${textClass} text-grid" style="${getTextStyle(gridToHouse, 'grid')} ${styleGrid}">${this._formatPower(gridToHouse)}</text>
                     <text x="${exportTextX}" y="${exportTextY}" class="${textClass} text-export" style="${getTextStyle(gridExport, 'grid')} ${styleGrid}">${this._formatPower(gridExport)}</text>
                     
-                    <text x="320" y="235" class="${textClass} text-battery" style="${getTextStyle(batteryDischarge, 'battery')} ${styleBattery}">${this._formatPower(batteryDischarge)}</text>
+                    <text x="${320 + (this.config.battery_label_offset_x !== undefined ? this.config.battery_label_offset_x : 0)}" y="${235 + (this.config.battery_label_offset_y !== undefined ? this.config.battery_label_offset_y : 0)}" class="${textClass} text-battery" style="${getTextStyle(batteryDischarge, 'battery')} ${styleBattery}">${this._formatPower(batteryDischarge)}</text>
 
-                    <text x="320" y="235" class="${textClass} text-battery" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getTextStyle(batteryCharge, 'battery') + ' ' + styleBattery : 'display:none;'}">${this._formatPower(batteryCharge)}</text>
+                    <text x="${320 + (this.config.battery_label_offset_x !== undefined ? this.config.battery_label_offset_x : 0)}" y="${235 + (this.config.battery_label_offset_y !== undefined ? this.config.battery_label_offset_y : 0)}" class="${textClass} text-battery" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getTextStyle(batteryCharge, 'battery') + ' ' + styleBattery : 'display:none;'}">${this._formatPower(batteryCharge)}</text>
 
                     <text x="290" y="40" class="${textClass} text-solar" style="${getTextStyle(solarToVenus, 'solar')} ${styleSolarVenus}">${this._formatPower(solarToVenus)}</text>
-                    <text x="450" y="235" class="${textClass} text-venus" style="${getTextStyle(venusDischarge, 'venus')} ${styleVenus}">${this._formatPower(venusDischarge)}</text>
-                    <text x="450" y="235" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
+                    <text x="${450 + (this.config.venus_label_offset_x !== undefined ? this.config.venus_label_offset_x : 0)}" y="${235 + (this.config.venus_label_offset_y !== undefined ? this.config.venus_label_offset_y : 0)}" class="${textClass} text-venus" style="${getTextStyle(venusDischarge, 'venus')} ${styleVenus}">${this._formatPower(venusDischarge)}</text>
+                    <text x="${450 + (this.config.venus_label_offset_x !== undefined ? this.config.venus_label_offset_x : 0)}" y="${235 + (this.config.venus_label_offset_y !== undefined ? this.config.venus_label_offset_y : 0)}" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
 
                     <text x="${130 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}">${this._formatPower(c1Val)}</text>
                     <text x="${310 + (this.config.consumer_2_label_offset_x !== undefined ? this.config.consumer_2_label_offset_x : 0)}" y="${367 + (this.config.consumer_2_label_offset_y !== undefined ? this.config.consumer_2_label_offset_y : -25)}" class="${textClass} text-consumer-2" style="${getTextStyle(c2Val, 'consumer_2')}">${this._formatPower(c2Val)}</text>
