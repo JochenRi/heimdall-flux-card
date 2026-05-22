@@ -1289,7 +1289,57 @@ console.log(
       }
 
       if (showDonut) {
-        if (house > 0) {
+        // Tages-Mix-Modus: aktiv wenn donut_today_mode==true UND mindestens ein Tages-Sensor konfiguriert
+        const donutTodayMode = this.config.donut_today_mode === true;
+        const todaySolarEnt = entities.donut_today_solar;
+        const todayBatteryEnt = entities.donut_today_battery;
+        const todayVenusEnt = entities.donut_today_venus;
+        const todayGridEnt = entities.donut_today_grid;
+        const hasAnyTodaySensor = !!(todaySolarEnt || todayBatteryEnt || todayVenusEnt || todayGridEnt);
+        const useTodayMode = donutTodayMode && hasAnyTodaySensor;
+
+        if (useTodayMode) {
+          // 4-Segment Tages-Mix mit Bubble-Farben
+          const safeRead = (ent) => {
+            if (!ent || ent === "") return 0;
+            const v = parseFloat(getVal(ent));
+            return isNaN(v) || v < 0 ? 0 : v;
+          };
+          const todaySolar = safeRead(todaySolarEnt);
+          const todayBattery = safeRead(todayBatteryEnt);
+          const todayVenus = safeRead(todayVenusEnt);
+          const todayGrid = safeRead(todayGridEnt);
+          const todayTotal = todaySolar + todayBattery + todayVenus + todayGrid;
+
+          if (todayTotal > 0) {
+            const pctSolar = (todaySolar / todayTotal) * 100;
+            const pctBatt = (todayBattery / todayTotal) * 100;
+            const pctVenus = (todayVenus / todayTotal) * 100;
+            const pctGrid = (todayGrid / todayTotal) * 100;
+
+            let stops = [];
+            let current = 0;
+            if (pctSolar > 0) { stops.push(`var(--pipe-solar-color) ${current}% ${current + pctSolar}%`); current += pctSolar; }
+            if (pctBatt > 0) { stops.push(`var(--pipe-battery-color) ${current}% ${current + pctBatt}%`); current += pctBatt; }
+            if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${current}% ${current + pctVenus}%`); current += pctVenus; }
+            if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${current}% 100%`); }
+
+            houseGradientVal = `conic-gradient(from 330deg, ${stops.join(', ')})`;
+
+            if (useColoredValues) {
+              const maxVal = Math.max(todaySolar, todayBattery, todayVenus, todayGrid);
+              if (maxVal === todaySolar) houseTextCol = 'var(--pipe-solar-color)';
+              else if (maxVal === todayBattery) houseTextCol = 'var(--pipe-battery-color)';
+              else if (maxVal === todayVenus) houseTextCol = 'var(--pipe-venus-color)';
+              else if (maxVal === todayGrid) houseTextCol = 'var(--pipe-grid-color)';
+            }
+          } else {
+            // Tages-Total = 0 (z.B. nach Mitternacht-Reset): neutraler Donut
+            houseGradientVal = `var(--neon-pink)`;
+            houseTextCol = useColoredValues ? 'var(--neon-pink)' : '';
+          }
+        } else if (house > 0) {
+          // Live-Modus (Original-Verhalten, 3 Segmente, Neon-Farben)
           const pctSolar = (solarToHouse / house) * 100;
           const pctGrid = (gridToHouse / house) * 100;
           const pctBatt = (batteryDischarge / house) * 100;

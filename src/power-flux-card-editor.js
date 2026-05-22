@@ -74,7 +74,8 @@ class PowerFluxCardEditor extends LitElement {
                 'secondary_solar', 'secondary_grid', 'secondary_battery',
                 'secondary_consumer_1', 'secondary_consumer_2', 'secondary_consumer_3',
                 'secondary_consumer_4', 'secondary_consumer_5',
-                'secondary_house'
+                'secondary_house',
+                'donut_today_solar', 'donut_today_battery', 'donut_today_venus', 'donut_today_grid'
             ];
 
             let newConfig = { ...this._config };
@@ -866,6 +867,37 @@ class PowerFluxCardEditor extends LitElement {
       `;
     }
 
+    _renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._localize('editor.donut_section')}</h2>
+        </div>
+
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.donut_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.donut_today_mode === true}
+                .configValue=${'donut_today_mode'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.donut_today_mode')}</div>
+        </div>
+
+        <div class="separator"></div>
+
+        ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_solar || "", 'donut_today_solar', this._localize('editor.donut_today_solar'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_battery || "", 'donut_today_battery', this._localize('editor.donut_today_battery'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_venus || "", 'donut_today_venus', this._localize('editor.donut_today_venus'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_grid || "", 'donut_today_grid', this._localize('editor.donut_today_grid'))}
+      `;
+    }
+
     _renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
         <div class="header">
@@ -1343,6 +1375,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'battery') return this._renderBatteryView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'venus') return this._renderVenusView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'donut') return this._renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
 
 
         // MAIN MENU VIEW
@@ -1373,6 +1406,11 @@ class PowerFluxCardEditor extends LitElement {
         
         <div class="menu-item" @click=${() => this._goSubView('consumers')}>
             <div class="menu-icon"><ha-icon icon="mdi:devices"></ha-icon> ${this._localize('editor.consumers_section')}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+
+        <div class="menu-item" @click=${() => this._goSubView('donut')}>
+            <div class="menu-icon"><ha-icon icon="mdi:chart-donut"></ha-icon> ${this._localize('editor.donut_section')}</div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
         </div>
 

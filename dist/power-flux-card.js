@@ -20,6 +20,13 @@ const lang_de = {
     "editor.demo_mode": "Demo-Modus (1000W an allen Pipes)",
     "editor.card_offset_x": "Card horizontal verschieben (px)",
     "editor.card_offset_y": "Card vertikal verschieben (px)",
+    "editor.donut_section": "Donut-Chart (Tages-Mix)",
+    "editor.donut_hint": "Zeigt den Energie-Mix als farbigen Ring um die Haus-Bubble. Bei aktiviertem Tagesmodus wird statt des aktuellen Live-Mix der kumulierte Tagesverbrauch in 4 Segmenten (PV, LG, Venus, Netz) dargestellt. Erfordert den Schalter \"Donut Chart\" in Darstellung & Optionen.",
+    "editor.donut_today_mode": "Tagesmodus statt Live-Modus",
+    "editor.donut_today_solar": "Tages-Sensor: PV → Haus (kWh)",
+    "editor.donut_today_battery": "Tages-Sensor: LG → Haus (kWh)",
+    "editor.donut_today_venus": "Tages-Sensor: Venus → Haus (kWh)",
+    "editor.donut_today_grid": "Tages-Sensor: Netz → Haus (kWh)",
     "editor.bubble_label_offset_x": "Watt-Label horizontal verschieben (px)",
     "editor.bubble_label_offset_y": "Watt-Label vertikal verschieben (px)",
     "editor.consumer_show_power": "Zeige Leistung statt Zweitsensor (groß)",
@@ -118,6 +125,13 @@ const lang_en = {
     "editor.demo_mode": "Demo mode (1000W on all pipes)",
     "editor.card_offset_x": "Card horizontal offset (px)",
     "editor.card_offset_y": "Card vertical offset (px)",
+    "editor.donut_section": "Donut Chart (Daily Mix)",
+    "editor.donut_hint": "Shows the energy mix as a colored ring around the house bubble. When daily mode is enabled, the donut shows accumulated daily consumption in 4 segments (PV, LG, Venus, Grid) instead of the current live mix. Requires the \"Donut Chart\" toggle in Display & Options.",
+    "editor.donut_today_mode": "Daily mode instead of live mode",
+    "editor.donut_today_solar": "Daily sensor: PV → House (kWh)",
+    "editor.donut_today_battery": "Daily sensor: LG → House (kWh)",
+    "editor.donut_today_venus": "Daily sensor: Venus → House (kWh)",
+    "editor.donut_today_grid": "Daily sensor: Grid → House (kWh)",
     "editor.bubble_label_offset_x": "Watt label horizontal offset (px)",
     "editor.bubble_label_offset_y": "Watt label vertical offset (px)",
     "editor.consumer_show_power": "Show power instead of secondary sensor (big)",
@@ -282,7 +296,8 @@ class PowerFluxCardEditor extends LitElement {
                 'secondary_solar', 'secondary_grid', 'secondary_battery',
                 'secondary_consumer_1', 'secondary_consumer_2', 'secondary_consumer_3',
                 'secondary_consumer_4', 'secondary_consumer_5',
-                'secondary_house'
+                'secondary_house',
+                'donut_today_solar', 'donut_today_battery', 'donut_today_venus', 'donut_today_grid'
             ];
 
             let newConfig = { ...this._config };
@@ -1074,6 +1089,37 @@ class PowerFluxCardEditor extends LitElement {
       `;
     }
 
+    _renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._localize('editor.donut_section')}</h2>
+        </div>
+
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.donut_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.donut_today_mode === true}
+                .configValue=${'donut_today_mode'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.donut_today_mode')}</div>
+        </div>
+
+        <div class="separator"></div>
+
+        ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_solar || "", 'donut_today_solar', this._localize('editor.donut_today_solar'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_battery || "", 'donut_today_battery', this._localize('editor.donut_today_battery'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_venus || "", 'donut_today_venus', this._localize('editor.donut_today_venus'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_grid || "", 'donut_today_grid', this._localize('editor.donut_today_grid'))}
+      `;
+    }
+
     _renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
         <div class="header">
@@ -1551,6 +1597,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'battery') return this._renderBatteryView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'venus') return this._renderVenusView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'donut') return this._renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
 
 
         // MAIN MENU VIEW
@@ -1581,6 +1628,11 @@ class PowerFluxCardEditor extends LitElement {
         
         <div class="menu-item" @click=${() => this._goSubView('consumers')}>
             <div class="menu-icon"><ha-icon icon="mdi:devices"></ha-icon> ${this._localize('editor.consumers_section')}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+
+        <div class="menu-item" @click=${() => this._goSubView('donut')}>
+            <div class="menu-icon"><ha-icon icon="mdi:chart-donut"></ha-icon> ${this._localize('editor.donut_section')}</div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
         </div>
 
@@ -3037,7 +3089,57 @@ console.log(
       }
 
       if (showDonut) {
-        if (house > 0) {
+        // Tages-Mix-Modus: aktiv wenn donut_today_mode==true UND mindestens ein Tages-Sensor konfiguriert
+        const donutTodayMode = this.config.donut_today_mode === true;
+        const todaySolarEnt = entities.donut_today_solar;
+        const todayBatteryEnt = entities.donut_today_battery;
+        const todayVenusEnt = entities.donut_today_venus;
+        const todayGridEnt = entities.donut_today_grid;
+        const hasAnyTodaySensor = !!(todaySolarEnt || todayBatteryEnt || todayVenusEnt || todayGridEnt);
+        const useTodayMode = donutTodayMode && hasAnyTodaySensor;
+
+        if (useTodayMode) {
+          // 4-Segment Tages-Mix mit Bubble-Farben
+          const safeRead = (ent) => {
+            if (!ent || ent === "") return 0;
+            const v = parseFloat(getVal(ent));
+            return isNaN(v) || v < 0 ? 0 : v;
+          };
+          const todaySolar = safeRead(todaySolarEnt);
+          const todayBattery = safeRead(todayBatteryEnt);
+          const todayVenus = safeRead(todayVenusEnt);
+          const todayGrid = safeRead(todayGridEnt);
+          const todayTotal = todaySolar + todayBattery + todayVenus + todayGrid;
+
+          if (todayTotal > 0) {
+            const pctSolar = (todaySolar / todayTotal) * 100;
+            const pctBatt = (todayBattery / todayTotal) * 100;
+            const pctVenus = (todayVenus / todayTotal) * 100;
+            const pctGrid = (todayGrid / todayTotal) * 100;
+
+            let stops = [];
+            let current = 0;
+            if (pctSolar > 0) { stops.push(`var(--pipe-solar-color) ${current}% ${current + pctSolar}%`); current += pctSolar; }
+            if (pctBatt > 0) { stops.push(`var(--pipe-battery-color) ${current}% ${current + pctBatt}%`); current += pctBatt; }
+            if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${current}% ${current + pctVenus}%`); current += pctVenus; }
+            if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${current}% 100%`); }
+
+            houseGradientVal = `conic-gradient(from 330deg, ${stops.join(', ')})`;
+
+            if (useColoredValues) {
+              const maxVal = Math.max(todaySolar, todayBattery, todayVenus, todayGrid);
+              if (maxVal === todaySolar) houseTextCol = 'var(--pipe-solar-color)';
+              else if (maxVal === todayBattery) houseTextCol = 'var(--pipe-battery-color)';
+              else if (maxVal === todayVenus) houseTextCol = 'var(--pipe-venus-color)';
+              else if (maxVal === todayGrid) houseTextCol = 'var(--pipe-grid-color)';
+            }
+          } else {
+            // Tages-Total = 0 (z.B. nach Mitternacht-Reset): neutraler Donut
+            houseGradientVal = `var(--neon-pink)`;
+            houseTextCol = useColoredValues ? 'var(--neon-pink)' : '';
+          }
+        } else if (house > 0) {
+          // Live-Modus (Original-Verhalten, 3 Segmente, Neon-Farben)
           const pctSolar = (solarToHouse / house) * 100;
           const pctGrid = (gridToHouse / house) * 100;
           const pctBatt = (batteryDischarge / house) * 100;
