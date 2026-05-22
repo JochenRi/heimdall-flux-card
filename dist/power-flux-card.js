@@ -290,10 +290,12 @@ class PowerFluxCardEditor extends LitElement {
                 'solar', 'grid', 'grid_export', 'grid_combined',
                 'battery', 'battery_soc', 'grid_to_battery',
                 'battery_charge', 'battery_discharge',
+                'venus', 'venus_soc', 'venus_charge', 'venus_discharge',
                 'house',
                 'consumer_1', 'consumer_2', 'consumer_3',
                 'consumer_4', 'consumer_5',
                 'secondary_solar', 'secondary_grid', 'secondary_battery',
+                'secondary_venus',
                 'secondary_consumer_1', 'secondary_consumer_2', 'secondary_consumer_3',
                 'secondary_consumer_4', 'secondary_consumer_5',
                 'secondary_house',
@@ -1916,6 +1918,29 @@ console.log(
       if (!config.entities) {
         // Init allow
       }
+
+      // Migration (Phase 4.15): older editor versions wrote venus sensor keys
+      // as top-level config.venus/venus_soc/venus_charge/venus_discharge/secondary_venus
+      // instead of into config.entities. This idempotent migration moves them
+      // into entities so the renderer (which only reads from config.entities) finds them.
+      // Defensive policy: if both top-level and entities have a value, entities wins
+      // and the top-level garbage is dropped.
+      const migrationKeys = ['venus', 'venus_soc', 'venus_charge', 'venus_discharge', 'secondary_venus'];
+      const hasMisplacedKey = migrationKeys.some(k => config[k] !== undefined);
+      if (hasMisplacedKey) {
+        const migrated = { ...config };
+        migrated.entities = { ...(config.entities || {}) };
+        for (const k of migrationKeys) {
+          if (migrated[k] !== undefined) {
+            if (migrated.entities[k] === undefined || migrated.entities[k] === '') {
+              migrated.entities[k] = migrated[k];
+            }
+            delete migrated[k];
+          }
+        }
+        config = migrated;
+      }
+
       this.config = config;
     }
 

@@ -116,6 +116,29 @@ console.log(
       if (!config.entities) {
         // Init allow
       }
+
+      // Migration (Phase 4.15): older editor versions wrote venus sensor keys
+      // as top-level config.venus/venus_soc/venus_charge/venus_discharge/secondary_venus
+      // instead of into config.entities. This idempotent migration moves them
+      // into entities so the renderer (which only reads from config.entities) finds them.
+      // Defensive policy: if both top-level and entities have a value, entities wins
+      // and the top-level garbage is dropped.
+      const migrationKeys = ['venus', 'venus_soc', 'venus_charge', 'venus_discharge', 'secondary_venus'];
+      const hasMisplacedKey = migrationKeys.some(k => config[k] !== undefined);
+      if (hasMisplacedKey) {
+        const migrated = { ...config };
+        migrated.entities = { ...(config.entities || {}) };
+        for (const k of migrationKeys) {
+          if (migrated[k] !== undefined) {
+            if (migrated.entities[k] === undefined || migrated.entities[k] === '') {
+              migrated.entities[k] = migrated[k];
+            }
+            delete migrated[k];
+          }
+        }
+        config = migrated;
+      }
+
       this.config = config;
     }
 
