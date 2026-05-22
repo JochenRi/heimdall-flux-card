@@ -19,6 +19,8 @@ const lang_de = {
     "editor.animation_threshold": "Animation erst ab (W)",
     "editor.consumer_show_power": "Zeige Leistung statt Zweitsensor (groß)",
     "editor.consumer_show_flow_rate": "Watt-Wert an Pipe anzeigen",
+    "editor.consumer_label_offset_x": "Watt-Label horizontal verschieben (px)",
+    "editor.consumer_label_offset_y": "Watt-Label vertikal verschieben (px)",
     "editor.invert_battery": "Wert umkehren (+/-)",
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.compact_view": "Kompakte Ansicht (evcc)",
@@ -109,6 +111,8 @@ const lang_en = {
     "editor.animation_threshold": "Animate flows above (W)",
     "editor.consumer_show_power": "Show power instead of secondary sensor (big)",
     "editor.consumer_show_flow_rate": "Show watt value on pipe",
+    "editor.consumer_label_offset_x": "Watt label horizontal offset (px)",
+    "editor.consumer_label_offset_y": "Watt label vertical offset (px)",
     "editor.invert_battery": "Invert Power Value (+/-)",
     "editor.label_toggle": "Show Label in Bubble",
     "editor.compact_view": "Compact View (evcc)",
@@ -1041,6 +1045,26 @@ class PowerFluxCardEditor extends LitElement {
                     @change=${this._valueChanged}
                 ></ha-switch>
             </div>
+
+            ${this._config.show_flow_rate_consumer_1 === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_1_label_offset_x !== undefined ? this._config.consumer_1_label_offset_x : 0}
+                .configValue=${'consumer_1_label_offset_x'}
+                .label=${this._localize('editor.consumer_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_1_label_offset_y !== undefined ? this._config.consumer_1_label_offset_y : -25}
+                .configValue=${'consumer_1_label_offset_y'}
+                .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_1 || "", 'secondary_consumer_1', this._localize('editor.secondary_sensor'))}
 
@@ -2945,7 +2969,7 @@ console.log(
                     <text x="450" y="235" class="${textClass} text-venus" style="${getTextStyle(venusDischarge, 'venus')} ${styleVenus}">${this._formatPower(venusDischarge)}</text>
                     <text x="450" y="235" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
 
-                    <text x="130" y="295" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')} fill: ${this._getConsumerPipeColor(1)};">${this._formatPower(c1Val)}</text>
+                    <text x="${130 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')} fill: ${this._getConsumerPipeColor(1)};">${this._formatPower(c1Val)}</text>
 
                 </svg>
 

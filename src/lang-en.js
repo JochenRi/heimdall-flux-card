@@ -14,6 +14,8 @@ export default {
     "editor.animation_threshold": "Animate flows above (W)",
     "editor.consumer_show_power": "Show power instead of secondary sensor (big)",
     "editor.consumer_show_flow_rate": "Show watt value on pipe",
+    "editor.consumer_label_offset_x": "Watt label horizontal offset (px)",
+    "editor.consumer_label_offset_y": "Watt label vertical offset (px)",
     "editor.invert_battery": "Invert Power Value (+/-)",
     "editor.label_toggle": "Show Label in Bubble",
     "editor.compact_view": "Compact View (evcc)",

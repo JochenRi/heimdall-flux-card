@@ -850,6 +850,26 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
             </div>
 
+            ${this._config.show_flow_rate_consumer_1 === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_1_label_offset_x !== undefined ? this._config.consumer_1_label_offset_x : 0}
+                .configValue=${'consumer_1_label_offset_x'}
+                .label=${this._localize('editor.consumer_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_1_label_offset_y !== undefined ? this._config.consumer_1_label_offset_y : -25}
+                .configValue=${'consumer_1_label_offset_y'}
+                .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_1 || "", 'secondary_consumer_1', this._localize('editor.secondary_sensor'))}
 
             ${this._renderColorPickerQuint('color_consumer_1', 'color_pipe_consumer_1', 'color_text_consumer_1', 'color_icon_consumer_1', 'color_secondary_consumer_1', '#a855f7')}

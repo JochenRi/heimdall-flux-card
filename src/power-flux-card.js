@@ -1575,7 +1575,7 @@ console.log(
                     <text x="450" y="235" class="${textClass} text-venus" style="${getTextStyle(venusDischarge, 'venus')} ${styleVenus}">${this._formatPower(venusDischarge)}</text>
                     <text x="450" y="235" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
 
-                    <text x="130" y="295" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')} fill: ${this._getConsumerPipeColor(1)};">${this._formatPower(c1Val)}</text>
+                    <text x="${130 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')} fill: ${this._getConsumerPipeColor(1)};">${this._formatPower(c1Val)}</text>
 
                 </svg>
 
