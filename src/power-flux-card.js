@@ -1446,12 +1446,33 @@ console.log(
           ? `color: var(--text-${configKey.replace(/_/g, '-')}-color);`
           : getConsumerColorStyle(hexColor);
 
+        // Show-power toggle: when false AND a secondary sensor is configured,
+        // the big value displays the secondary (e.g. SoC%) and the label is
+        // shown small. Default true preserves legacy behavior (power big,
+        // secondary small via renderSecondaryOrLabel).
+        const showPower = this.config[`${configKey}_show_power`] !== false;
+
+        let bigValue;
+        let subLine;
+
+        if (showPower) {
+          // Legacy path: power big, label/secondary small (via existing helper)
+          bigValue = this._formatPower(val);
+          subLine = renderSecondaryOrLabel(label, true, secEntity, hasSecondary, `secondary_${configKey}`);
+        } else {
+          // New path: secondary big (e.g. SoC, temperature), label small
+          // Falls back to power if no secondary configured.
+          const bigContent = hasSecondary ? getSecondaryVal(secEntity) : this._formatPower(val);
+          bigValue = bigContent;
+          subLine = html`<div class="sub label-val" style="${textStyle} opacity: 0.7;">${label}</div>`;
+        }
+
         return html`
             <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${tintClass} ${glowClass}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
-                ${renderSecondaryOrLabel(label, true, secEntity, hasSecondary, `secondary_${configKey}`)}
-                <div class="value" style="${textStyle}">${this._formatPower(val)}</div>
+                ${subLine}
+                <div class="value" style="${textStyle}">${bigValue}</div>
             </div>
         `;
       };
