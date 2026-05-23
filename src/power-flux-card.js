@@ -68,6 +68,8 @@ console.log(
         show_consumer_always: false,
         consumer_1_hide_pipe: false,
         consumer_1_pipe_threshold: 0,
+        consumer_6_enabled: false,
+        consumer_7_enabled: false,
         show_donut_border: false,
         show_neon_glow: true,
         show_comet_tail: false,
@@ -97,7 +99,9 @@ console.log(
           house: "",
           consumer_1: "",
           consumer_2: "",
-          consumer_3: ""
+          consumer_3: "",
+          consumer_6: "",
+          consumer_7: ""
         }
       };
     }
@@ -176,6 +180,8 @@ console.log(
           'color_consumer_3': '--consumer-3-color',
           'color_consumer_4': '--consumer-4-color',
           'color_consumer_5': '--consumer-5-color',
+          'color_consumer_6': '--consumer-6-color',
+          'color_consumer_7': '--consumer-7-color',
           'color_pipe_solar': '--pipe-solar-color',
           'color_pipe_grid': '--pipe-grid-color',
           'color_pipe_battery': '--pipe-battery-color',
@@ -185,6 +191,8 @@ console.log(
           'color_pipe_consumer_3': '--pipe-consumer-3-color',
           'color_pipe_consumer_4': '--pipe-consumer-4-color',
           'color_pipe_consumer_5': '--pipe-consumer-5-color',
+          'color_pipe_consumer_6': '--pipe-consumer-6-color',
+          'color_pipe_consumer_7': '--pipe-consumer-7-color',
           'color_house': '--neon-pink',
           'color_icon_solar': '--icon-solar-color',
           'color_icon_grid': '--icon-grid-color',
@@ -196,6 +204,8 @@ console.log(
           'color_icon_consumer_3': '--icon-consumer-3-color',
           'color_icon_consumer_4': '--icon-consumer-4-color',
           'color_icon_consumer_5': '--icon-consumer-5-color',
+          'color_icon_consumer_6': '--icon-consumer-6-color',
+          'color_icon_consumer_7': '--icon-consumer-7-color',
           'color_text_solar': '--text-solar-color',
           'color_text_grid': '--text-grid-color',
           'color_text_battery': '--text-battery-color',
@@ -206,6 +216,8 @@ console.log(
           'color_text_consumer_3': '--text-consumer-3-color',
           'color_text_consumer_4': '--text-consumer-4-color',
           'color_text_consumer_5': '--text-consumer-5-color',
+          'color_text_consumer_6': '--text-consumer-6-color',
+          'color_text_consumer_7': '--text-consumer-7-color',
           'color_secondary_solar': '--secondary-solar-color',
           'color_secondary_grid': '--secondary-grid-color',
           'color_secondary_battery': '--secondary-battery-color',
@@ -216,6 +228,8 @@ console.log(
           'color_secondary_consumer_3': '--secondary-consumer-3-color',
           'color_secondary_consumer_4': '--secondary-consumer-4-color',
           'color_secondary_consumer_5': '--secondary-consumer-5-color',
+          'color_secondary_consumer_6': '--secondary-consumer-6-color',
+          'color_secondary_consumer_7': '--secondary-consumer-7-color',
         };
         for (const [configKey, cssVar] of Object.entries(colorMap)) {
           if (this.config[configKey]) {
@@ -252,6 +266,8 @@ console.log(
         --consumer-3-color: #06b6d4;
         --consumer-4-color: #eab308;
         --consumer-5-color: #6366f1;
+        --consumer-6-color: #14b8a6;
+        --consumer-7-color: #ec4899;
         --pipe-solar-color: var(--neon-yellow);
         --pipe-grid-color: var(--neon-blue);
         --pipe-battery-color: var(--neon-green);
@@ -261,6 +277,8 @@ console.log(
         --pipe-consumer-3-color: var(--consumer-3-color);
         --pipe-consumer-4-color: var(--consumer-4-color);
         --pipe-consumer-5-color: var(--consumer-5-color);
+        --pipe-consumer-6-color: var(--consumer-6-color);
+        --pipe-consumer-7-color: var(--consumer-7-color);
         --icon-solar-color: var(--neon-yellow);
         --icon-grid-color: var(--neon-blue);
         --icon-battery-color: var(--neon-green);
@@ -271,6 +289,8 @@ console.log(
         --icon-consumer-3-color: var(--consumer-3-color);
         --icon-consumer-4-color: var(--consumer-4-color);
         --icon-consumer-5-color: var(--consumer-5-color);
+        --icon-consumer-6-color: var(--consumer-6-color);
+        --icon-consumer-7-color: var(--consumer-7-color);
         --text-solar-color: var(--neon-yellow);
         --text-grid-color: var(--neon-blue);
         --text-battery-color: var(--neon-green);
@@ -281,6 +301,8 @@ console.log(
         --text-consumer-3-color: var(--consumer-3-color);
         --text-consumer-4-color: var(--consumer-4-color);
         --text-consumer-5-color: var(--consumer-5-color);
+        --text-consumer-6-color: var(--consumer-6-color);
+        --text-consumer-7-color: var(--consumer-7-color);
         --secondary-solar-color: #888888;
         --secondary-grid-color: #888888;
         --secondary-battery-color: #888888;
@@ -291,6 +313,8 @@ console.log(
         --secondary-consumer-3-color: #888888;
         --secondary-consumer-4-color: #888888;
         --secondary-consumer-5-color: #888888;
+        --secondary-consumer-6-color: #888888;
+        --secondary-consumer-7-color: #888888;
         --flow-dasharray: 0 380; 
       }
       :host([data-theme-light]) {
@@ -550,6 +574,8 @@ console.log(
       .node-c3 { top: 400px; left: 490px; }
       .node-c4 { top: 510px; left: 150px; }
       .node-c5 { top: 510px; left: 380px; }
+      .node-c6 { top: 510px; left: 0px; }
+      .node-c7 { top: 510px; left: 530px; }
 
       svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
       
@@ -591,6 +617,8 @@ console.log(
       .text-consumer-3 { fill: var(--pipe-consumer-3-color); }
       .text-consumer-4 { fill: var(--pipe-consumer-4-color); }
       .text-consumer-5 { fill: var(--pipe-consumer-5-color); }
+      .text-consumer-6 { fill: var(--pipe-consumer-6-color); }
+      .text-consumer-7 { fill: var(--pipe-consumer-7-color); }
     `;
     }
 
@@ -651,7 +679,7 @@ console.log(
 
     _getConsumerColor(index) {
       const style = getComputedStyle(this);
-      return style.getPropertyValue(`--consumer-${index}-color`).trim() || ['#a855f7', '#f97316', '#06b6d4', '#eab308', '#6366f1'][index - 1];
+      return style.getPropertyValue(`--consumer-${index}-color`).trim() || ['#a855f7', '#f97316', '#06b6d4', '#eab308', '#6366f1', '#14b8a6', '#ec4899'][index - 1];
     }
 
     _getConsumerPipeColor(index) {
@@ -1019,6 +1047,8 @@ console.log(
       const showFlowConsumer3 = this.config.show_flow_rate_consumer_3 === true;
       const showFlowConsumer4 = this.config.show_flow_rate_consumer_4 === true;
       const showFlowConsumer5 = this.config.show_flow_rate_consumer_5 === true;
+      const showFlowConsumer6 = this.config.show_flow_rate_consumer_6 === true;
+      const showFlowConsumer7 = this.config.show_flow_rate_consumer_7 === true;
 
       // LABEL TOGGLES
       const showLabelSolar = this.config.show_label_solar === true;
@@ -1130,20 +1160,31 @@ console.log(
       let c2Val = entities.consumer_2 ? getValKw(entities.consumer_2, this.config.consumer_2_unit_kw === true) : 0;
       let c3Val = entities.consumer_3 ? getValKw(entities.consumer_3, this.config.consumer_3_unit_kw === true) : 0;
 
+      // Consumer 6 & 7 (Phase 5.4 — additional row-2 slots, outer left + right)
+      let c6Val = entities.consumer_6 ? getValKw(entities.consumer_6, this.config.consumer_6_unit_kw === true) : 0;
+      let c7Val = entities.consumer_7 ? getValKw(entities.consumer_7, this.config.consumer_7_unit_kw === true) : 0;
+      c6Val = Math.abs(c6Val);
+      c7Val = Math.abs(c7Val);
+
       const alwaysShowConsumer = this.config.show_consumer_always === true;
       // Per-consumer enabled toggle (Phase 5.2+): false disables bubble + pipe entirely,
-      // independent of whether an entity is configured. Default true for backward-compat.
+      // independent of whether an entity is configured. Default true for backward-compat,
+      // except c6/c7 which default false (new optional slots, Phase 5.4).
       const c1Enabled = this.config.consumer_1_enabled !== false;
       const c2Enabled = this.config.consumer_2_enabled !== false;
       const c3Enabled = this.config.consumer_3_enabled !== false;
       const c4Enabled = this.config.consumer_4_enabled !== false;
       const c5Enabled = this.config.consumer_5_enabled !== false;
+      const c6Enabled = this.config.consumer_6_enabled === true;
+      const c7Enabled = this.config.consumer_7_enabled === true;
       const showC1 = c1Enabled && (entities.consumer_1 && (alwaysShowConsumer || Math.round(c1Val) > 0));
       const showC2 = c2Enabled && (entities.consumer_2 && (alwaysShowConsumer || Math.round(c2Val) > 0));
       const showC3 = c3Enabled && (entities.consumer_3 && (alwaysShowConsumer || Math.round(c3Val) > 0));
       const showC4 = c4Enabled && (entities.consumer_4 && (alwaysShowConsumer || Math.round(c4Val) > 0));
       const showC5 = c5Enabled && (entities.consumer_5 && (alwaysShowConsumer || Math.round(c5Val) > 0));
-      const anyBottomVisible = showC1 || showC2 || showC3 || showC4 || showC5;
+      const showC6 = c6Enabled && (entities.consumer_6 && (alwaysShowConsumer || Math.round(c6Val) > 0));
+      const showC7 = c7Enabled && (entities.consumer_7 && (alwaysShowConsumer || Math.round(c7Val) > 0));
+      const anyBottomVisible = showC1 || showC2 || showC3 || showC4 || showC5 || showC6 || showC7;
 
       // Consumer 1 pipe threshold
       const hideC1Pipe = this.config.consumer_1_hide_pipe === true;
@@ -1284,7 +1325,7 @@ console.log(
       const isTopArcActive = (solarToBatt > 0) && !batteryChargeViaHouse;
       const hasTopRow = hasSolar || hasGrid || hasBattery;
       const topShift = !hasTopRow ? 190 : 0;
-      const anyRow2Visible = showC4 || showC5;
+      const anyRow2Visible = showC4 || showC5 || showC6 || showC7;
       let baseHeight = anyRow2Visible ? 620 : (anyBottomVisible ? 520 : 340);
       const contentHeight = baseHeight - topShift;
 
@@ -1540,6 +1581,8 @@ console.log(
         else if (type === 'consumer_3') isVisible = showFlowConsumer3 && (this.config.consumer_3_enabled !== false);
         else if (type === 'consumer_4') isVisible = showFlowConsumer4 && (this.config.consumer_4_enabled !== false);
         else if (type === 'consumer_5') isVisible = showFlowConsumer5 && (this.config.consumer_5_enabled !== false);
+        else if (type === 'consumer_6') isVisible = showFlowConsumer6 && (this.config.consumer_6_enabled === true);
+        else if (type === 'consumer_7') isVisible = showFlowConsumer7 && (this.config.consumer_7_enabled === true);
 
         if (!isVisible) return "display: none;";
         const threshold = getThresholdByType(type);
@@ -1659,6 +1702,8 @@ console.log(
       const pathHouseC3 = "M 355 290 Q 535 290 535 400";
       const pathHouseC4 = "M 265 290 Q 175 400 195 510";
       const pathHouseC5 = "M 355 290 Q 445 400 425 510";
+      const pathHouseC6 = "M 265 290 Q 45 350 45 510";
+      const pathHouseC7 = "M 355 290 Q 575 350 575 510";
 
       const houseTextStyle = this.config.color_text_house
         ? 'color: var(--text-house-color);'
@@ -1692,6 +1737,8 @@ console.log(
                     <path d="${pathHouseC3}" fill="none" stroke="${this._getConsumerPipeColor(3)}" stroke-width="6" style="${getConsumerPipeStyle(showC3, c3Val, 3)}" />
                     <path d="${pathHouseC4}" fill="none" stroke="${this._getConsumerPipeColor(4)}" stroke-width="6" style="${getConsumerPipeStyle(showC4, c4Val, 4)}" />
                     <path d="${pathHouseC5}" fill="none" stroke="${this._getConsumerPipeColor(5)}" stroke-width="6" style="${getConsumerPipeStyle(showC5, c5Val, 5)}" />
+                    <path d="${pathHouseC6}" fill="none" stroke="${this._getConsumerPipeColor(6)}" stroke-width="6" style="${getConsumerPipeStyle(showC6, c6Val, 6)}" />
+                    <path d="${pathHouseC7}" fill="none" stroke="${this._getConsumerPipeColor(7)}" stroke-width="6" style="${getConsumerPipeStyle(showC7, c7Val, 7)}" />
 
                     <path class="flow-line flow-solar" d="${pathSolarHouse}" style="${getAnimStyle(solarToHouse, '--pipe-solar-opacity', 'solar')} ${styleSolar}" />
                     <path class="flow-line flow-solar" d="${pathSolarBatt}" style="${getAnimStyle(solarToBatt, '--pipe-solar-opacity', 'solar')} ${styleSolarBatt}" />
@@ -1712,7 +1759,8 @@ console.log(
                     <path class="flow-line" d="${pathHouseC3}" stroke="${this._getConsumerPipeColor(3)}" style="${getConsumerAnimStyle(showC3, c3Val, 3)}" />
                     <path class="flow-line" d="${pathHouseC4}" stroke="${this._getConsumerPipeColor(4)}" style="${getConsumerAnimStyle(showC4, c4Val, 4)}" />
                     <path class="flow-line" d="${pathHouseC5}" stroke="${this._getConsumerPipeColor(5)}" style="${getConsumerAnimStyle(showC5, c5Val, 5)}" />
-
+                    <path class="flow-line" d="${pathHouseC6}" stroke="${this._getConsumerPipeColor(6)}" style="${getConsumerAnimStyle(showC6, c6Val, 6)}" />
+                    <path class="flow-line" d="${pathHouseC7}" stroke="${this._getConsumerPipeColor(7)}" style="${getConsumerAnimStyle(showC7, c7Val, 7)}" />
                     <text x="${100 + (this.config.solar_label_offset_x !== undefined ? this.config.solar_label_offset_x : 0)}" y="${235 + (this.config.solar_label_offset_y !== undefined ? this.config.solar_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(solarToHouse, 'solar')} ${styleSolar}">${this._formatPower(solarToHouse)}</text>
                     <text x="210" y="45" class="${textClass} text-solar" style="${getTextStyle(solarToBatt, 'solar')} ${styleSolarBatt}">${this._formatPower(solarToBatt)}</text>
                     
@@ -1732,6 +1780,8 @@ console.log(
                     <text x="${490 + (this.config.consumer_3_label_offset_x !== undefined ? this.config.consumer_3_label_offset_x : 0)}" y="${320 + (this.config.consumer_3_label_offset_y !== undefined ? this.config.consumer_3_label_offset_y : -25)}" class="${textClass} text-consumer-3" style="${getTextStyle(c3Val, 'consumer_3')}">${this._formatPower(c3Val)}</text>
                     <text x="${202 + (this.config.consumer_4_label_offset_x !== undefined ? this.config.consumer_4_label_offset_x : 0)}" y="${400 + (this.config.consumer_4_label_offset_y !== undefined ? this.config.consumer_4_label_offset_y : -25)}" class="${textClass} text-consumer-4" style="${getTextStyle(c4Val, 'consumer_4')}">${this._formatPower(c4Val)}</text>
                     <text x="${418 + (this.config.consumer_5_label_offset_x !== undefined ? this.config.consumer_5_label_offset_x : 0)}" y="${400 + (this.config.consumer_5_label_offset_y !== undefined ? this.config.consumer_5_label_offset_y : -25)}" class="${textClass} text-consumer-5" style="${getTextStyle(c5Val, 'consumer_5')}">${this._formatPower(c5Val)}</text>
+                    <text x="${75 + (this.config.consumer_6_label_offset_x !== undefined ? this.config.consumer_6_label_offset_x : 0)}" y="${400 + (this.config.consumer_6_label_offset_y !== undefined ? this.config.consumer_6_label_offset_y : -25)}" class="${textClass} text-consumer-6" style="${getTextStyle(c6Val, 'consumer_6')}">${this._formatPower(c6Val)}</text>
+                    <text x="${545 + (this.config.consumer_7_label_offset_x !== undefined ? this.config.consumer_7_label_offset_x : 0)}" y="${400 + (this.config.consumer_7_label_offset_y !== undefined ? this.config.consumer_7_label_offset_y : -25)}" class="${textClass} text-consumer-7" style="${getTextStyle(c7Val, 'consumer_7')}">${this._formatPower(c7Val)}</text>
 
                 </svg>
 
@@ -1784,6 +1834,8 @@ console.log(
 
                 ${renderConsumer(showC4, 'c4', 'consumer_4', this.config.consumer_4_label || 'Consumer 4', null, c4Val, this._getConsumerColor(4))}
                 ${renderConsumer(showC5, 'c5', 'consumer_5', this.config.consumer_5_label || 'Consumer 5', null, c5Val, this._getConsumerColor(5))}
+                ${renderConsumer(showC6, 'c6', 'consumer_6', this.config.consumer_6_label || 'Consumer 6', null, c6Val, this._getConsumerColor(6))}
+                ${renderConsumer(showC7, 'c7', 'consumer_7', this.config.consumer_7_label || 'Consumer 7', null, c7Val, this._getConsumerColor(7))}
                 
             </div>
         </div>

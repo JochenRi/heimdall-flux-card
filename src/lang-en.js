@@ -90,6 +90,8 @@ export default {
     "editor.venus_secondary_sensor": "Secondary Sensor (display only) for Venus",
     "editor.consumer_4_title": "⚡ Row 2 Left (Yellow)",
     "editor.consumer_5_title": "💡 Row 2 Right (Indigo)",
+    "editor.consumer_6_title": "💡 Row 2 Outer Left (Teal)",
+    "editor.consumer_7_title": "💡 Row 2 Outer Right (Pink)",
   },
   card: {
     "card.label_solar": "Solar",
