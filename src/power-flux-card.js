@@ -1131,7 +1131,10 @@ console.log(
       let c3Val = entities.consumer_3 ? getValKw(entities.consumer_3, this.config.consumer_3_unit_kw === true) : 0;
 
       const alwaysShowConsumer = this.config.show_consumer_always === true;
-      const showC1 = (entities.consumer_1 && (alwaysShowConsumer || Math.round(c1Val) > 0));
+      // Per-consumer enabled toggle (Phase 5.2+): false disables bubble + pipe entirely,
+      // independent of whether an entity is configured. Default true for backward-compat.
+      const c1Enabled = this.config.consumer_1_enabled !== false;
+      const showC1 = c1Enabled && (entities.consumer_1 && (alwaysShowConsumer || Math.round(c1Val) > 0));
       const showC2 = (entities.consumer_2 && (alwaysShowConsumer || Math.round(c2Val) > 0));
       const showC3 = (entities.consumer_3 && (alwaysShowConsumer || Math.round(c3Val) > 0));
       const showC4 = (entities.consumer_4 && (alwaysShowConsumer || Math.round(c4Val) > 0));

@@ -27,6 +27,7 @@ const lang_de = {
     "editor.donut_today_battery": "Tages-Sensor: LG → Haus (kWh)",
     "editor.donut_today_venus": "Tages-Sensor: Venus → Haus (kWh)",
     "editor.donut_today_grid": "Tages-Sensor: Netz → Haus (kWh)",
+    "editor.consumer_enabled": "Verbraucher aktiv",
     "editor.bubble_label_offset_x": "Watt-Label horizontal verschieben (px)",
     "editor.bubble_label_offset_y": "Watt-Label vertikal verschieben (px)",
     "editor.consumer_show_power": "Zeige Leistung statt Zweitsensor (groß)",
@@ -132,6 +133,7 @@ const lang_en = {
     "editor.donut_today_battery": "Daily sensor: LG → House (kWh)",
     "editor.donut_today_venus": "Daily sensor: Venus → House (kWh)",
     "editor.donut_today_grid": "Daily sensor: Grid → House (kWh)",
+    "editor.consumer_enabled": "Consumer enabled",
     "editor.bubble_label_offset_x": "Watt label horizontal offset (px)",
     "editor.bubble_label_offset_y": "Watt label vertical offset (px)",
     "editor.consumer_show_power": "Show power instead of secondary sensor (big)",
@@ -1162,6 +1164,16 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #a855f7;">${this._localize('editor.consumer_1_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_1_enabled !== false}
+                    .configValue=${'consumer_1_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1, 'consumer_1', this._localize('editor.entity'))}
             
             <ha-selector
@@ -2933,7 +2945,10 @@ console.log(
       let c3Val = entities.consumer_3 ? getValKw(entities.consumer_3, this.config.consumer_3_unit_kw === true) : 0;
 
       const alwaysShowConsumer = this.config.show_consumer_always === true;
-      const showC1 = (entities.consumer_1 && (alwaysShowConsumer || Math.round(c1Val) > 0));
+      // Per-consumer enabled toggle (Phase 5.2+): false disables bubble + pipe entirely,
+      // independent of whether an entity is configured. Default true for backward-compat.
+      const c1Enabled = this.config.consumer_1_enabled !== false;
+      const showC1 = c1Enabled && (entities.consumer_1 && (alwaysShowConsumer || Math.round(c1Val) > 0));
       const showC2 = (entities.consumer_2 && (alwaysShowConsumer || Math.round(c2Val) > 0));
       const showC3 = (entities.consumer_3 && (alwaysShowConsumer || Math.round(c3Val) > 0));
       const showC4 = (entities.consumer_4 && (alwaysShowConsumer || Math.round(c4Val) > 0));

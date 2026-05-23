@@ -22,6 +22,7 @@ export default {
     "editor.donut_today_battery": "Tages-Sensor: LG → Haus (kWh)",
     "editor.donut_today_venus": "Tages-Sensor: Venus → Haus (kWh)",
     "editor.donut_today_grid": "Tages-Sensor: Netz → Haus (kWh)",
+    "editor.consumer_enabled": "Verbraucher aktiv",
     "editor.bubble_label_offset_x": "Watt-Label horizontal verschieben (px)",
     "editor.bubble_label_offset_y": "Watt-Label vertikal verschieben (px)",
     "editor.consumer_show_power": "Zeige Leistung statt Zweitsensor (groß)",

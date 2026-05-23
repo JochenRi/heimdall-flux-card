@@ -940,6 +940,16 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #a855f7;">${this._localize('editor.consumer_1_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_1_enabled !== false}
+                    .configValue=${'consumer_1_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1, 'consumer_1', this._localize('editor.entity'))}
             
             <ha-selector
