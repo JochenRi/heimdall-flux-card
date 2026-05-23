@@ -59,7 +59,7 @@ const lang_de = {
     "editor.tinted_background": "Farbiger Hintergrund in Kreisen",
     "editor.colored_values": "Farbige Textwerte",
     "editor.hide_consumer_icons": "Icons unten ausblenden",
-    "editor.invert_consumer_1": "Sensorwert invertieren (+/-)",
+    "editor.invert_consumer": "Sensorwert invertieren (+/-)",
     "editor.secondary_sensor": "Zweiter Sensor (nur Anzeige)",
     "editor.grid_to_battery_sensor": "Netz-zu-Batterie Sensor (W, Optional)",
     "editor.grid_to_battery_hint": "Optional: separater Sensor für den Netz-zu-Batterie Fluss. Wenn leer, wird der Wert automatisch berechnet.",
@@ -73,7 +73,7 @@ const lang_de = {
     "editor.battery_charge_sensor": "Batterie-Ladung Sensor (W, Optional)",
     "editor.battery_discharge_sensor": "Batterie-Entladung Sensor (W, Optional)",
     "editor.battery_separate_hint": "Optional: Separate Sensoren für Laden/Entladen. Überschreiben den Hauptsensor für die Berechnung.",
-    "editor.consumer_1_hide_pipe": "Pipe bei geringer Leistung ausblenden",
+    "editor.consumer_hide_pipe": "Pipe bei geringer Leistung ausblenden",
     "editor.consumer_pipe_threshold": "Pipe-Schwellenwert (Watt)",
     "editor.text_color": "Text",
     "editor.icon_color": "Icon",
@@ -167,7 +167,7 @@ const lang_en = {
     "editor.tinted_background": "Tinted Background in Bubbles",
     "editor.colored_values": "Colored Text Values",
     "editor.hide_consumer_icons": "Hide Consumer Icons",
-    "editor.invert_consumer_1": "Invert Sensor Value (+/-)",
+    "editor.invert_consumer": "Invert Sensor Value (+/-)",
     "editor.secondary_sensor": "Secondary Sensor (display only)",
     "editor.grid_to_battery_sensor": "Grid to Battery Sensor (W, optional)",
     "editor.grid_to_battery_hint": "Optional: separate sensor for grid-to-battery flow. If empty, the value is calculated automatically.",
@@ -181,7 +181,7 @@ const lang_en = {
     "editor.battery_charge_sensor": "Battery Charge Sensor (W, Optional)",
     "editor.battery_discharge_sensor": "Battery Discharge Sensor (W, Optional)",
     "editor.battery_separate_hint": "Optional: Separate sensors for charge/discharge. Override the main sensor for calculations.",
-    "editor.consumer_1_hide_pipe": "Hide pipe at low power",
+    "editor.consumer_hide_pipe": "Hide pipe at low power",
     "editor.consumer_pipe_threshold": "Pipe Threshold (Watts)",
     "editor.text_color": "Text Color",
     "editor.icon_color": "Icon Color",
@@ -1201,7 +1201,7 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-selector>
 
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer_1')}</span>
+                <span>${this._localize('editor.invert_consumer')}</span>
                 <ha-switch
                     .checked=${this._config.invert_consumer_1 === true}
                     .configValue=${'invert_consumer_1'}
@@ -1210,7 +1210,7 @@ class PowerFluxCardEditor extends LitElement {
             </div>
 
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_1_hide_pipe')}</span>
+                <span>${this._localize('editor.consumer_hide_pipe')}</span>
                 <ha-switch
                     .checked=${this._config.consumer_1_hide_pipe === true}
                     .configValue=${'consumer_1_hide_pipe'}
@@ -1320,6 +1320,35 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.invert_consumer')}</span>
+                <ha-switch
+                    .checked=${this._config.invert_consumer_2 === true}
+                    .configValue=${'invert_consumer_2'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.consumer_hide_pipe')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_2_hide_pipe === true}
+                    .configValue=${'consumer_2_hide_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            ${this._config.consumer_2_hide_pipe === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
+                .value=${this._config.consumer_2_pipe_threshold !== undefined ? this._config.consumer_2_pipe_threshold : 0}
+                .configValue=${'consumer_2_pipe_threshold'}
+                .label=${this._localize('editor.consumer_pipe_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
+
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
                 <span>${this._localize('editor.consumer_unit_kw')}</span>
                 <ha-switch
@@ -1408,6 +1437,35 @@ class PowerFluxCardEditor extends LitElement {
                 .label=${this._localize('editor.icon')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.invert_consumer')}</span>
+                <ha-switch
+                    .checked=${this._config.invert_consumer_3 === true}
+                    .configValue=${'invert_consumer_3'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.consumer_hide_pipe')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_3_hide_pipe === true}
+                    .configValue=${'consumer_3_hide_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            ${this._config.consumer_3_hide_pipe === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
+                .value=${this._config.consumer_3_pipe_threshold !== undefined ? this._config.consumer_3_pipe_threshold : 0}
+                .configValue=${'consumer_3_pipe_threshold'}
+                .label=${this._localize('editor.consumer_pipe_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
+
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
                 <span>${this._localize('editor.consumer_unit_kw')}</span>
                 <ha-switch
@@ -1494,6 +1552,35 @@ class PowerFluxCardEditor extends LitElement {
                 .label=${this._localize('editor.icon')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.invert_consumer')}</span>
+                <ha-switch
+                    .checked=${this._config.invert_consumer_4 === true}
+                    .configValue=${'invert_consumer_4'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.consumer_hide_pipe')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_4_hide_pipe === true}
+                    .configValue=${'consumer_4_hide_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            ${this._config.consumer_4_hide_pipe === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
+                .value=${this._config.consumer_4_pipe_threshold !== undefined ? this._config.consumer_4_pipe_threshold : 0}
+                .configValue=${'consumer_4_pipe_threshold'}
+                .label=${this._localize('editor.consumer_pipe_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
+
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
                 <span>${this._localize('editor.consumer_unit_kw')}</span>
                 <ha-switch
@@ -1580,6 +1667,35 @@ class PowerFluxCardEditor extends LitElement {
                 .label=${this._localize('editor.icon')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.invert_consumer')}</span>
+                <ha-switch
+                    .checked=${this._config.invert_consumer_5 === true}
+                    .configValue=${'invert_consumer_5'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.consumer_hide_pipe')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_5_hide_pipe === true}
+                    .configValue=${'consumer_5_hide_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            ${this._config.consumer_5_hide_pipe === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
+                .value=${this._config.consumer_5_pipe_threshold !== undefined ? this._config.consumer_5_pipe_threshold : 0}
+                .configValue=${'consumer_5_pipe_threshold'}
+                .label=${this._localize('editor.consumer_pipe_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
+
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
                 <span>${this._localize('editor.consumer_unit_kw')}</span>
                 <ha-switch
@@ -1666,6 +1782,35 @@ class PowerFluxCardEditor extends LitElement {
                 .label=${this._localize('editor.icon')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.invert_consumer')}</span>
+                <ha-switch
+                    .checked=${this._config.invert_consumer_6 === true}
+                    .configValue=${'invert_consumer_6'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.consumer_hide_pipe')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_6_hide_pipe === true}
+                    .configValue=${'consumer_6_hide_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            ${this._config.consumer_6_hide_pipe === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
+                .value=${this._config.consumer_6_pipe_threshold !== undefined ? this._config.consumer_6_pipe_threshold : 0}
+                .configValue=${'consumer_6_pipe_threshold'}
+                .label=${this._localize('editor.consumer_pipe_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
+
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
                 <span>${this._localize('editor.consumer_unit_kw')}</span>
                 <ha-switch
@@ -1752,6 +1897,35 @@ class PowerFluxCardEditor extends LitElement {
                 .label=${this._localize('editor.icon')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.invert_consumer')}</span>
+                <ha-switch
+                    .checked=${this._config.invert_consumer_7 === true}
+                    .configValue=${'invert_consumer_7'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.consumer_hide_pipe')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_7_hide_pipe === true}
+                    .configValue=${'consumer_7_hide_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            ${this._config.consumer_7_hide_pipe === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
+                .value=${this._config.consumer_7_pipe_threshold !== undefined ? this._config.consumer_7_pipe_threshold : 0}
+                .configValue=${'consumer_7_pipe_threshold'}
+                .label=${this._localize('editor.consumer_pipe_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
+
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
                 <span>${this._localize('editor.consumer_unit_kw')}</span>
                 <ha-switch
