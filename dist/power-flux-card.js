@@ -2602,18 +2602,18 @@ console.log(
       .glow.c6 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-6-color), transparent 60%); }
       .glow.c7 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-7-color), transparent 60%); }
 
-      .node-solar { top: 80px; left: 10px; }     
-      .node-grid { top: 80px; left: 170px; }     
-      .node-battery { top: 80px; left: 330px; }  
-      .node-venus { top: 80px; left: 490px; }   
-      .node-house { top: 245px; left: 265px; }   
-      .node-c1 { top: 400px; left: 40px; }
-      .node-c2 { top: 400px; left: 265px; }
-      .node-c3 { top: 400px; left: 490px; }
-      .node-c4 { top: 510px; left: 150px; }
-      .node-c5 { top: 510px; left: 380px; }
+      .node-solar { top: 80px; left: 100px; }     
+      .node-grid { top: 80px; left: 260px; }     
+      .node-battery { top: 80px; left: 420px; }  
+      .node-venus { top: 80px; left: 580px; }   
+      .node-house { top: 245px; left: 355px; }   
+      .node-c1 { top: 400px; left: 130px; }
+      .node-c2 { top: 400px; left: 355px; }
+      .node-c3 { top: 400px; left: 580px; }
+      .node-c4 { top: 510px; left: 240px; }
+      .node-c5 { top: 510px; left: 470px; }
       .node-c6 { top: 510px; left: 0px; }
-      .node-c7 { top: 510px; left: 530px; }
+      .node-c7 { top: 510px; left: 710px; }
 
       svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
       
@@ -3380,7 +3380,7 @@ console.log(
       if (scale < 0.5) scale = 0.5;
 
       const finalCardHeightPx = contentHeight * scale;
-      const visualWidth = 620 * scale;
+      const visualWidth = 800 * scale;
       const centerMarginLeft = Math.max(0, (availableWidth - visualWidth) / 2);
 
       let houseGradientVal = '';
@@ -3724,26 +3724,26 @@ console.log(
         return getAnimStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null, type);
       };
 
-      const pathSolarHouse = "M 55 170 Q 55 290 265 290";
-      const pathSolarBatt = "M 55 80 Q 215 35 375 80";
-      const pathGridImport = "M 215 170 Q 215 290 265 290";
-      const pathGridExport = "M 100 125 Q 135 155 170 125";
+      const pathSolarHouse = "M 145 170 Q 145 290 355 290";
+      const pathSolarBatt = "M 145 80 Q 305 35 465 80";
+      const pathGridImport = "M 305 170 Q 305 290 355 290";
+      const pathGridExport = "M 190 125 Q 225 155 260 125";
       const activeExportPath = pathGridExport;
-      const exportTextX = '140';
+      const exportTextX = '230';
       const exportTextY = '160';
-      const pathBattHouse = "M 375 170 Q 375 290 355 290";
-      const pathHouseToBatt = "M 355 290 Q 375 290 375 170";
+      const pathBattHouse = "M 465 170 Q 465 290 445 290";
+      const pathHouseToBatt = "M 445 290 Q 465 290 465 170";
       // Venus pipes (mirrors battery pattern, geometrically distinct from LG paths)
-      const pathSolarVenus = "M 55 80 Q 295 15 535 80";
-      const pathVenusHouse = "M 535 170 Q 535 290 355 290";
-      const pathHouseToVenus = "M 355 290 Q 535 290 535 170";
-      const pathHouseC1 = "M 265 290 Q 85 290 85 400";
-      const pathHouseC2 = "M 310 335 L 310 400";
-      const pathHouseC3 = "M 355 290 Q 535 290 535 400";
-      const pathHouseC4 = "M 265 290 Q 175 400 195 510";
-      const pathHouseC5 = "M 355 290 Q 445 400 425 510";
-      const pathHouseC6 = "M 265 290 Q 45 350 45 510";
-      const pathHouseC7 = "M 355 290 Q 575 350 575 510";
+      const pathSolarVenus = "M 145 80 Q 385 15 625 80";
+      const pathVenusHouse = "M 625 170 Q 625 290 445 290";
+      const pathHouseToVenus = "M 445 290 Q 625 290 625 170";
+      const pathHouseC1 = "M 355 290 Q 175 290 175 400";
+      const pathHouseC2 = "M 400 335 L 400 400";
+      const pathHouseC3 = "M 445 290 Q 625 290 625 400";
+      const pathHouseC4 = "M 355 290 Q 265 400 285 510";
+      const pathHouseC5 = "M 445 290 Q 535 400 515 510";
+      const pathHouseC6 = "M 355 290 Q 45 350 45 510";
+      const pathHouseC7 = "M 445 290 Q 755 350 755 510";
 
       const houseTextStyle = this.config.color_text_house
         ? 'color: var(--text-house-color);'
@@ -3757,7 +3757,7 @@ console.log(
         <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-left: ${centerMarginLeft}px;">
             
             <div class="absolute-container" style="height: ${baseHeight}px; top: -${topShift}px;">
-                <svg height="${baseHeight}" viewBox="0 0 620 ${baseHeight}" preserveAspectRatio="xMidYMid meet">
+                <svg height="${baseHeight}" viewBox="0 0 800 ${baseHeight}" preserveAspectRatio="xMidYMid meet">
                     
                     <path class="bg-path bg-solar" d="${pathSolarHouse}" style="${getPipeStyle(solarToHouse, '--pipe-solar-opacity', 'solar')} ${styleSolar}" />
                     <path class="bg-path bg-solar" d="${pathSolarBatt}" style="${getPipeStyle(solarToBatt, '--pipe-solar-opacity', 'solar')} ${styleSolarBatt}" />
@@ -3801,27 +3801,27 @@ console.log(
                     <path class="flow-line" d="${pathHouseC5}" stroke="${this._getConsumerPipeColor(5)}" style="${getConsumerAnimStyle(showC5, c5Val, 5)}" />
                     <path class="flow-line" d="${pathHouseC6}" stroke="${this._getConsumerPipeColor(6)}" style="${getConsumerAnimStyle(showC6, c6Val, 6)}" />
                     <path class="flow-line" d="${pathHouseC7}" stroke="${this._getConsumerPipeColor(7)}" style="${getConsumerAnimStyle(showC7, c7Val, 7)}" />
-                    <text x="${100 + (this.config.solar_label_offset_x !== undefined ? this.config.solar_label_offset_x : 0)}" y="${235 + (this.config.solar_label_offset_y !== undefined ? this.config.solar_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(solarToHouse, 'solar')} ${styleSolar}">${this._formatPower(solarToHouse)}</text>
-                    <text x="210" y="45" class="${textClass} text-solar" style="${getTextStyle(solarToBatt, 'solar')} ${styleSolarBatt}">${this._formatPower(solarToBatt)}</text>
+                    <text x="${190 + (this.config.solar_label_offset_x !== undefined ? this.config.solar_label_offset_x : 0)}" y="${235 + (this.config.solar_label_offset_y !== undefined ? this.config.solar_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(solarToHouse, 'solar')} ${styleSolar}">${this._formatPower(solarToHouse)}</text>
+                    <text x="300" y="45" class="${textClass} text-solar" style="${getTextStyle(solarToBatt, 'solar')} ${styleSolarBatt}">${this._formatPower(solarToBatt)}</text>
                     
-                    <text x="${225 + (this.config.grid_label_offset_x !== undefined ? this.config.grid_label_offset_x : 0)}" y="${255 + (this.config.grid_label_offset_y !== undefined ? this.config.grid_label_offset_y : 0)}" class="${textClass} text-grid" style="${getTextStyle(gridToHouse, 'grid')} ${styleGrid}">${this._formatPower(gridToHouse)}</text>
+                    <text x="${315 + (this.config.grid_label_offset_x !== undefined ? this.config.grid_label_offset_x : 0)}" y="${255 + (this.config.grid_label_offset_y !== undefined ? this.config.grid_label_offset_y : 0)}" class="${textClass} text-grid" style="${getTextStyle(gridToHouse, 'grid')} ${styleGrid}">${this._formatPower(gridToHouse)}</text>
                     <text x="${exportTextX}" y="${exportTextY}" class="${textClass} text-export" style="${getTextStyle(gridExport, 'grid')} ${styleGrid}">${this._formatPower(gridExport)}</text>
                     
-                    <text x="${320 + (this.config.battery_label_offset_x !== undefined ? this.config.battery_label_offset_x : 0)}" y="${235 + (this.config.battery_label_offset_y !== undefined ? this.config.battery_label_offset_y : 0)}" class="${textClass} text-battery" style="${getTextStyle(batteryDischarge, 'battery')} ${styleBattery}">${this._formatPower(batteryDischarge)}</text>
+                    <text x="${410 + (this.config.battery_label_offset_x !== undefined ? this.config.battery_label_offset_x : 0)}" y="${235 + (this.config.battery_label_offset_y !== undefined ? this.config.battery_label_offset_y : 0)}" class="${textClass} text-battery" style="${getTextStyle(batteryDischarge, 'battery')} ${styleBattery}">${this._formatPower(batteryDischarge)}</text>
 
-                    <text x="${320 + (this.config.battery_label_offset_x !== undefined ? this.config.battery_label_offset_x : 0)}" y="${235 + (this.config.battery_label_offset_y !== undefined ? this.config.battery_label_offset_y : 0)}" class="${textClass} text-battery" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getTextStyle(batteryCharge, 'battery') + ' ' + styleBattery : 'display:none;'}">${this._formatPower(batteryCharge)}</text>
+                    <text x="${410 + (this.config.battery_label_offset_x !== undefined ? this.config.battery_label_offset_x : 0)}" y="${235 + (this.config.battery_label_offset_y !== undefined ? this.config.battery_label_offset_y : 0)}" class="${textClass} text-battery" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getTextStyle(batteryCharge, 'battery') + ' ' + styleBattery : 'display:none;'}">${this._formatPower(batteryCharge)}</text>
 
-                    <text x="290" y="40" class="${textClass} text-solar" style="${getTextStyle(solarToVenus, 'solar')} ${styleSolarVenus}">${this._formatPower(solarToVenus)}</text>
-                    <text x="${450 + (this.config.venus_label_offset_x !== undefined ? this.config.venus_label_offset_x : 0)}" y="${235 + (this.config.venus_label_offset_y !== undefined ? this.config.venus_label_offset_y : 0)}" class="${textClass} text-venus" style="${getTextStyle(venusDischarge, 'venus')} ${styleVenus}">${this._formatPower(venusDischarge)}</text>
-                    <text x="${450 + (this.config.venus_label_offset_x !== undefined ? this.config.venus_label_offset_x : 0)}" y="${235 + (this.config.venus_label_offset_y !== undefined ? this.config.venus_label_offset_y : 0)}" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
+                    <text x="380" y="40" class="${textClass} text-solar" style="${getTextStyle(solarToVenus, 'solar')} ${styleSolarVenus}">${this._formatPower(solarToVenus)}</text>
+                    <text x="${540 + (this.config.venus_label_offset_x !== undefined ? this.config.venus_label_offset_x : 0)}" y="${235 + (this.config.venus_label_offset_y !== undefined ? this.config.venus_label_offset_y : 0)}" class="${textClass} text-venus" style="${getTextStyle(venusDischarge, 'venus')} ${styleVenus}">${this._formatPower(venusDischarge)}</text>
+                    <text x="${540 + (this.config.venus_label_offset_x !== undefined ? this.config.venus_label_offset_x : 0)}" y="${235 + (this.config.venus_label_offset_y !== undefined ? this.config.venus_label_offset_y : 0)}" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
 
-                    <text x="${130 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}">${this._formatPower(c1Val)}</text>
-                    <text x="${310 + (this.config.consumer_2_label_offset_x !== undefined ? this.config.consumer_2_label_offset_x : 0)}" y="${367 + (this.config.consumer_2_label_offset_y !== undefined ? this.config.consumer_2_label_offset_y : -25)}" class="${textClass} text-consumer-2" style="${getTextStyle(c2Val, 'consumer_2')}">${this._formatPower(c2Val)}</text>
-                    <text x="${490 + (this.config.consumer_3_label_offset_x !== undefined ? this.config.consumer_3_label_offset_x : 0)}" y="${320 + (this.config.consumer_3_label_offset_y !== undefined ? this.config.consumer_3_label_offset_y : -25)}" class="${textClass} text-consumer-3" style="${getTextStyle(c3Val, 'consumer_3')}">${this._formatPower(c3Val)}</text>
-                    <text x="${202 + (this.config.consumer_4_label_offset_x !== undefined ? this.config.consumer_4_label_offset_x : 0)}" y="${400 + (this.config.consumer_4_label_offset_y !== undefined ? this.config.consumer_4_label_offset_y : -25)}" class="${textClass} text-consumer-4" style="${getTextStyle(c4Val, 'consumer_4')}">${this._formatPower(c4Val)}</text>
-                    <text x="${418 + (this.config.consumer_5_label_offset_x !== undefined ? this.config.consumer_5_label_offset_x : 0)}" y="${400 + (this.config.consumer_5_label_offset_y !== undefined ? this.config.consumer_5_label_offset_y : -25)}" class="${textClass} text-consumer-5" style="${getTextStyle(c5Val, 'consumer_5')}">${this._formatPower(c5Val)}</text>
+                    <text x="${220 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}">${this._formatPower(c1Val)}</text>
+                    <text x="${400 + (this.config.consumer_2_label_offset_x !== undefined ? this.config.consumer_2_label_offset_x : 0)}" y="${367 + (this.config.consumer_2_label_offset_y !== undefined ? this.config.consumer_2_label_offset_y : -25)}" class="${textClass} text-consumer-2" style="${getTextStyle(c2Val, 'consumer_2')}">${this._formatPower(c2Val)}</text>
+                    <text x="${580 + (this.config.consumer_3_label_offset_x !== undefined ? this.config.consumer_3_label_offset_x : 0)}" y="${320 + (this.config.consumer_3_label_offset_y !== undefined ? this.config.consumer_3_label_offset_y : -25)}" class="${textClass} text-consumer-3" style="${getTextStyle(c3Val, 'consumer_3')}">${this._formatPower(c3Val)}</text>
+                    <text x="${292 + (this.config.consumer_4_label_offset_x !== undefined ? this.config.consumer_4_label_offset_x : 0)}" y="${400 + (this.config.consumer_4_label_offset_y !== undefined ? this.config.consumer_4_label_offset_y : -25)}" class="${textClass} text-consumer-4" style="${getTextStyle(c4Val, 'consumer_4')}">${this._formatPower(c4Val)}</text>
+                    <text x="${508 + (this.config.consumer_5_label_offset_x !== undefined ? this.config.consumer_5_label_offset_x : 0)}" y="${400 + (this.config.consumer_5_label_offset_y !== undefined ? this.config.consumer_5_label_offset_y : -25)}" class="${textClass} text-consumer-5" style="${getTextStyle(c5Val, 'consumer_5')}">${this._formatPower(c5Val)}</text>
                     <text x="${75 + (this.config.consumer_6_label_offset_x !== undefined ? this.config.consumer_6_label_offset_x : 0)}" y="${400 + (this.config.consumer_6_label_offset_y !== undefined ? this.config.consumer_6_label_offset_y : -25)}" class="${textClass} text-consumer-6" style="${getTextStyle(c6Val, 'consumer_6')}">${this._formatPower(c6Val)}</text>
-                    <text x="${545 + (this.config.consumer_7_label_offset_x !== undefined ? this.config.consumer_7_label_offset_x : 0)}" y="${400 + (this.config.consumer_7_label_offset_y !== undefined ? this.config.consumer_7_label_offset_y : -25)}" class="${textClass} text-consumer-7" style="${getTextStyle(c7Val, 'consumer_7')}">${this._formatPower(c7Val)}</text>
+                    <text x="${725 + (this.config.consumer_7_label_offset_x !== undefined ? this.config.consumer_7_label_offset_x : 0)}" y="${400 + (this.config.consumer_7_label_offset_y !== undefined ? this.config.consumer_7_label_offset_y : -25)}" class="${textClass} text-consumer-7" style="${getTextStyle(c7Val, 'consumer_7')}">${this._formatPower(c7Val)}</text>
 
                 </svg>
 
