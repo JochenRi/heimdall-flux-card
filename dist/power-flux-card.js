@@ -2523,6 +2523,8 @@ console.log(
       .bubble.tinted.c3 { background: color-mix(in srgb, var(--consumer-3-color), transparent 85%); }
       .bubble.tinted.c4 { background: color-mix(in srgb, var(--consumer-4-color), transparent 85%); }
       .bubble.tinted.c5 { background: color-mix(in srgb, var(--consumer-5-color), transparent 85%); }
+      .bubble.tinted.c6 { background: color-mix(in srgb, var(--consumer-6-color), transparent 85%); }
+      .bubble.tinted.c7 { background: color-mix(in srgb, var(--consumer-7-color), transparent 85%); }
 
       .bubble.house { border-color: var(--neon-pink); }
       .bubble.house.tinted { background: color-mix(in srgb, var(--neon-pink), transparent 85%); }
@@ -2583,6 +2585,8 @@ console.log(
       .c3 { border-color: var(--consumer-3-color); }
       .c4 { border-color: var(--consumer-4-color); }
       .c5 { border-color: var(--consumer-5-color); }
+      .c6 { border-color: var(--consumer-6-color); }
+      .c7 { border-color: var(--consumer-7-color); }
       .inactive { border-color: var(--secondary-text-color); }
 
       .glow.solar { box-shadow: 0 0 15px color-mix(in srgb, var(--neon-yellow), transparent 60%); }
@@ -2595,6 +2599,8 @@ console.log(
       .glow.c3 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-3-color), transparent 60%); }
       .glow.c4 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-4-color), transparent 60%); }
       .glow.c5 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-5-color), transparent 60%); }
+      .glow.c6 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-6-color), transparent 60%); }
+      .glow.c7 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-7-color), transparent 60%); }
 
       .node-solar { top: 80px; left: 10px; }     
       .node-grid { top: 80px; left: 170px; }     
@@ -3342,6 +3348,8 @@ console.log(
         c3Val = 1000;
         c4Val = 1000;
         c5Val = 1000;
+        c6Val = 1000;
+        c7Val = 1000;
       }
 
       // Use house entity for display if defined, otherwise use calculated value
