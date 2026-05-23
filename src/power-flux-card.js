@@ -68,6 +68,18 @@ console.log(
         show_consumer_always: false,
         consumer_1_hide_pipe: false,
         consumer_1_pipe_threshold: 0,
+        consumer_2_hide_pipe: false,
+        consumer_2_pipe_threshold: 0,
+        consumer_3_hide_pipe: false,
+        consumer_3_pipe_threshold: 0,
+        consumer_4_hide_pipe: false,
+        consumer_4_pipe_threshold: 0,
+        consumer_5_hide_pipe: false,
+        consumer_5_pipe_threshold: 0,
+        consumer_6_hide_pipe: false,
+        consumer_6_pipe_threshold: 0,
+        consumer_7_hide_pipe: false,
+        consumer_7_pipe_threshold: 0,
         consumer_6_enabled: false,
         consumer_7_enabled: false,
         show_donut_border: false,
@@ -1156,7 +1168,9 @@ console.log(
       };
       // Consumer 4 & 5
       let c4Val = entities.consumer_4 ? getValKw(entities.consumer_4, this.config.consumer_4_unit_kw === true) : 0;
+      if (this.config.invert_consumer_4) { c4Val *= -1; }
       let c5Val = entities.consumer_5 ? getValKw(entities.consumer_5, this.config.consumer_5_unit_kw === true) : 0;
+      if (this.config.invert_consumer_5) { c5Val *= -1; }
       c4Val = Math.abs(c4Val);
       c5Val = Math.abs(c5Val);
 
@@ -1164,11 +1178,17 @@ console.log(
       if (this.config.invert_consumer_1) { c1Val *= -1; }
       c1Val = Math.abs(c1Val);
       let c2Val = entities.consumer_2 ? getValKw(entities.consumer_2, this.config.consumer_2_unit_kw === true) : 0;
+      if (this.config.invert_consumer_2) { c2Val *= -1; }
+      c2Val = Math.abs(c2Val);
       let c3Val = entities.consumer_3 ? getValKw(entities.consumer_3, this.config.consumer_3_unit_kw === true) : 0;
+      if (this.config.invert_consumer_3) { c3Val *= -1; }
+      c3Val = Math.abs(c3Val);
 
       // Consumer 6 & 7 (Phase 5.4 — additional row-2 slots, outer left + right)
       let c6Val = entities.consumer_6 ? getValKw(entities.consumer_6, this.config.consumer_6_unit_kw === true) : 0;
+      if (this.config.invert_consumer_6) { c6Val *= -1; }
       let c7Val = entities.consumer_7 ? getValKw(entities.consumer_7, this.config.consumer_7_unit_kw === true) : 0;
+      if (this.config.invert_consumer_7) { c7Val *= -1; }
       c6Val = Math.abs(c6Val);
       c7Val = Math.abs(c7Val);
 
@@ -1192,10 +1212,28 @@ console.log(
       const showC7 = c7Enabled && (entities.consumer_7 && (alwaysShowConsumer || Math.round(c7Val) > 0));
       const anyBottomVisible = showC1 || showC2 || showC3 || showC4 || showC5 || showC6 || showC7;
 
-      // Consumer 1 pipe threshold
+      // Per-consumer pipe-threshold logic (Phase 5.10: previously only c1)
       const hideC1Pipe = this.config.consumer_1_hide_pipe === true;
       const c1PipeThreshold = this.config.consumer_1_pipe_threshold || 0;
       const c1PipeActive = showC1 && (!hideC1Pipe || c1Val >= c1PipeThreshold);
+      const hideC2Pipe = this.config.consumer_2_hide_pipe === true;
+      const c2PipeThreshold = this.config.consumer_2_pipe_threshold || 0;
+      const c2PipeActive = showC2 && (!hideC2Pipe || c2Val >= c2PipeThreshold);
+      const hideC3Pipe = this.config.consumer_3_hide_pipe === true;
+      const c3PipeThreshold = this.config.consumer_3_pipe_threshold || 0;
+      const c3PipeActive = showC3 && (!hideC3Pipe || c3Val >= c3PipeThreshold);
+      const hideC4Pipe = this.config.consumer_4_hide_pipe === true;
+      const c4PipeThreshold = this.config.consumer_4_pipe_threshold || 0;
+      const c4PipeActive = showC4 && (!hideC4Pipe || c4Val >= c4PipeThreshold);
+      const hideC5Pipe = this.config.consumer_5_hide_pipe === true;
+      const c5PipeThreshold = this.config.consumer_5_pipe_threshold || 0;
+      const c5PipeActive = showC5 && (!hideC5Pipe || c5Val >= c5PipeThreshold);
+      const hideC6Pipe = this.config.consumer_6_hide_pipe === true;
+      const c6PipeThreshold = this.config.consumer_6_pipe_threshold || 0;
+      const c6PipeActive = showC6 && (!hideC6Pipe || c6Val >= c6PipeThreshold);
+      const hideC7Pipe = this.config.consumer_7_hide_pipe === true;
+      const c7PipeThreshold = this.config.consumer_7_pipe_threshold || 0;
+      const c7PipeActive = showC7 && (!hideC7Pipe || c7Val >= c7PipeThreshold);
 
       const solar = hasSolar ? getValKw(entities.solar, this.config.solar_unit_kw === true) : 0;
       const gridCombinedVal = hasGridCombined ? getValKw(entities.grid_combined, this.config.grid_unit_kw === true) : 0;
@@ -1746,12 +1784,12 @@ console.log(
                     <path class="bg-path bg-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getPipeStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path d="${pathHouseC1}" fill="none" stroke="${this._getConsumerPipeColor(1)}" stroke-width="6" style="${getConsumerPipeStyle(c1PipeActive, c1Val, 1)}" />
-                    <path d="${pathHouseC2}" fill="none" stroke="${this._getConsumerPipeColor(2)}" stroke-width="6" style="${getConsumerPipeStyle(showC2, c2Val, 2)}" />
-                    <path d="${pathHouseC3}" fill="none" stroke="${this._getConsumerPipeColor(3)}" stroke-width="6" style="${getConsumerPipeStyle(showC3, c3Val, 3)}" />
-                    <path d="${pathHouseC4}" fill="none" stroke="${this._getConsumerPipeColor(4)}" stroke-width="6" style="${getConsumerPipeStyle(showC4, c4Val, 4)}" />
-                    <path d="${pathHouseC5}" fill="none" stroke="${this._getConsumerPipeColor(5)}" stroke-width="6" style="${getConsumerPipeStyle(showC5, c5Val, 5)}" />
-                    <path d="${pathHouseC6}" fill="none" stroke="${this._getConsumerPipeColor(6)}" stroke-width="6" style="${getConsumerPipeStyle(showC6, c6Val, 6)}" />
-                    <path d="${pathHouseC7}" fill="none" stroke="${this._getConsumerPipeColor(7)}" stroke-width="6" style="${getConsumerPipeStyle(showC7, c7Val, 7)}" />
+                    <path d="${pathHouseC2}" fill="none" stroke="${this._getConsumerPipeColor(2)}" stroke-width="6" style="${getConsumerPipeStyle(c2PipeActive, c2Val, 2)}" />
+                    <path d="${pathHouseC3}" fill="none" stroke="${this._getConsumerPipeColor(3)}" stroke-width="6" style="${getConsumerPipeStyle(c3PipeActive, c3Val, 3)}" />
+                    <path d="${pathHouseC4}" fill="none" stroke="${this._getConsumerPipeColor(4)}" stroke-width="6" style="${getConsumerPipeStyle(c4PipeActive, c4Val, 4)}" />
+                    <path d="${pathHouseC5}" fill="none" stroke="${this._getConsumerPipeColor(5)}" stroke-width="6" style="${getConsumerPipeStyle(c5PipeActive, c5Val, 5)}" />
+                    <path d="${pathHouseC6}" fill="none" stroke="${this._getConsumerPipeColor(6)}" stroke-width="6" style="${getConsumerPipeStyle(c6PipeActive, c6Val, 6)}" />
+                    <path d="${pathHouseC7}" fill="none" stroke="${this._getConsumerPipeColor(7)}" stroke-width="6" style="${getConsumerPipeStyle(c7PipeActive, c7Val, 7)}" />
 
                     <path class="flow-line flow-solar" d="${pathSolarHouse}" style="${getAnimStyle(solarToHouse, '--pipe-solar-opacity', 'solar')} ${styleSolar}" />
                     <path class="flow-line flow-solar" d="${pathSolarBatt}" style="${getAnimStyle(solarToBatt, '--pipe-solar-opacity', 'solar')} ${styleSolarBatt}" />
@@ -1768,12 +1806,12 @@ console.log(
                     <path class="flow-line flow-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getAnimStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path class="flow-line" d="${pathHouseC1}" stroke="${this._getConsumerPipeColor(1)}" style="${getConsumerAnimStyle(c1PipeActive, c1Val, 1)}" />
-                    <path class="flow-line" d="${pathHouseC2}" stroke="${this._getConsumerPipeColor(2)}" style="${getConsumerAnimStyle(showC2, c2Val, 2)}" />
-                    <path class="flow-line" d="${pathHouseC3}" stroke="${this._getConsumerPipeColor(3)}" style="${getConsumerAnimStyle(showC3, c3Val, 3)}" />
-                    <path class="flow-line" d="${pathHouseC4}" stroke="${this._getConsumerPipeColor(4)}" style="${getConsumerAnimStyle(showC4, c4Val, 4)}" />
-                    <path class="flow-line" d="${pathHouseC5}" stroke="${this._getConsumerPipeColor(5)}" style="${getConsumerAnimStyle(showC5, c5Val, 5)}" />
-                    <path class="flow-line" d="${pathHouseC6}" stroke="${this._getConsumerPipeColor(6)}" style="${getConsumerAnimStyle(showC6, c6Val, 6)}" />
-                    <path class="flow-line" d="${pathHouseC7}" stroke="${this._getConsumerPipeColor(7)}" style="${getConsumerAnimStyle(showC7, c7Val, 7)}" />
+                    <path class="flow-line" d="${pathHouseC2}" stroke="${this._getConsumerPipeColor(2)}" style="${getConsumerAnimStyle(c2PipeActive, c2Val, 2)}" />
+                    <path class="flow-line" d="${pathHouseC3}" stroke="${this._getConsumerPipeColor(3)}" style="${getConsumerAnimStyle(c3PipeActive, c3Val, 3)}" />
+                    <path class="flow-line" d="${pathHouseC4}" stroke="${this._getConsumerPipeColor(4)}" style="${getConsumerAnimStyle(c4PipeActive, c4Val, 4)}" />
+                    <path class="flow-line" d="${pathHouseC5}" stroke="${this._getConsumerPipeColor(5)}" style="${getConsumerAnimStyle(c5PipeActive, c5Val, 5)}" />
+                    <path class="flow-line" d="${pathHouseC6}" stroke="${this._getConsumerPipeColor(6)}" style="${getConsumerAnimStyle(c6PipeActive, c6Val, 6)}" />
+                    <path class="flow-line" d="${pathHouseC7}" stroke="${this._getConsumerPipeColor(7)}" style="${getConsumerAnimStyle(c7PipeActive, c7Val, 7)}" />
                     <text x="${190 + (this.config.solar_label_offset_x !== undefined ? this.config.solar_label_offset_x : 0)}" y="${235 + (this.config.solar_label_offset_y !== undefined ? this.config.solar_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(solarToHouse, 'solar')} ${styleSolar}">${this._formatPower(solarToHouse)}</text>
                     <text x="300" y="45" class="${textClass} text-solar" style="${getTextStyle(solarToBatt, 'solar')} ${styleSolarBatt}">${this._formatPower(solarToBatt)}</text>
                     
