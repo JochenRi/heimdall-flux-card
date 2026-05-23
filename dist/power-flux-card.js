@@ -3737,20 +3737,18 @@ console.log(
       const pathSolarVenus = "M 145 80 Q 385 15 625 80";
       const pathVenusHouse = "M 625 170 Q 625 290 445 290";
       const pathHouseToVenus = "M 445 290 Q 625 290 625 170";
-      // Phase 5.8: orthogonal routing (Manhattan/transit-diagram style).
-      // All row-2/3 consumer pipes leave the house bottom (400,335) and
-      // share the horizontal track y=370 (between house and row 2).
-      // Row-3 pipes additionally use vertical tracks on the left (x=355
-      // for c6 outer, x=370 for c4 inner) or right (x=430 for c5 inner,
-      // x=445 for c7 outer), then horizontal track y=500 (between rows
-      // 2 and 3), then drop into the target bubble. No crossings.
-      const pathHouseC1 = "M 400 335 L 400 370 L 175 370 L 175 400";
+      // Phase 5.9: restore curved pipe aesthetic from phase 5.5 for c1-c5
+      // (matches the visual style of the upstream card). For c6/c7 the
+      // outer pipes are routed horizontally first then bent down at the
+      // target x-coordinate so they sweep wide around the row-2 bubbles
+      // instead of cutting diagonally through them.
+      const pathHouseC1 = "M 355 290 Q 175 290 175 400";
       const pathHouseC2 = "M 400 335 L 400 400";
-      const pathHouseC3 = "M 400 335 L 400 370 L 625 370 L 625 400";
-      const pathHouseC4 = "M 400 335 L 400 370 L 370 370 L 370 500 L 285 500 L 285 510";
-      const pathHouseC5 = "M 400 335 L 400 370 L 430 370 L 430 500 L 515 500 L 515 510";
-      const pathHouseC6 = "M 400 335 L 400 370 L 355 370 L 355 500 L 45 500 L 45 510";
-      const pathHouseC7 = "M 400 335 L 400 370 L 445 370 L 445 500 L 725 500 L 725 510";
+      const pathHouseC3 = "M 445 290 Q 625 290 625 400";
+      const pathHouseC4 = "M 355 290 Q 265 400 285 510";
+      const pathHouseC5 = "M 445 290 Q 535 400 515 510";
+      const pathHouseC6 = "M 355 290 Q 45 290 45 510";
+      const pathHouseC7 = "M 445 290 Q 725 290 725 510";
 
       const houseTextStyle = this.config.color_text_house
         ? 'color: var(--text-house-color);'
