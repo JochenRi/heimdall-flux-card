@@ -581,7 +581,7 @@ console.log(
       .node-c4 { top: 510px; left: 240px; }
       .node-c5 { top: 510px; left: 470px; }
       .node-c6 { top: 510px; left: 0px; }
-      .node-c7 { top: 510px; left: 710px; }
+      .node-c7 { top: 510px; left: 680px; }
 
       svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
       
@@ -1705,13 +1705,13 @@ console.log(
       const pathSolarVenus = "M 145 80 Q 385 15 625 80";
       const pathVenusHouse = "M 625 170 Q 625 290 445 290";
       const pathHouseToVenus = "M 445 290 Q 625 290 625 170";
-      const pathHouseC1 = "M 355 290 Q 175 290 175 400";
+      const pathHouseC1 = "M 372 326 Q 175 326 175 400";
       const pathHouseC2 = "M 400 335 L 400 400";
-      const pathHouseC3 = "M 445 290 Q 625 290 625 400";
-      const pathHouseC4 = "M 355 290 Q 265 400 285 510";
-      const pathHouseC5 = "M 445 290 Q 535 400 515 510";
-      const pathHouseC6 = "M 355 290 Q 45 350 45 510";
-      const pathHouseC7 = "M 445 290 Q 755 350 755 510";
+      const pathHouseC3 = "M 428 326 Q 625 326 625 400";
+      const pathHouseC4 = "M 383 332 Q 285 445 285 510";
+      const pathHouseC5 = "M 417 332 Q 515 445 515 510";
+      const pathHouseC6 = "M 363 320 Q 100 445 45 510";
+      const pathHouseC7 = "M 437 320 Q 700 445 725 510";
 
       const houseTextStyle = this.config.color_text_house
         ? 'color: var(--text-house-color);'
