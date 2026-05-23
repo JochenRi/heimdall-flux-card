@@ -3345,11 +3345,11 @@ console.log(
         else if (type === 'grid') isVisible = showFlowGrid;
         else if (type === 'battery') isVisible = showFlowBattery;
         else if (type === 'venus') isVisible = showFlowVenus;
-        else if (type === 'consumer_1') isVisible = showFlowConsumer1;
-        else if (type === 'consumer_2') isVisible = showFlowConsumer2;
-        else if (type === 'consumer_3') isVisible = showFlowConsumer3;
-        else if (type === 'consumer_4') isVisible = showFlowConsumer4;
-        else if (type === 'consumer_5') isVisible = showFlowConsumer5;
+        else if (type === 'consumer_1') isVisible = showFlowConsumer1 && (this.config.consumer_1_enabled !== false);
+        else if (type === 'consumer_2') isVisible = showFlowConsumer2 && (this.config.consumer_2_enabled !== false);
+        else if (type === 'consumer_3') isVisible = showFlowConsumer3 && (this.config.consumer_3_enabled !== false);
+        else if (type === 'consumer_4') isVisible = showFlowConsumer4 && (this.config.consumer_4_enabled !== false);
+        else if (type === 'consumer_5') isVisible = showFlowConsumer5 && (this.config.consumer_5_enabled !== false);
 
         if (!isVisible) return "display: none;";
         const threshold = getThresholdByType(type);
