@@ -1284,6 +1284,16 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #f97316;">${this._localize('editor.consumer_2_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_2_enabled !== false}
+                    .configValue=${'consumer_2_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2, 'consumer_2', this._localize('editor.entity'))}
 
             <ha-selector
@@ -1365,6 +1375,16 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #06b6d4;">${this._localize('editor.consumer_3_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_3_enabled !== false}
+                    .configValue=${'consumer_3_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3, 'consumer_3', this._localize('editor.entity'))}
             <ha-selector
                 .hass=${this.hass}
@@ -1441,6 +1461,16 @@ class PowerFluxCardEditor extends LitElement {
         </div>
         <div class="consumer-group">
             <div class="consumer-title" style="color: #eab308;">${this._localize('editor.consumer_4_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_4_enabled !== false}
+                    .configValue=${'consumer_4_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4, 'consumer_4', this._localize('editor.entity'))}
             <ha-selector
                 .hass=${this.hass}
@@ -1517,6 +1547,16 @@ class PowerFluxCardEditor extends LitElement {
         </div>
         <div class="consumer-group">
             <div class="consumer-title" style="color: #6366f1;">${this._localize('editor.consumer_5_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_5_enabled !== false}
+                    .configValue=${'consumer_5_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5, 'consumer_5', this._localize('editor.entity'))}
             <ha-selector
                 .hass=${this.hass}
@@ -2948,11 +2988,15 @@ console.log(
       // Per-consumer enabled toggle (Phase 5.2+): false disables bubble + pipe entirely,
       // independent of whether an entity is configured. Default true for backward-compat.
       const c1Enabled = this.config.consumer_1_enabled !== false;
+      const c2Enabled = this.config.consumer_2_enabled !== false;
+      const c3Enabled = this.config.consumer_3_enabled !== false;
+      const c4Enabled = this.config.consumer_4_enabled !== false;
+      const c5Enabled = this.config.consumer_5_enabled !== false;
       const showC1 = c1Enabled && (entities.consumer_1 && (alwaysShowConsumer || Math.round(c1Val) > 0));
-      const showC2 = (entities.consumer_2 && (alwaysShowConsumer || Math.round(c2Val) > 0));
-      const showC3 = (entities.consumer_3 && (alwaysShowConsumer || Math.round(c3Val) > 0));
-      const showC4 = (entities.consumer_4 && (alwaysShowConsumer || Math.round(c4Val) > 0));
-      const showC5 = (entities.consumer_5 && (alwaysShowConsumer || Math.round(c5Val) > 0));
+      const showC2 = c2Enabled && (entities.consumer_2 && (alwaysShowConsumer || Math.round(c2Val) > 0));
+      const showC3 = c3Enabled && (entities.consumer_3 && (alwaysShowConsumer || Math.round(c3Val) > 0));
+      const showC4 = c4Enabled && (entities.consumer_4 && (alwaysShowConsumer || Math.round(c4Val) > 0));
+      const showC5 = c5Enabled && (entities.consumer_5 && (alwaysShowConsumer || Math.round(c5Val) > 0));
       const anyBottomVisible = showC1 || showC2 || showC3 || showC4 || showC5;
 
       // Consumer 1 pipe threshold

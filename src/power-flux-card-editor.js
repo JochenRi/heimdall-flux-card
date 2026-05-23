@@ -1060,6 +1060,16 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #f97316;">${this._localize('editor.consumer_2_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_2_enabled !== false}
+                    .configValue=${'consumer_2_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2, 'consumer_2', this._localize('editor.entity'))}
 
             <ha-selector
@@ -1141,6 +1151,16 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #06b6d4;">${this._localize('editor.consumer_3_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_3_enabled !== false}
+                    .configValue=${'consumer_3_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3, 'consumer_3', this._localize('editor.entity'))}
             <ha-selector
                 .hass=${this.hass}
@@ -1217,6 +1237,16 @@ class PowerFluxCardEditor extends LitElement {
         </div>
         <div class="consumer-group">
             <div class="consumer-title" style="color: #eab308;">${this._localize('editor.consumer_4_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_4_enabled !== false}
+                    .configValue=${'consumer_4_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4, 'consumer_4', this._localize('editor.entity'))}
             <ha-selector
                 .hass=${this.hass}
@@ -1293,6 +1323,16 @@ class PowerFluxCardEditor extends LitElement {
         </div>
         <div class="consumer-group">
             <div class="consumer-title" style="color: #6366f1;">${this._localize('editor.consumer_5_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_5_enabled !== false}
+                    .configValue=${'consumer_5_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5, 'consumer_5', this._localize('editor.entity'))}
             <ha-selector
                 .hass=${this.hass}

@@ -1134,11 +1134,15 @@ console.log(
       // Per-consumer enabled toggle (Phase 5.2+): false disables bubble + pipe entirely,
       // independent of whether an entity is configured. Default true for backward-compat.
       const c1Enabled = this.config.consumer_1_enabled !== false;
+      const c2Enabled = this.config.consumer_2_enabled !== false;
+      const c3Enabled = this.config.consumer_3_enabled !== false;
+      const c4Enabled = this.config.consumer_4_enabled !== false;
+      const c5Enabled = this.config.consumer_5_enabled !== false;
       const showC1 = c1Enabled && (entities.consumer_1 && (alwaysShowConsumer || Math.round(c1Val) > 0));
-      const showC2 = (entities.consumer_2 && (alwaysShowConsumer || Math.round(c2Val) > 0));
-      const showC3 = (entities.consumer_3 && (alwaysShowConsumer || Math.round(c3Val) > 0));
-      const showC4 = (entities.consumer_4 && (alwaysShowConsumer || Math.round(c4Val) > 0));
-      const showC5 = (entities.consumer_5 && (alwaysShowConsumer || Math.round(c5Val) > 0));
+      const showC2 = c2Enabled && (entities.consumer_2 && (alwaysShowConsumer || Math.round(c2Val) > 0));
+      const showC3 = c3Enabled && (entities.consumer_3 && (alwaysShowConsumer || Math.round(c3Val) > 0));
+      const showC4 = c4Enabled && (entities.consumer_4 && (alwaysShowConsumer || Math.round(c4Val) > 0));
+      const showC5 = c5Enabled && (entities.consumer_5 && (alwaysShowConsumer || Math.round(c5Val) > 0));
       const anyBottomVisible = showC1 || showC2 || showC3 || showC4 || showC5;
 
       // Consumer 1 pipe threshold
