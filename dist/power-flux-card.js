@@ -2486,7 +2486,7 @@ console.log(
       
       /* --- STANDARD VIEW STYLES --- */
       .scale-wrapper {
-        width: 620px; 
+        width: 800px; /* must match SVG viewBox width (phase 5.5 / 5.6) */
         transform-origin: top left; 
         transition: transform 0.1s linear;
       }
@@ -3369,7 +3369,7 @@ console.log(
       let baseHeight = anyRow2Visible ? 620 : (anyBottomVisible ? 520 : 340);
       const contentHeight = baseHeight - topShift;
 
-      const designWidth = 620;
+      const designWidth = 800;
       const availableWidth = this._cardWidth || designWidth;
       const baseScale = availableWidth / designWidth;
       const userZoom = this.config.zoom !== undefined ? this.config.zoom : 0.9;
