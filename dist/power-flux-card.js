@@ -3737,13 +3737,20 @@ console.log(
       const pathSolarVenus = "M 145 80 Q 385 15 625 80";
       const pathVenusHouse = "M 625 170 Q 625 290 445 290";
       const pathHouseToVenus = "M 445 290 Q 625 290 625 170";
-      const pathHouseC1 = "M 372 326 Q 175 326 175 400";
+      // Phase 5.8: orthogonal routing (Manhattan/transit-diagram style).
+      // All row-2/3 consumer pipes leave the house bottom (400,335) and
+      // share the horizontal track y=370 (between house and row 2).
+      // Row-3 pipes additionally use vertical tracks on the left (x=355
+      // for c6 outer, x=370 for c4 inner) or right (x=430 for c5 inner,
+      // x=445 for c7 outer), then horizontal track y=500 (between rows
+      // 2 and 3), then drop into the target bubble. No crossings.
+      const pathHouseC1 = "M 400 335 L 400 370 L 175 370 L 175 400";
       const pathHouseC2 = "M 400 335 L 400 400";
-      const pathHouseC3 = "M 428 326 Q 625 326 625 400";
-      const pathHouseC4 = "M 383 332 Q 285 445 285 510";
-      const pathHouseC5 = "M 417 332 Q 515 445 515 510";
-      const pathHouseC6 = "M 363 320 Q 100 445 45 510";
-      const pathHouseC7 = "M 437 320 Q 700 445 725 510";
+      const pathHouseC3 = "M 400 335 L 400 370 L 625 370 L 625 400";
+      const pathHouseC4 = "M 400 335 L 400 370 L 370 370 L 370 500 L 285 500 L 285 510";
+      const pathHouseC5 = "M 400 335 L 400 370 L 430 370 L 430 500 L 515 500 L 515 510";
+      const pathHouseC6 = "M 400 335 L 400 370 L 355 370 L 355 500 L 45 500 L 45 510";
+      const pathHouseC7 = "M 400 335 L 400 370 L 445 370 L 445 500 L 725 500 L 725 510";
 
       const houseTextStyle = this.config.color_text_house
         ? 'color: var(--text-house-color);'
