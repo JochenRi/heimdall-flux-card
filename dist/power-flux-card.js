@@ -4839,3 +4839,4 @@ window.customCards.push({
   description: "Advanced Animated Energy Flow Card",
 });
 
+
