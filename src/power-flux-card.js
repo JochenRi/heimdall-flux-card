@@ -1988,8 +1988,11 @@ console.log(
       const pathGridImport = "M 305 170 Q 305 290 355 290";
       const pathGridExport = "M 190 125 Q 225 155 260 125";
       const activeExportPath = pathGridExport;
-      const exportTextX = '230';
-      const exportTextY = '160';
+      // Phase 5.34: PV→Grid (export) label is now positionable just like
+      // the other primary labels. Defaults preserve the previous hardcoded
+      // position so existing dashboards don't visually shift.
+      const exportTextX = 230 + (this.config.solar_export_label_offset_x !== undefined ? this.config.solar_export_label_offset_x : 0);
+      const exportTextY = 160 + (this.config.solar_export_label_offset_y !== undefined ? this.config.solar_export_label_offset_y : 0);
       const pathBattHouse = "M 465 170 Q 465 290 445 290";
       const pathHouseToBatt = "M 445 290 Q 465 290 465 170";
       // Venus pipes (mirrors battery pattern, geometrically distinct from LG paths)
