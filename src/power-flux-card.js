@@ -352,7 +352,7 @@ console.log(
       ha-card {
         padding: 0; 
         position: relative;
-        overflow: hidden; 
+        overflow: visible; /* Phase 5.17: allow content (especially zoomed bubbles) to extend beyond card bounds */
         transition: height 0.3s ease;
       }
       
