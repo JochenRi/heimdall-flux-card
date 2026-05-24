@@ -1710,14 +1710,21 @@ console.log(
         const produced = safeRead(pvProducedEnt);
         const forecast = safeRead(pvForecastEnt);
         
-        // Phase 5.27: only render the donut when there's something meaningful to
-        // show. If produced == 0 (e.g. before sunrise), the donut would just be
-        // a near-invisible grey ring AND remove the solar bubble's normal border
-        // (via `.bubble.solar.donut { border: none !important; }`). Net effect:
-        // the bubble looked "borderless" to the user. Now we suppress the donut
-        // until there's at least some production, so the bubble keeps its normal
-        // yellow border and the donut "wakes up" with the first kWh.
-        if (produced > 0 && forecast > 0) {
+        // Phase 5.27/5.28: only render the donut when there's something meaningful
+        // to show. The donut activation removes the bubble's normal yellow border
+        // (via `.bubble.solar.donut { border: none !important; }`), so if the
+        // visible ring content is near-empty we'd just lose the border for nothing.
+        //
+        // Phase 5.28 raised the activation threshold from "produced > 0" to
+        // "produced >= 0.1 kWh" because daily kWh counters often sit at tiny values
+        // like 0.002 right after midnight reset (sensor noise / standby drain).
+        // A 0.003% yellow segment with a 99.997% transparent grey rest is visually
+        // indistinguishable from "no ring at all" -- and worse, the border is
+        // suppressed. With the threshold, the bubble keeps its yellow border
+        // until the day's production crosses 100 Wh, then the donut wakes up
+        // with a visible gradient.
+        const PRODUCED_MIN_KWH = 0.1;
+        if (produced >= PRODUCED_MIN_KWH && forecast > 0) {
           // Normal case: progress = produced / forecast, clamped to [0, 100]
           let progressPct = (produced / forecast) * 100;
           if (progressPct > 100) progressPct = 100; // over-forecast: clamp, ring becomes fully yellow
@@ -1726,16 +1733,17 @@ console.log(
           let stops = [];
           let current = 0;
           if (progressPct > 0) { stops.push(`var(--pipe-solar-color) ${current}% ${current + progressPct}%`); current += progressPct; }
-          if (restPct > 0) { stops.push(`var(--solar-donut-rest-color, rgba(120, 120, 120, 0.4)) ${current}% 100%`); }
+          if (restPct > 0) { stops.push(`var(--solar-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
           solarGradientVal = `conic-gradient(from 330deg, ${stops.join(', ')})`;
           solarDonutActive = true;
-        } else if (produced > 0 && forecast === 0) {
+        } else if (produced >= PRODUCED_MIN_KWH && forecast === 0) {
           // Forecast sensor is 0/broken but production is happening:
           // show full yellow as a sane fallback rather than empty ring.
           solarGradientVal = 'var(--pipe-solar-color)';
           solarDonutActive = true;
         }
-        // else: produced == 0 -> donut stays off, bubble keeps its normal yellow border.
+        // else: produced below threshold (night, tiny standby readings) -> donut
+        // stays off, bubble keeps its normal yellow border.
       }
 
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
