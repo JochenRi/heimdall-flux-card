@@ -1546,16 +1546,20 @@ console.log(
       //   2. bubble_size > 90: bubbles overflow their original 90px design footprint
       //      because of the negative-margin re-centering from phase 5.31
       //   3. zoom > 1: amplifies both effects via the scale transform
-      // We compute additional vertical padding so the opaque background always
-      // contains the visible content, regardless of how the offsets are set.
+      //
+      // Phase 5.38-fix: the offset displaces content in ONE direction at a time,
+      // so the extra space only needs to go on that side. Negative offset_y -> content
+      // moves up -> padding goes above. Positive offset_y -> content moves down ->
+      // padding goes below. The bubble overflow is symmetric (bubbles grow in all
+      // directions from their centre) so it splits evenly above and below.
       const cardOffsetY = this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0;
       const bubbleSize = this.config.bubble_size || 90;
       const bubbleOverflowPerSide = Math.max(0, (bubbleSize - 90) / 2) * scale;
-      // 2x the abs offset gives symmetric headroom for either positive or negative
-      // displacement, avoiding the need to inspect the sign separately.
-      const offsetOverflow = Math.abs(cardOffsetY) * 2;
-      const backgroundPaddingV = bubbleOverflowPerSide + offsetOverflow;
-      const finalCardBackgroundHeightPx = finalCardHeightPx + backgroundPaddingV * 2;
+      const offsetPadTop = cardOffsetY < 0 ? Math.abs(cardOffsetY) : 0;
+      const offsetPadBottom = cardOffsetY > 0 ? cardOffsetY : 0;
+      const padTop = bubbleOverflowPerSide + offsetPadTop;
+      const padBottom = bubbleOverflowPerSide + offsetPadBottom;
+      const finalCardBackgroundHeightPx = finalCardHeightPx + padTop + padBottom;
 
       let houseGradientVal = '';
       let houseTextCol = useColoredValues ? 'var(--neon-pink)' : '';
@@ -2108,9 +2112,9 @@ console.log(
       const strokeWidthVal = showDashedLine ? 4 : 8;
 
       return html`
-      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardBackgroundHeightPx}px; padding-top: ${backgroundPaddingV}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;">
+      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardBackgroundHeightPx}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; box-sizing: border-box; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;">
         
-        <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-left: ${centerMarginLeft}px; margin-top: ${-backgroundPaddingV}px;">
+        <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-left: ${centerMarginLeft}px; margin-top: ${-padTop}px;">
             
             <div class="absolute-container" style="height: ${baseHeight}px; top: -${topShift}px;">
                 <svg height="${baseHeight}" viewBox="0 0 800 ${baseHeight}" preserveAspectRatio="xMidYMid meet">
