@@ -1613,8 +1613,50 @@ console.log(
       const isGridExporting = Math.round(gridExport) > 0 && Math.round(gridImport) === 0;
 
       // --- Grid Donut Gradient ---
+      // Two modes:
+      //   1. Tages-Mix (Phase 5.21): if grid_donut_today_mode=true AND
+      //      at least one of import/export sensors is set, build a 2-segment
+      //      donut showing today's import vs export ratio. This is the
+      //      Sunsynk-inspired "how did the grid balance look today" view.
+      //   2. Live-Modus (legacy): if showDonut (= global show_donut_border)
+      //      is true and grid is currently active, build the existing
+      //      live-flow donut (grid->house / grid->battery / export).
+      // Tages-Mix is independent of show_donut_border so users can have
+      // the grid donut without the house donut.
       let gridGradientVal = '';
-      if (showDonut && hasGrid && isGridActive) {
+      let gridDonutActive = false;
+      
+      const gridDonutTodayMode = this.config.grid_donut_today_mode === true;
+      const gridImportTodayEnt = entities.grid_donut_import_today;
+      const gridExportTodayEnt = entities.grid_donut_export_today;
+      const hasGridDonutTodaySensor = !!((gridImportTodayEnt && gridImportTodayEnt !== "") || (gridExportTodayEnt && gridExportTodayEnt !== ""));
+      
+      if (hasGrid && gridDonutTodayMode && hasGridDonutTodaySensor) {
+        // Phase 5.21: Tages-Mix mode -- 2 segments (import / export)
+        const safeRead = (ent) => {
+          if (!ent || ent === "") return 0;
+          const v = parseFloat(getVal(ent));
+          return isNaN(v) || v < 0 ? 0 : v;
+        };
+        const importToday = safeRead(gridImportTodayEnt);
+        const exportToday = safeRead(gridExportTodayEnt);
+        const totalToday = importToday + exportToday;
+        
+        if (totalToday > 0) {
+          const pctImport = (importToday / totalToday) * 100;
+          const pctExport = (exportToday / totalToday) * 100;
+          let stops = [];
+          let current = 0;
+          if (pctImport > 0) { stops.push(`var(--pipe-grid-color) ${current}% ${current + pctImport}%`); current += pctImport; }
+          if (pctExport > 0) { stops.push(`var(--export-color) ${current}% 100%`); }
+          gridGradientVal = `conic-gradient(from 330deg, ${stops.join(', ')})`;
+        } else {
+          // Mitternachts-Schutz: beide Sensoren 0 -> neutraler Ring in Grid-Farbe
+          gridGradientVal = 'var(--pipe-grid-color)';
+        }
+        gridDonutActive = true;
+      } else if (showDonut && hasGrid && isGridActive) {
+        // Legacy Live-Modus -- only active when global show_donut_border is on
         const gridTotal = gridToHouse + gridToBatt + gridExport;
         if (gridTotal > 0) {
           const gPctToHouse = (gridToHouse / gridTotal) * 100;
@@ -1630,6 +1672,7 @@ console.log(
         } else {
           gridGradientVal = isGridExporting ? 'var(--export-color)' : 'var(--neon-blue)';
         }
+        gridDonutActive = true;
       }
 
       const solarColor = isSolarActive ? 'var(--icon-solar-color)' : 'var(--secondary-text-color)';
@@ -1955,8 +1998,8 @@ console.log(
                   const rot = this._getBubbleRotationDisplay('grid', liveText, gridTextColor);
                   const showArrow = rot.kind === 'live';
                   return html`
-                  <div class="bubble ${isGridActive ? (isGridExporting ? 'grid exporting' : 'grid') : 'inactive'} node-grid ${showDonut && isGridActive ? 'donut' : ''} ${tintClass} ${isGridActive ? glowClass : ''}"
-                      style="${showDonut && isGridActive ? `--grid-gradient: ${gridGradientVal};` : ''}"
+                  <div class="bubble ${isGridActive ? (isGridExporting ? 'grid exporting' : 'grid') : 'inactive'} node-grid ${gridDonutActive ? 'donut' : ''} ${tintClass} ${isGridActive ? glowClass : ''}"
+                      style="${gridDonutActive ? `--grid-gradient: ${gridGradientVal};` : ''}"
                       @click=${() => this._handleClick(entities.grid_combined || entities.grid)}>
                       ${renderMainIcon('grid', isGridExporting ? gridExport : gridImport, iconGrid, gridIconColor)}
                       ${renderSecondaryOrLabel(labelGridText, showLabelGrid, entities.secondary_grid, hasSecondaryGrid, 'secondary_grid')}

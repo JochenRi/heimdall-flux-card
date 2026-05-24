@@ -80,7 +80,8 @@ class PowerFluxCardEditor extends LitElement {
                 'secondary_consumer_6', 'secondary_consumer_7',
                 'secondary_house',
                 'donut_today_solar', 'donut_today_battery', 'donut_today_venus', 'donut_today_grid',
-                'grid_rotate_daily_1', 'grid_rotate_daily_2', 'grid_rotate_daily_3'
+                'grid_rotate_daily_1', 'grid_rotate_daily_2', 'grid_rotate_daily_3',
+                'grid_donut_import_today', 'grid_donut_export_today'
             ];
 
             let newConfig = { ...this._config };
@@ -642,6 +643,25 @@ class PowerFluxCardEditor extends LitElement {
         </div>
         ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_3 || "", 'grid_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
         ${this._renderColorPicker('grid_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+
+        <div class="separator"></div>
+        <div class="section-title">${this._localize('editor.grid_donut_section')}</div>
+        
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.grid_donut_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.grid_donut_today_mode === true}
+                .configValue=${'grid_donut_today_mode'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.grid_donut_enabled')}</div>
+        </div>
+
+        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_import_today || "", 'grid_donut_import_today', this._localize('editor.grid_donut_import_sensor'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_export_today || "", 'grid_donut_export_today', this._localize('editor.grid_donut_export_sensor'))}
       `;
     }
 
