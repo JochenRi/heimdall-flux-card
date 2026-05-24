@@ -4190,10 +4190,13 @@ console.log(
         solarDonutActive = true;
       }
 
-      const solarColor = isSolarActive ? 'var(--icon-solar-color)' : 'var(--secondary-text-color)';
-      const gridColor = isGridExporting ? 'var(--export-color)' : (isGridActive ? 'var(--neon-blue)' : 'var(--secondary-text-color)');
-      const gridIconColor = (isGridActive && this.config.color_icon_grid) ? 'var(--icon-grid-color)' : gridColor;
-      const gridTextColor = (isGridActive && this.config.color_text_grid) ? 'var(--text-grid-color)' : gridColor;
+      // Phase 5.24: if a donut is active for a bubble, keep its icon in the
+      // bubble's "active" color even if power is currently zero. Otherwise
+      // the donut would surround a grey icon which makes no visual sense.
+      const solarColor = (isSolarActive || solarDonutActive) ? 'var(--icon-solar-color)' : 'var(--secondary-text-color)';
+      const gridColor = isGridExporting ? 'var(--export-color)' : ((isGridActive || gridDonutActive) ? 'var(--neon-blue)' : 'var(--secondary-text-color)');
+      const gridIconColor = ((isGridActive || gridDonutActive) && this.config.color_icon_grid) ? 'var(--icon-grid-color)' : gridColor;
+      const gridTextColor = ((isGridActive || gridDonutActive) && this.config.color_text_grid) ? 'var(--text-grid-color)' : gridColor;
 
       // Animation threshold: pipes only animate (and labels show) when flow > this value
       // Default 1 = legacy behavior. User can raise to ignore standby drift (e.g. Tesla 2W idle).
@@ -4506,8 +4509,13 @@ console.log(
                     ? (this.config.color_text_solar ? 'var(--text-solar-color)' : 'var(--neon-yellow)')
                     : solarColor;
                   const rot = this._getBubbleRotationDisplay('solar', liveText, liveColor);
+                  // Phase 5.24: when the donut is active, keep the bubble in its
+                  // "active" color (yellow border) even if solarVal is 0. Otherwise
+                  // the donut would surround a grey ring which makes no visual sense.
+                  const bubbleStateClass = (isSolarActive || solarDonutActive) ? 'solar' : 'inactive';
+                  const glowOnState = (isSolarActive || solarDonutActive) ? glowClass : '';
                   return html`
-                  <div class="bubble ${isSolarActive ? 'solar' : 'inactive'} node-solar ${solarDonutActive ? 'donut' : ''} ${tintClass} ${isSolarActive ? glowClass : ''}"
+                  <div class="bubble ${bubbleStateClass} node-solar ${solarDonutActive ? 'donut' : ''} ${tintClass} ${glowOnState}"
                       style="${solarDonutActive ? `--solar-gradient: ${solarGradientVal};` : ''}"
                       @click=${() => this._handleClick(entities.solar)}>
                       ${renderMainIcon('solar', solarVal, iconSolar, solarColor)}
@@ -4520,8 +4528,14 @@ console.log(
                   const liveText = this._formatPower(isGridExporting ? gridExport : gridImport);
                   const rot = this._getBubbleRotationDisplay('grid', liveText, gridTextColor);
                   const showArrow = rot.kind === 'live';
+                  // Phase 5.24: when the donut is active, keep the bubble in its
+                  // "active" color even if currently no flow.
+                  const bubbleStateClass = isGridActive
+                    ? (isGridExporting ? 'grid exporting' : 'grid')
+                    : (gridDonutActive ? 'grid' : 'inactive');
+                  const glowOnState = (isGridActive || gridDonutActive) ? glowClass : '';
                   return html`
-                  <div class="bubble ${isGridActive ? (isGridExporting ? 'grid exporting' : 'grid') : 'inactive'} node-grid ${gridDonutActive ? 'donut' : ''} ${tintClass} ${isGridActive ? glowClass : ''}"
+                  <div class="bubble ${bubbleStateClass} node-grid ${gridDonutActive ? 'donut' : ''} ${tintClass} ${glowOnState}"
                       style="${gridDonutActive ? `--grid-gradient: ${gridGradientVal};` : ''}"
                       @click=${() => this._handleClick(entities.grid_combined || entities.grid)}>
                       ${renderMainIcon('grid', isGridExporting ? gridExport : gridImport, iconGrid, gridIconColor)}
