@@ -15,6 +15,11 @@ const lang_de = {
     "editor.consumers_section": "Zusätzliche Verbraucher",
     "editor.options_section": "Darstellung & Optionen",
     "editor.group_sizing": "Größen & Position",
+    "editor.background_padding_section": "Hintergrund-Padding (manuell)",
+    "editor.background_padding_top": "Hintergrund-Padding oben (px)",
+    "editor.background_padding_bottom": "Hintergrund-Padding unten (px)",
+    "editor.background_padding_left": "Hintergrund-Padding links (px)",
+    "editor.background_padding_right": "Hintergrund-Padding rechts (px)",
     "editor.group_appearance": "Erscheinungsbild",
     "editor.group_display": "Anzeige-Verhalten",
     "editor.group_debug": "Debug & Test",
@@ -169,6 +174,11 @@ const lang_en = {
     "editor.consumers_section": "Additional Consumers",
     "editor.options_section": "Appearance & Options",
     "editor.group_sizing": "Size & Position",
+    "editor.background_padding_section": "Background padding (manual)",
+    "editor.background_padding_top": "Background padding top (px)",
+    "editor.background_padding_bottom": "Background padding bottom (px)",
+    "editor.background_padding_left": "Background padding left (px)",
+    "editor.background_padding_right": "Background padding right (px)",
     "editor.group_appearance": "Visual Effects",
     "editor.group_display": "Display Behavior",
     "editor.group_debug": "Debug & Test",
@@ -2683,6 +2693,50 @@ class PowerFluxCardEditor extends LitElement {
                     @value-changed=${this._valueChanged}
                 ></ha-selector>
             </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 12px;">
+                ${this._localize('editor.background_padding_section')}
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.background_padding_top !== undefined ? this._config.background_padding_top : 0}
+                    .configValue=${'background_padding_top'}
+                    .label=${this._localize('editor.background_padding_top')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.background_padding_bottom !== undefined ? this._config.background_padding_bottom : 0}
+                    .configValue=${'background_padding_bottom'}
+                    .label=${this._localize('editor.background_padding_bottom')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.background_padding_left !== undefined ? this._config.background_padding_left : 0}
+                    .configValue=${'background_padding_left'}
+                    .label=${this._localize('editor.background_padding_left')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.background_padding_right !== undefined ? this._config.background_padding_right : 0}
+                    .configValue=${'background_padding_right'}
+                    .label=${this._localize('editor.background_padding_right')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
         </div>
 
         <!-- Group: Appearance / visual effects -->
@@ -4395,36 +4449,17 @@ console.log(
       const visualWidth = 800 * scale;
       const centerMarginLeft = Math.max(0, (availableWidth - visualWidth) / 2);
       
-      // Phase 5.38: when the card background is opaque (transparent_background = false),
-      // ensure it grows to fit the visually displaced content. Three factors can push
-      // content outside the natural content box:
-      //   1. card_offset_y (translate): moves content up/down within the card frame
-      //   2. bubble_size > 90: bubbles overflow their original 90px design footprint
-      //      because of the negative-margin re-centering from phase 5.31
-      //   3. zoom > 1: amplifies both effects via the scale transform
-      //
-      // Phase 5.38-fix: the offset displaces content in ONE direction at a time,
-      // so the extra space only needs to go on that side. Negative offset_y -> content
-      // moves up -> padding goes above. Positive offset_y -> content moves down ->
-      // padding goes below. The bubble overflow is symmetric (bubbles grow in all
-      // directions from their centre) so it splits evenly above and below.
-      //
-      // Phase 5.39: same logic now applied horizontally. card_offset_x and the bubble
-      // overflow on the left/right edges previously had no compensation, so the
-      // background visibly cut off the leftmost/rightmost bubbles when zoom > 1 or
-      // when card_offset_x was set.
-      const cardOffsetY = this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0;
-      const cardOffsetX = this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0;
-      const bubbleSize = this.config.bubble_size || 90;
-      const bubbleOverflowPerSide = Math.max(0, (bubbleSize - 90) / 2) * scale;
-      const offsetPadTop = cardOffsetY < 0 ? Math.abs(cardOffsetY) : 0;
-      const offsetPadBottom = cardOffsetY > 0 ? cardOffsetY : 0;
-      const offsetPadLeft = cardOffsetX < 0 ? Math.abs(cardOffsetX) : 0;
-      const offsetPadRight = cardOffsetX > 0 ? cardOffsetX : 0;
-      const padTop = bubbleOverflowPerSide + offsetPadTop;
-      const padBottom = bubbleOverflowPerSide + offsetPadBottom;
-      const padLeft = bubbleOverflowPerSide + offsetPadLeft;
-      const padRight = bubbleOverflowPerSide + offsetPadRight;
+      // Phase 5.40: card background padding is now fully manual via 4 sliders.
+      // The previous auto-calculation tried to derive padding from card_offset
+      // and bubble_size, but the result was visually unsatisfying because the
+      // scale transform, the centerMarginLeft already in place, and the
+      // dashboard column width all interact in ways the formula couldn't fully
+      // anticipate. Letting the user set the padding directly is more honest
+      // and predictable. Default 0 on all four = upstream behaviour preserved.
+      const padTop    = this.config.background_padding_top    !== undefined ? this.config.background_padding_top    : 0;
+      const padBottom = this.config.background_padding_bottom !== undefined ? this.config.background_padding_bottom : 0;
+      const padLeft   = this.config.background_padding_left   !== undefined ? this.config.background_padding_left   : 0;
+      const padRight  = this.config.background_padding_right  !== undefined ? this.config.background_padding_right  : 0;
       const finalCardBackgroundHeightPx = finalCardHeightPx + padTop + padBottom;
 
       let houseGradientVal = '';

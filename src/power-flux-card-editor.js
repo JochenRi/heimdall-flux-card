@@ -2363,6 +2363,50 @@ class PowerFluxCardEditor extends LitElement {
                     @value-changed=${this._valueChanged}
                 ></ha-selector>
             </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 12px;">
+                ${this._localize('editor.background_padding_section')}
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.background_padding_top !== undefined ? this._config.background_padding_top : 0}
+                    .configValue=${'background_padding_top'}
+                    .label=${this._localize('editor.background_padding_top')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.background_padding_bottom !== undefined ? this._config.background_padding_bottom : 0}
+                    .configValue=${'background_padding_bottom'}
+                    .label=${this._localize('editor.background_padding_bottom')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.background_padding_left !== undefined ? this._config.background_padding_left : 0}
+                    .configValue=${'background_padding_left'}
+                    .label=${this._localize('editor.background_padding_left')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.background_padding_right !== undefined ? this._config.background_padding_right : 0}
+                    .configValue=${'background_padding_right'}
+                    .label=${this._localize('editor.background_padding_right')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
         </div>
 
         <!-- Group: Appearance / visual effects -->
