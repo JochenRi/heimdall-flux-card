@@ -592,6 +592,16 @@ console.log(
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.36: battery SoC donut ring */
+      .bubble.battery.donut { border: none !important; background: transparent; }
+      .bubble.battery.donut.tinted { background: color-mix(in srgb, var(--pipe-battery-color, var(--neon-green)), transparent 85%); }
+      .bubble.battery.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--battery-gradient, var(--pipe-battery-color, var(--neon-green)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -1771,6 +1781,37 @@ console.log(
         // else: both essentially zero -> donut off, normal yellow border.
       }
 
+      // --- Battery SoC Donut Gradient (Phase 5.36) ---
+      // Visualizes the LG battery's State of Charge as a coloured ring.
+      //   Filled segment   = battery pipe colour (default: --pipe-battery-color)
+      //   Remaining segment = neutral grey
+      // 75% SoC -> 75% coloured / 25% grey, like a smartphone battery indicator.
+      //
+      // Activated by:
+      //   battery_soc_donut_mode (editor toggle, off by default)
+      // Reads:
+      //   entities.battery_soc (already configured for the SoC live display)
+      //
+      // If SoC sensor missing/unavailable, the donut stays off and the bubble
+      // keeps its plain border.
+      let batteryGradientVal = '';
+      let batteryDonutActive = false;
+      
+      if (hasBattery && this.config.battery_soc_donut_mode === true && entities.battery_soc) {
+        const socRaw = parseFloat(getVal(entities.battery_soc));
+        if (!isNaN(socRaw) && socRaw >= 0) {
+          const socClamped = Math.max(0, Math.min(100, socRaw));
+          const restPct = 100 - socClamped;
+          
+          let stops = [];
+          let current = 0;
+          if (socClamped > 0) { stops.push(`var(--pipe-battery-color) ${current}% ${current + socClamped}%`); current += socClamped; }
+          if (restPct > 0) { stops.push(`var(--battery-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          batteryGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          batteryDonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -2135,13 +2176,28 @@ console.log(
                   </div>`;
                 })() : ''}
                 
-                ${hasBattery ? html`
-                <div class="bubble battery node-battery ${tintClass} ${glowClass}"
-                    @click=${() => this._handleClick(entities.battery)}>
-                    ${renderMainIcon('battery', battSoc, iconBattery)}
-                    ${renderSecondaryOrLabel(labelBatteryText, showLabelBattery, entities.secondary_battery, hasSecondaryBattery, 'secondary_battery')}
-                    <div class="value" style="${this.config.color_text_battery ? 'color: var(--text-battery-color);' : getColorStyle('--neon-green')}">${this.config.battery_show_power ? this._formatPower(battery) : Math.round(battSoc) + '%'}</div>
-                </div>` : ''}
+                ${hasBattery ? (() => {
+                  // Phase 5.36: rotation + SoC donut for battery bubble.
+                  // The "live" slot for the battery shows EITHER the SoC% or the
+                  // power value (in W) depending on the user's battery_show_power
+                  // toggle -- same logic as before, just routed through the
+                  // rotation helper now.
+                  const liveText = this.config.battery_show_power
+                    ? this._formatPower(battery)
+                    : Math.round(battSoc) + '%';
+                  const liveColor = this.config.color_text_battery
+                    ? 'var(--text-battery-color)'
+                    : 'var(--neon-green)';
+                  const rot = this._getBubbleRotationDisplay('battery', liveText, liveColor);
+                  return html`
+                  <div class="bubble battery node-battery ${batteryDonutActive ? 'donut' : ''} ${tintClass} ${glowClass}"
+                      style="${batteryDonutActive ? `--battery-gradient: ${batteryGradientVal};` : ''}"
+                      @click=${() => this._handleClick(entities.battery)}>
+                      ${renderMainIcon('battery', battSoc, iconBattery)}
+                      ${renderSecondaryOrLabel(labelBatteryText, showLabelBattery, entities.secondary_battery, hasSecondaryBattery, 'secondary_battery')}
+                      <div class="value rotating-value" style="color: ${rot.color};">${rot.text}</div>
+                  </div>`;
+                })() : ''}
                 
                 ${/* Venus bubble: gated by hasVenus (Phase 5.14 - was missing wrapper before). */ ''}
                 ${hasVenus ? html`

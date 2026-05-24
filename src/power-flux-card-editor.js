@@ -83,7 +83,8 @@ class PowerFluxCardEditor extends LitElement {
                 'grid_rotate_daily_1', 'grid_rotate_daily_2', 'grid_rotate_daily_3',
                 'grid_donut_import_today', 'grid_donut_export_today',
                 'solar_rotate_daily_1', 'solar_rotate_daily_2', 'solar_rotate_daily_3',
-                'pv_donut_produced_today', 'pv_donut_forecast_today'
+                'pv_donut_produced_today', 'pv_donut_forecast_today',
+                'battery_rotate_daily_1', 'battery_rotate_daily_2', 'battery_rotate_daily_3'
             ];
 
             let newConfig = { ...this._config };
@@ -864,136 +865,105 @@ class PowerFluxCardEditor extends LitElement {
             <div class="switch-label">${this._localize('editor.storage_enabled')}</div>
         </div>
 
-        ${this._renderEntitySelector(entitySelectorSchema, entities.battery, 'battery', this._localize('editor.entity'))}
+        <!-- Group: Sensors & display -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:tune"></ha-icon>
+                ${this._localize('editor.group_sensors_display')}
+            </div>
 
-        <div class="separator"></div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery, 'battery', this._localize('editor.entity'))}
 
-        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
-            ${this._localize('editor.battery_separate_hint')}
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.battery_charge || "", 'battery_charge', this._localize('editor.battery_charge_sensor'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.battery_discharge || "", 'battery_discharge', this._localize('editor.battery_discharge_sensor'))}
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 4px; margin-bottom: 8px;">
+                ${this._localize('editor.battery_separate_hint')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_charge || "", 'battery_charge', this._localize('editor.battery_charge_sensor'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_discharge || "", 'battery_discharge', this._localize('editor.battery_discharge_sensor'))}
 
-        <div class="separator"></div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_soc, 'battery_soc', this._localize('editor.battery_soc_label'))}
 
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${textSelectorSchema}
-            .value=${this._config.battery_label}
-            .configValue=${'battery_label'}
-            .label=${this._localize('editor.label') + " (Optional)"}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 4px; margin-bottom: 8px;">
+                ${this._localize('editor.grid_to_battery_hint')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_to_battery || "", 'grid_to_battery', this._localize('editor.grid_to_battery_sensor'))}
 
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${iconSelectorSchema}
-            .value=${this._config.battery_icon}
-            .configValue=${'battery_icon'}
-            .label=${this._localize('editor.icon') + " (Optional)"}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_battery || "", 'secondary_battery', this._localize('editor.secondary_sensor'))}
 
-        <div class="separator"></div>
-
-        ${this._renderEntitySelector(entitySelectorSchema, entities.battery_soc, 'battery_soc', this._localize('editor.battery_soc_label'))}
-                        
-        <div class="separator"></div>
-
-        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
-            ${this._localize('editor.grid_to_battery_hint')}
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_to_battery || "", 'grid_to_battery', this._localize('editor.grid_to_battery_sensor'))}
-
-        ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_battery || "", 'secondary_battery', this._localize('editor.secondary_sensor'))}
-
-        ${this._renderColorPickerQuint('color_battery', 'color_pipe_battery', 'color_text_battery', 'color_icon_battery', 'color_secondary_battery', '#00ff88')}
-        
-        <div class="separator"></div>
-        
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_label_battery === true} 
-                .configValue=${'show_label_battery'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.label_toggle')}</div>
-        </div>
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.battery_unit_kw === true}
-                .configValue=${'battery_unit_kw'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.battery_unit_kw')}</div>
-        </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_flow_rate_battery !== false} 
-                .configValue=${'show_flow_rate_battery'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
-        </div>
-
-        <div>
             <ha-selector
                 .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.battery_animation_threshold !== undefined ? this._config.battery_animation_threshold : 1}
-                .configValue=${'battery_animation_threshold'}
-                .label=${this._localize('editor.bubble_animation_threshold')}
+                .selector=${textSelectorSchema}
+                .value=${this._config.battery_label}
+                .configValue=${'battery_label'}
+                .label=${this._localize('editor.label') + " (Optional)"}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
-        </div>
 
-        <div>
             <ha-selector
                 .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.battery_label_offset_x !== undefined ? this._config.battery_label_offset_x : 0}
-                .configValue=${'battery_label_offset_x'}
-                .label=${this._localize('editor.bubble_label_offset_x')}
+                .selector=${iconSelectorSchema}
+                .value=${this._config.battery_icon}
+                .configValue=${'battery_icon'}
+                .label=${this._localize('editor.icon') + " (Optional)"}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
+
+            ${this._renderColorPickerQuint('color_battery', 'color_pipe_battery', 'color_text_battery', 'color_icon_battery', 'color_secondary_battery', '#00ff88')}
         </div>
 
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.battery_label_offset_y !== undefined ? this._config.battery_label_offset_y : 0}
-                .configValue=${'battery_label_offset_y'}
-                .label=${this._localize('editor.bubble_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
+        <!-- Group: Behavior -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:cog"></ha-icon>
+                ${this._localize('editor.group_behavior')}
+            </div>
 
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.invert_battery === true} 
-                .configValue=${'invert_battery'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.invert_battery')}</div>
-        </div>
             <div class="switch-row">
                 <ha-switch
-                    .checked=${this._config.battery_charge_via_house === true}
-                    .configValue=${'battery_charge_via_house'}
+                    .checked=${this._config.show_label_battery === true}
+                    .configValue=${'show_label_battery'}
                     @change=${this._valueChanged}
                 ></ha-switch>
-                <div class="switch-label">${this._localize('editor.battery_charge_via_house')}</div>
+                <div class="switch-label">${this._localize('editor.label_toggle')}</div>
             </div>
+
             <div class="switch-row">
                 <ha-switch
-                    .checked=${this._config.hide_solar_to_battery_pipe === true}
-                    .configValue=${'hide_solar_to_battery_pipe'}
+                    .checked=${this._config.battery_unit_kw === true}
+                    .configValue=${'battery_unit_kw'}
                     @change=${this._valueChanged}
                 ></ha-switch>
-                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
+                <div class="switch-label">${this._localize('editor.battery_unit_kw')}</div>
             </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_battery !== false}
+                    .configValue=${'show_flow_rate_battery'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.battery_animation_threshold !== undefined ? this._config.battery_animation_threshold : 1}
+                    .configValue=${'battery_animation_threshold'}
+                    .label=${this._localize('editor.bubble_animation_threshold')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.invert_battery === true}
+                    .configValue=${'invert_battery'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.invert_battery')}</div>
+            </div>
+
             <div class="switch-row">
                 <ha-switch
                     .checked=${this._config.battery_show_power === true}
@@ -1002,6 +972,135 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.battery_show_power')}</div>
             </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_charge_via_house === true}
+                    .configValue=${'battery_charge_via_house'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.battery_charge_via_house')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.hide_solar_to_battery_pipe === true}
+                    .configValue=${'hide_solar_to_battery_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
+            </div>
+        </div>
+
+        <!-- Group: Watt-label positioning -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:cursor-move"></ha-icon>
+                ${this._localize('editor.group_label_positions')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
+                ${this._localize('editor.battery_label_pos')}
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                    .value=${this._config.battery_label_offset_x !== undefined ? this._config.battery_label_offset_x : 0}
+                    .configValue=${'battery_label_offset_x'}
+                    .label=${this._localize('editor.bubble_label_offset_x')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                    .value=${this._config.battery_label_offset_y !== undefined ? this._config.battery_label_offset_y : 0}
+                    .configValue=${'battery_label_offset_y'}
+                    .label=${this._localize('editor.bubble_label_offset_y')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+        </div>
+
+        <!-- Group: Value rotation -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:rotate-3d-variant"></ha-icon>
+                ${this._localize('editor.rotation_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_rotate_show_live !== false}
+                    .configValue=${'battery_rotate_show_live'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+            </div>
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_rotate_show_daily_1 === true}
+                    .configValue=${'battery_rotate_show_daily_1'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_rotate_daily_1 || "", 'battery_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
+            ${this._renderColorPicker('battery_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_rotate_show_daily_2 === true}
+                    .configValue=${'battery_rotate_show_daily_2'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_rotate_daily_2 || "", 'battery_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
+            ${this._renderColorPicker('battery_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_rotate_show_daily_3 === true}
+                    .configValue=${'battery_rotate_show_daily_3'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_rotate_daily_3 || "", 'battery_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
+            ${this._renderColorPicker('battery_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+        </div>
+
+        <!-- Group: SoC donut -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:donut-small"></ha-icon>
+                ${this._localize('editor.battery_soc_donut_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.battery_soc_donut_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_soc_donut_mode === true}
+                    .configValue=${'battery_soc_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.battery_soc_donut_enabled')}</div>
+            </div>
+        </div>
       `;
     }
 

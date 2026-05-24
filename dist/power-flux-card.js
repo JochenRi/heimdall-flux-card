@@ -24,6 +24,10 @@ const lang_de = {
     "editor.solar_label_pos_solar_house": "Label: Solar → Haus",
     "editor.solar_label_pos_solar_grid": "Label: Solar → Netz (Einspeisung)",
     "editor.grid_label_pos_import": "Label: Netz → Haus (Bezug)",
+    "editor.battery_label_pos": "Label: Batterie ↔ Haus",
+    "editor.battery_soc_donut_section": "🍩 SoC-Donut (Ladestands-Ring)",
+    "editor.battery_soc_donut_hint": "Zeigt den Akku-Ladestand als Ring um die Bubble. Gefüllter Anteil = aktueller SoC in Batterie-Farbe, Rest grau. Wie eine Smartphone-Akku-Anzeige.",
+    "editor.battery_soc_donut_enabled": "SoC-Donut aktivieren",
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
     "editor.bubble_size": "Bubble-Größe (px)",
@@ -170,6 +174,10 @@ const lang_en = {
     "editor.solar_label_pos_solar_house": "Label: Solar → House",
     "editor.solar_label_pos_solar_grid": "Label: Solar → Grid (export)",
     "editor.grid_label_pos_import": "Label: Grid → House (import)",
+    "editor.battery_label_pos": "Label: Battery ↔ House",
+    "editor.battery_soc_donut_section": "🍩 SoC donut (charge level ring)",
+    "editor.battery_soc_donut_hint": "Shows the battery's state-of-charge as a ring around the bubble. Filled segment = current SoC in battery colour, rest grey. Like a smartphone battery indicator.",
+    "editor.battery_soc_donut_enabled": "Enable SoC donut",
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
     "editor.bubble_size": "Bubble size (px)",
@@ -387,7 +395,8 @@ class PowerFluxCardEditor extends LitElement {
                 'grid_rotate_daily_1', 'grid_rotate_daily_2', 'grid_rotate_daily_3',
                 'grid_donut_import_today', 'grid_donut_export_today',
                 'solar_rotate_daily_1', 'solar_rotate_daily_2', 'solar_rotate_daily_3',
-                'pv_donut_produced_today', 'pv_donut_forecast_today'
+                'pv_donut_produced_today', 'pv_donut_forecast_today',
+                'battery_rotate_daily_1', 'battery_rotate_daily_2', 'battery_rotate_daily_3'
             ];
 
             let newConfig = { ...this._config };
@@ -1168,136 +1177,105 @@ class PowerFluxCardEditor extends LitElement {
             <div class="switch-label">${this._localize('editor.storage_enabled')}</div>
         </div>
 
-        ${this._renderEntitySelector(entitySelectorSchema, entities.battery, 'battery', this._localize('editor.entity'))}
+        <!-- Group: Sensors & display -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:tune"></ha-icon>
+                ${this._localize('editor.group_sensors_display')}
+            </div>
 
-        <div class="separator"></div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery, 'battery', this._localize('editor.entity'))}
 
-        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
-            ${this._localize('editor.battery_separate_hint')}
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.battery_charge || "", 'battery_charge', this._localize('editor.battery_charge_sensor'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.battery_discharge || "", 'battery_discharge', this._localize('editor.battery_discharge_sensor'))}
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 4px; margin-bottom: 8px;">
+                ${this._localize('editor.battery_separate_hint')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_charge || "", 'battery_charge', this._localize('editor.battery_charge_sensor'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_discharge || "", 'battery_discharge', this._localize('editor.battery_discharge_sensor'))}
 
-        <div class="separator"></div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_soc, 'battery_soc', this._localize('editor.battery_soc_label'))}
 
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${textSelectorSchema}
-            .value=${this._config.battery_label}
-            .configValue=${'battery_label'}
-            .label=${this._localize('editor.label') + " (Optional)"}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 4px; margin-bottom: 8px;">
+                ${this._localize('editor.grid_to_battery_hint')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_to_battery || "", 'grid_to_battery', this._localize('editor.grid_to_battery_sensor'))}
 
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${iconSelectorSchema}
-            .value=${this._config.battery_icon}
-            .configValue=${'battery_icon'}
-            .label=${this._localize('editor.icon') + " (Optional)"}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_battery || "", 'secondary_battery', this._localize('editor.secondary_sensor'))}
 
-        <div class="separator"></div>
-
-        ${this._renderEntitySelector(entitySelectorSchema, entities.battery_soc, 'battery_soc', this._localize('editor.battery_soc_label'))}
-                        
-        <div class="separator"></div>
-
-        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
-            ${this._localize('editor.grid_to_battery_hint')}
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_to_battery || "", 'grid_to_battery', this._localize('editor.grid_to_battery_sensor'))}
-
-        ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_battery || "", 'secondary_battery', this._localize('editor.secondary_sensor'))}
-
-        ${this._renderColorPickerQuint('color_battery', 'color_pipe_battery', 'color_text_battery', 'color_icon_battery', 'color_secondary_battery', '#00ff88')}
-        
-        <div class="separator"></div>
-        
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_label_battery === true} 
-                .configValue=${'show_label_battery'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.label_toggle')}</div>
-        </div>
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.battery_unit_kw === true}
-                .configValue=${'battery_unit_kw'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.battery_unit_kw')}</div>
-        </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_flow_rate_battery !== false} 
-                .configValue=${'show_flow_rate_battery'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
-        </div>
-
-        <div>
             <ha-selector
                 .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.battery_animation_threshold !== undefined ? this._config.battery_animation_threshold : 1}
-                .configValue=${'battery_animation_threshold'}
-                .label=${this._localize('editor.bubble_animation_threshold')}
+                .selector=${textSelectorSchema}
+                .value=${this._config.battery_label}
+                .configValue=${'battery_label'}
+                .label=${this._localize('editor.label') + " (Optional)"}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
-        </div>
 
-        <div>
             <ha-selector
                 .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.battery_label_offset_x !== undefined ? this._config.battery_label_offset_x : 0}
-                .configValue=${'battery_label_offset_x'}
-                .label=${this._localize('editor.bubble_label_offset_x')}
+                .selector=${iconSelectorSchema}
+                .value=${this._config.battery_icon}
+                .configValue=${'battery_icon'}
+                .label=${this._localize('editor.icon') + " (Optional)"}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
+
+            ${this._renderColorPickerQuint('color_battery', 'color_pipe_battery', 'color_text_battery', 'color_icon_battery', 'color_secondary_battery', '#00ff88')}
         </div>
 
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.battery_label_offset_y !== undefined ? this._config.battery_label_offset_y : 0}
-                .configValue=${'battery_label_offset_y'}
-                .label=${this._localize('editor.bubble_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
+        <!-- Group: Behavior -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:cog"></ha-icon>
+                ${this._localize('editor.group_behavior')}
+            </div>
 
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.invert_battery === true} 
-                .configValue=${'invert_battery'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.invert_battery')}</div>
-        </div>
             <div class="switch-row">
                 <ha-switch
-                    .checked=${this._config.battery_charge_via_house === true}
-                    .configValue=${'battery_charge_via_house'}
+                    .checked=${this._config.show_label_battery === true}
+                    .configValue=${'show_label_battery'}
                     @change=${this._valueChanged}
                 ></ha-switch>
-                <div class="switch-label">${this._localize('editor.battery_charge_via_house')}</div>
+                <div class="switch-label">${this._localize('editor.label_toggle')}</div>
             </div>
+
             <div class="switch-row">
                 <ha-switch
-                    .checked=${this._config.hide_solar_to_battery_pipe === true}
-                    .configValue=${'hide_solar_to_battery_pipe'}
+                    .checked=${this._config.battery_unit_kw === true}
+                    .configValue=${'battery_unit_kw'}
                     @change=${this._valueChanged}
                 ></ha-switch>
-                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
+                <div class="switch-label">${this._localize('editor.battery_unit_kw')}</div>
             </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_battery !== false}
+                    .configValue=${'show_flow_rate_battery'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.battery_animation_threshold !== undefined ? this._config.battery_animation_threshold : 1}
+                    .configValue=${'battery_animation_threshold'}
+                    .label=${this._localize('editor.bubble_animation_threshold')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.invert_battery === true}
+                    .configValue=${'invert_battery'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.invert_battery')}</div>
+            </div>
+
             <div class="switch-row">
                 <ha-switch
                     .checked=${this._config.battery_show_power === true}
@@ -1306,6 +1284,135 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.battery_show_power')}</div>
             </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_charge_via_house === true}
+                    .configValue=${'battery_charge_via_house'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.battery_charge_via_house')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.hide_solar_to_battery_pipe === true}
+                    .configValue=${'hide_solar_to_battery_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
+            </div>
+        </div>
+
+        <!-- Group: Watt-label positioning -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:cursor-move"></ha-icon>
+                ${this._localize('editor.group_label_positions')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
+                ${this._localize('editor.battery_label_pos')}
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                    .value=${this._config.battery_label_offset_x !== undefined ? this._config.battery_label_offset_x : 0}
+                    .configValue=${'battery_label_offset_x'}
+                    .label=${this._localize('editor.bubble_label_offset_x')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                    .value=${this._config.battery_label_offset_y !== undefined ? this._config.battery_label_offset_y : 0}
+                    .configValue=${'battery_label_offset_y'}
+                    .label=${this._localize('editor.bubble_label_offset_y')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+        </div>
+
+        <!-- Group: Value rotation -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:rotate-3d-variant"></ha-icon>
+                ${this._localize('editor.rotation_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_rotate_show_live !== false}
+                    .configValue=${'battery_rotate_show_live'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+            </div>
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_rotate_show_daily_1 === true}
+                    .configValue=${'battery_rotate_show_daily_1'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_rotate_daily_1 || "", 'battery_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
+            ${this._renderColorPicker('battery_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_rotate_show_daily_2 === true}
+                    .configValue=${'battery_rotate_show_daily_2'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_rotate_daily_2 || "", 'battery_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
+            ${this._renderColorPicker('battery_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_rotate_show_daily_3 === true}
+                    .configValue=${'battery_rotate_show_daily_3'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_rotate_daily_3 || "", 'battery_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
+            ${this._renderColorPicker('battery_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+        </div>
+
+        <!-- Group: SoC donut -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:donut-small"></ha-icon>
+                ${this._localize('editor.battery_soc_donut_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.battery_soc_donut_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_soc_donut_mode === true}
+                    .configValue=${'battery_soc_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.battery_soc_donut_enabled')}</div>
+            </div>
+        </div>
       `;
     }
 
@@ -3234,6 +3341,16 @@ console.log(
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.36: battery SoC donut ring */
+      .bubble.battery.donut { border: none !important; background: transparent; }
+      .bubble.battery.donut.tinted { background: color-mix(in srgb, var(--pipe-battery-color, var(--neon-green)), transparent 85%); }
+      .bubble.battery.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--battery-gradient, var(--pipe-battery-color, var(--neon-green)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -4413,6 +4530,37 @@ console.log(
         // else: both essentially zero -> donut off, normal yellow border.
       }
 
+      // --- Battery SoC Donut Gradient (Phase 5.36) ---
+      // Visualizes the LG battery's State of Charge as a coloured ring.
+      //   Filled segment   = battery pipe colour (default: --pipe-battery-color)
+      //   Remaining segment = neutral grey
+      // 75% SoC -> 75% coloured / 25% grey, like a smartphone battery indicator.
+      //
+      // Activated by:
+      //   battery_soc_donut_mode (editor toggle, off by default)
+      // Reads:
+      //   entities.battery_soc (already configured for the SoC live display)
+      //
+      // If SoC sensor missing/unavailable, the donut stays off and the bubble
+      // keeps its plain border.
+      let batteryGradientVal = '';
+      let batteryDonutActive = false;
+      
+      if (hasBattery && this.config.battery_soc_donut_mode === true && entities.battery_soc) {
+        const socRaw = parseFloat(getVal(entities.battery_soc));
+        if (!isNaN(socRaw) && socRaw >= 0) {
+          const socClamped = Math.max(0, Math.min(100, socRaw));
+          const restPct = 100 - socClamped;
+          
+          let stops = [];
+          let current = 0;
+          if (socClamped > 0) { stops.push(`var(--pipe-battery-color) ${current}% ${current + socClamped}%`); current += socClamped; }
+          if (restPct > 0) { stops.push(`var(--battery-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          batteryGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          batteryDonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -4777,13 +4925,28 @@ console.log(
                   </div>`;
                 })() : ''}
                 
-                ${hasBattery ? html`
-                <div class="bubble battery node-battery ${tintClass} ${glowClass}"
-                    @click=${() => this._handleClick(entities.battery)}>
-                    ${renderMainIcon('battery', battSoc, iconBattery)}
-                    ${renderSecondaryOrLabel(labelBatteryText, showLabelBattery, entities.secondary_battery, hasSecondaryBattery, 'secondary_battery')}
-                    <div class="value" style="${this.config.color_text_battery ? 'color: var(--text-battery-color);' : getColorStyle('--neon-green')}">${this.config.battery_show_power ? this._formatPower(battery) : Math.round(battSoc) + '%'}</div>
-                </div>` : ''}
+                ${hasBattery ? (() => {
+                  // Phase 5.36: rotation + SoC donut for battery bubble.
+                  // The "live" slot for the battery shows EITHER the SoC% or the
+                  // power value (in W) depending on the user's battery_show_power
+                  // toggle -- same logic as before, just routed through the
+                  // rotation helper now.
+                  const liveText = this.config.battery_show_power
+                    ? this._formatPower(battery)
+                    : Math.round(battSoc) + '%';
+                  const liveColor = this.config.color_text_battery
+                    ? 'var(--text-battery-color)'
+                    : 'var(--neon-green)';
+                  const rot = this._getBubbleRotationDisplay('battery', liveText, liveColor);
+                  return html`
+                  <div class="bubble battery node-battery ${batteryDonutActive ? 'donut' : ''} ${tintClass} ${glowClass}"
+                      style="${batteryDonutActive ? `--battery-gradient: ${batteryGradientVal};` : ''}"
+                      @click=${() => this._handleClick(entities.battery)}>
+                      ${renderMainIcon('battery', battSoc, iconBattery)}
+                      ${renderSecondaryOrLabel(labelBatteryText, showLabelBattery, entities.secondary_battery, hasSecondaryBattery, 'secondary_battery')}
+                      <div class="value rotating-value" style="color: ${rot.color};">${rot.text}</div>
+                  </div>`;
+                })() : ''}
                 
                 ${/* Venus bubble: gated by hasVenus (Phase 5.14 - was missing wrapper before). */ ''}
                 ${hasVenus ? html`
@@ -4838,5 +5001,4 @@ window.customCards.push({
   name: "Power Flux Card",
   description: "Advanced Animated Energy Flow Card",
 });
-
 
