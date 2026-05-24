@@ -699,6 +699,18 @@ console.log(
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.47: Tesla (Consumer 1) SoC donut ring.
+         Uses --c1-gradient (conic) computed from secondary_consumer_1 / consumer_1_soc_max.
+         Same masking trick as battery/venus -- transparent body, donut renders in ::before. */
+      .bubble.c1.donut { border: none !important; background: transparent; }
+      .bubble.c1.donut.tinted { background: color-mix(in srgb, var(--pipe-consumer-1-color, var(--consumer-1-color)), transparent 85%); }
+      .bubble.c1.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--c1-gradient, var(--pipe-consumer-1-color, var(--consumer-1-color)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -1942,6 +1954,39 @@ console.log(
         }
       }
 
+      // --- Tesla / Consumer 1 SoC Donut Gradient (Phase 5.47) ---
+      // Same conic-gradient pattern as Battery/Venus, but with a configurable
+      // maximum (consumer_1_soc_max, default 100). This makes the donut
+      // universal: tesla owners use the default 100% scale for SoC, but
+      // someone using consumer 1 for a boiler can set max=65 (°C) and the
+      // ring fills proportionally (22°C / 65°C = 33.8% filled).
+      //
+      // Activated by:
+      //   consumer_1_soc_donut_mode (editor toggle, off by default)
+      // Reads:
+      //   entities.secondary_consumer_1 (the SoC / temp / level sensor)
+      //   consumer_1_soc_max (the value that represents 100%, default 100)
+      let c1GradientVal = '';
+      let c1DonutActive = false;
+      
+      if (this.config.consumer_1_soc_donut_mode === true && entities.secondary_consumer_1) {
+        const rawVal = parseFloat(getVal(entities.secondary_consumer_1));
+        const socMax = parseFloat(this.config.consumer_1_soc_max);
+        const maxVal = (!isNaN(socMax) && socMax > 0) ? socMax : 100;
+        if (!isNaN(rawVal) && rawVal >= 0) {
+          // Scale rawVal/maxVal to a 0..100 percentage, then clamp.
+          const pct = Math.max(0, Math.min(100, (rawVal / maxVal) * 100));
+          const restPct = 100 - pct;
+          
+          let stops = [];
+          let current = 0;
+          if (pct > 0) { stops.push(`var(--pipe-consumer-1-color) ${current}% ${current + pct}%`); current += pct; }
+          if (restPct > 0) { stops.push(`var(--c1-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          c1GradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c1DonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -2155,8 +2200,17 @@ console.log(
           bigValueStyle = `color: ${rot.color};`;
         }
 
+        // Phase 5.47: SoC donut for Tesla (Consumer 1). Only this bubble has
+        // the donut feature for now -- other consumers can be promoted later
+        // by extending the variable lookup. The .donut class triggers the
+        // CSS ::before mask (see .bubble.c1.donut::before), and --c1-gradient
+        // carries the conic-gradient computed earlier.
+        const c1Donut = (cssClass === 'c1' && c1DonutActive);
+        const donutStyle = c1Donut ? ` --c1-gradient: ${c1GradientVal};` : '';
+
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
+                style="${donutStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
                 ${subLine}

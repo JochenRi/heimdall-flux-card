@@ -1681,6 +1681,35 @@ class PowerFluxCardEditor extends LitElement {
 
             ${this._renderColorPickerQuint('color_consumer_1', 'color_pipe_consumer_1', 'color_text_consumer_1', 'color_icon_consumer_1', 'color_secondary_consumer_1', '#a855f7')}
 
+            <!-- Phase 5.47: SoC donut ring for Tesla bubble (analog Battery/Venus,
+                 but with a user-configurable maximum so the same widget works for
+                 SoC %, boiler °C, water level cm, etc.) -->
+            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
+                <ha-icon icon="mdi:donut-small" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
+                ${this._localize('editor.consumer_1_donut_section')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_1_donut_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_1_soc_donut_mode === true}
+                    .configValue=${'consumer_1_soc_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_1_soc_donut_enable')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
+                .value=${this._config.consumer_1_soc_max !== undefined ? this._config.consumer_1_soc_max : 100}
+                .configValue=${'consumer_1_soc_max'}
+                .label=${this._localize('editor.consumer_1_soc_max')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
             <!-- Phase 5.44: rotation for Tesla bubble (analog Battery/Venus) -->
             <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
                 <ha-icon icon="mdi:rotate-3d-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
