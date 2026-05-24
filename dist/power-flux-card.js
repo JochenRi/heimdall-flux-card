@@ -867,17 +867,6 @@ class PowerFluxCardEditor extends LitElement {
             <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
         </div>
 
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 2, max: 60, step: 1, mode: "slider" } }}
-                .value=${this._config.rotation_interval_sec !== undefined ? this._config.rotation_interval_sec : 10}
-                .configValue=${'rotation_interval_sec'}
-                .label=${this._localize('editor.rotation_interval_sec')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
-
         <div class="separator"></div>
         <div class="switch-row">
             <ha-switch
@@ -2203,6 +2192,17 @@ class PowerFluxCardEditor extends LitElement {
                 @change=${this._valueChanged}
             ></ha-switch>
             <div class="switch-label">${this._localize('editor.transparent_background')}</div>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 2, max: 60, step: 1, mode: "slider" } }}
+                .value=${this._config.rotation_interval_sec !== undefined ? this._config.rotation_interval_sec : 10}
+                .configValue=${'rotation_interval_sec'}
+                .label=${this._localize('editor.rotation_interval_sec')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
         </div>
 
         <div class="switch-row">
