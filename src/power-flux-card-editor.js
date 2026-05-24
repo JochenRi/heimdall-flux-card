@@ -81,7 +81,8 @@ class PowerFluxCardEditor extends LitElement {
                 'secondary_house',
                 'donut_today_solar', 'donut_today_battery', 'donut_today_venus', 'donut_today_grid',
                 'grid_rotate_daily_1', 'grid_rotate_daily_2', 'grid_rotate_daily_3',
-                'grid_donut_import_today', 'grid_donut_export_today'
+                'grid_donut_import_today', 'grid_donut_export_today',
+                'solar_rotate_daily_1', 'solar_rotate_daily_2', 'solar_rotate_daily_3'
             ];
 
             let newConfig = { ...this._config };
@@ -480,6 +481,58 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
         </div>
+
+        <div class="separator"></div>
+        <div class="section-title">${this._localize('editor.rotation_section')}</div>
+        
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.rotation_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.solar_rotate_show_live !== false}
+                .configValue=${'solar_rotate_show_live'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+        </div>
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.solar_rotate_show_daily_1 === true}
+                .configValue=${'solar_rotate_show_daily_1'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_1 || "", 'solar_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
+        ${this._renderColorPicker('solar_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.solar_rotate_show_daily_2 === true}
+                .configValue=${'solar_rotate_show_daily_2'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_2 || "", 'solar_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
+        ${this._renderColorPicker('solar_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.solar_rotate_show_daily_3 === true}
+                .configValue=${'solar_rotate_show_daily_3'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_3 || "", 'solar_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
+        ${this._renderColorPicker('solar_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
       `;
     }
 

@@ -351,7 +351,8 @@ class PowerFluxCardEditor extends LitElement {
                 'secondary_house',
                 'donut_today_solar', 'donut_today_battery', 'donut_today_venus', 'donut_today_grid',
                 'grid_rotate_daily_1', 'grid_rotate_daily_2', 'grid_rotate_daily_3',
-                'grid_donut_import_today', 'grid_donut_export_today'
+                'grid_donut_import_today', 'grid_donut_export_today',
+                'solar_rotate_daily_1', 'solar_rotate_daily_2', 'solar_rotate_daily_3'
             ];
 
             let newConfig = { ...this._config };
@@ -750,6 +751,58 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
         </div>
+
+        <div class="separator"></div>
+        <div class="section-title">${this._localize('editor.rotation_section')}</div>
+        
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.rotation_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.solar_rotate_show_live !== false}
+                .configValue=${'solar_rotate_show_live'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+        </div>
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.solar_rotate_show_daily_1 === true}
+                .configValue=${'solar_rotate_show_daily_1'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_1 || "", 'solar_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
+        ${this._renderColorPicker('solar_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.solar_rotate_show_daily_2 === true}
+                .configValue=${'solar_rotate_show_daily_2'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_2 || "", 'solar_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
+        ${this._renderColorPicker('solar_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.solar_rotate_show_daily_3 === true}
+                .configValue=${'solar_rotate_show_daily_3'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_3 || "", 'solar_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
+        ${this._renderColorPicker('solar_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
       `;
     }
 
@@ -4360,13 +4413,20 @@ console.log(
 
                 </svg>
 
-                ${hasSolar ? html`
-                <div class="bubble ${isSolarActive ? 'solar' : 'inactive'} node-solar ${tintClass} ${isSolarActive ? glowClass : ''}"
-                    @click=${() => this._handleClick(entities.solar)}>
-                    ${renderMainIcon('solar', solarVal, iconSolar, solarColor)}
-                    ${renderSecondaryOrLabel(labelSolarText, showLabelSolar, entities.secondary_solar, hasSecondarySolar, 'secondary_solar')}
-                    <div class="value" style="${isSolarActive ? (this.config.color_text_solar ? 'color: var(--text-solar-color);' : getColorStyle('--neon-yellow')) : `color: ${solarColor};`}">${this._formatPower(solarVal)}</div>
-                </div>` : ''}
+                ${hasSolar ? (() => {
+                  const liveText = this._formatPower(solarVal);
+                  const liveColor = isSolarActive
+                    ? (this.config.color_text_solar ? 'var(--text-solar-color)' : 'var(--neon-yellow)')
+                    : solarColor;
+                  const rot = this._getBubbleRotationDisplay('solar', liveText, liveColor);
+                  return html`
+                  <div class="bubble ${isSolarActive ? 'solar' : 'inactive'} node-solar ${tintClass} ${isSolarActive ? glowClass : ''}"
+                      @click=${() => this._handleClick(entities.solar)}>
+                      ${renderMainIcon('solar', solarVal, iconSolar, solarColor)}
+                      ${renderSecondaryOrLabel(labelSolarText, showLabelSolar, entities.secondary_solar, hasSecondarySolar, 'secondary_solar')}
+                      <div class="value rotating-value" style="color: ${rot.color};">${rot.text}</div>
+                  </div>`;
+                })() : ''}
                 
                 ${hasGrid ? (() => {
                   const liveText = this._formatPower(isGridExporting ? gridExport : gridImport);

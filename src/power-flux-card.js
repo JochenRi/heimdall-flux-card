@@ -1985,13 +1985,20 @@ console.log(
 
                 </svg>
 
-                ${hasSolar ? html`
-                <div class="bubble ${isSolarActive ? 'solar' : 'inactive'} node-solar ${tintClass} ${isSolarActive ? glowClass : ''}"
-                    @click=${() => this._handleClick(entities.solar)}>
-                    ${renderMainIcon('solar', solarVal, iconSolar, solarColor)}
-                    ${renderSecondaryOrLabel(labelSolarText, showLabelSolar, entities.secondary_solar, hasSecondarySolar, 'secondary_solar')}
-                    <div class="value" style="${isSolarActive ? (this.config.color_text_solar ? 'color: var(--text-solar-color);' : getColorStyle('--neon-yellow')) : `color: ${solarColor};`}">${this._formatPower(solarVal)}</div>
-                </div>` : ''}
+                ${hasSolar ? (() => {
+                  const liveText = this._formatPower(solarVal);
+                  const liveColor = isSolarActive
+                    ? (this.config.color_text_solar ? 'var(--text-solar-color)' : 'var(--neon-yellow)')
+                    : solarColor;
+                  const rot = this._getBubbleRotationDisplay('solar', liveText, liveColor);
+                  return html`
+                  <div class="bubble ${isSolarActive ? 'solar' : 'inactive'} node-solar ${tintClass} ${isSolarActive ? glowClass : ''}"
+                      @click=${() => this._handleClick(entities.solar)}>
+                      ${renderMainIcon('solar', solarVal, iconSolar, solarColor)}
+                      ${renderSecondaryOrLabel(labelSolarText, showLabelSolar, entities.secondary_solar, hasSecondarySolar, 'secondary_solar')}
+                      <div class="value rotating-value" style="color: ${rot.color};">${rot.text}</div>
+                  </div>`;
+                })() : ''}
                 
                 ${hasGrid ? (() => {
                   const liveText = this._formatPower(isGridExporting ? gridExport : gridImport);
