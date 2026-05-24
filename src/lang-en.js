@@ -47,6 +47,7 @@ export default {
     "editor.consumer_2_title": "♨️ Center (Orange)",
     "editor.consumer_3_title": "🏊 Right (Cyan)",
     "editor.zoom_label": "🔍 Zoom (Standard View)",
+    "editor.transparent_background": "Hide card background",
     "editor.neon_glow": "Neon Glow",
     "editor.donut_chart": "Donut Chart (Grid/House)",
     "editor.comet_tail": "Comet Tail Effect",

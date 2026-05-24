@@ -86,6 +86,7 @@ console.log(
         venus_enabled: true,
         hide_solar_to_battery_pipe: false,
         hide_solar_to_venus_pipe: false,
+        transparent_background: false,
         show_donut_border: false,
         show_neon_glow: true,
         show_comet_tail: false,
@@ -354,6 +355,14 @@ console.log(
         position: relative;
         overflow: visible; /* Phase 5.17: allow content (especially zoomed bubbles) to extend beyond card bounds */
         transition: height 0.3s ease;
+      }
+      
+      /* Phase 5.18: optional transparent card background -- removes the grey
+         ha-card frame so the flow diagram floats on the dashboard background. */
+      ha-card.transparent-bg {
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
       }
       
       /* --- COMPACT VIEW STYLES --- */
@@ -1767,7 +1776,7 @@ console.log(
       const strokeWidthVal = showDashedLine ? 4 : 8;
 
       return html`
-      <ha-card style="height: ${finalCardHeightPx}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px;">
+      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardHeightPx}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px;">
         
         <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-left: ${centerMarginLeft}px;">
             
