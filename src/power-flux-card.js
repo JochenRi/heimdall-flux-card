@@ -1867,12 +1867,13 @@ console.log(
                     <div class="value" style="${this.config.color_text_battery ? 'color: var(--text-battery-color);' : getColorStyle('--neon-green')}">${this.config.battery_show_power ? this._formatPower(battery) : Math.round(battSoc) + '%'}</div>
                 </div>` : ''}
                 
+                ${hasVenus ? html`
                 <div class="bubble venus node-venus ${tintClass} ${glowClass}"
-                    @click=${() => hasVenus && this._handleClick(entities.venus)}>
+                    @click=${() => this._handleClick(entities.venus)}>
                     ${renderMainIcon('venus', venusSoc, iconVenus)}
                     ${renderSecondaryOrLabel(labelVenusText, showLabelVenus, entities.secondary_venus, hasSecondaryVenus, 'secondary_venus')}
-                    <div class="value" style="${this.config.color_text_venus ? 'color: var(--text-venus-color);' : 'color: var(--venus-color);'}">${hasVenus ? (this.config.venus_show_power ? this._formatPower(venus) : Math.round(venusSoc) + '%') : '—'}</div>
-                </div>
+                    <div class="value" style="${this.config.color_text_venus ? 'color: var(--text-venus-color);' : 'color: var(--venus-color);'}">${this.config.venus_show_power ? this._formatPower(venus) : Math.round(venusSoc) + '%'}</div>
+                </div>` : ''}
                 
                 <div class="bubble house node-house ${showDonut ? 'donut' : ''} ${tintClass}" 
                     style="${houseBubbleStyle}"
