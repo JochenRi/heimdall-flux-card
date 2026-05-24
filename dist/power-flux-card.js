@@ -60,6 +60,7 @@ const lang_de = {
     "editor.colored_values": "Farbige Textwerte",
     "editor.hide_consumer_icons": "Icons unten ausblenden",
     "editor.invert_consumer": "Sensorwert invertieren (+/-)",
+    "editor.hide_solar_arc": "Solar-Pipe (oben) ausblenden",
     "editor.secondary_sensor": "Zweiter Sensor (nur Anzeige)",
     "editor.grid_to_battery_sensor": "Netz-zu-Batterie Sensor (W, Optional)",
     "editor.grid_to_battery_hint": "Optional: separater Sensor für den Netz-zu-Batterie Fluss. Wenn leer, wird der Wert automatisch berechnet.",
@@ -168,6 +169,7 @@ const lang_en = {
     "editor.colored_values": "Colored Text Values",
     "editor.hide_consumer_icons": "Hide Consumer Icons",
     "editor.invert_consumer": "Invert Sensor Value (+/-)",
+    "editor.hide_solar_arc": "Hide top solar pipe",
     "editor.secondary_sensor": "Secondary Sensor (display only)",
     "editor.grid_to_battery_sensor": "Grid to Battery Sensor (W, optional)",
     "editor.grid_to_battery_hint": "Optional: separate sensor for grid-to-battery flow. If empty, the value is calculated automatically.",
@@ -953,6 +955,14 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             <div class="switch-row">
                 <ha-switch
+                    .checked=${this._config.hide_solar_to_battery_pipe === true}
+                    .configValue=${'hide_solar_to_battery_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
+            </div>
+            <div class="switch-row">
+                <ha-switch
                     .checked=${this._config.battery_show_power === true}
                     .configValue=${'battery_show_power'}
                     @change=${this._valueChanged}
@@ -1087,6 +1097,14 @@ class PowerFluxCardEditor extends LitElement {
                     @change=${this._valueChanged}
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.venus_charge_via_house')}</div>
+            </div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.hide_solar_to_venus_pipe === true}
+                    .configValue=${'hide_solar_to_venus_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
             </div>
             <div class="switch-row">
                 <ha-switch
@@ -2288,6 +2306,8 @@ console.log(
         consumer_7_pipe_threshold: 0,
         consumer_6_enabled: false,
         consumer_7_enabled: false,
+        hide_solar_to_battery_pipe: false,
+        hide_solar_to_venus_pipe: false,
         show_donut_border: false,
         show_neon_glow: true,
         show_comet_tail: false,
@@ -3568,13 +3588,12 @@ console.log(
       const houseDisplay = (entities.house && entities.house !== "") ? getVal(entities.house) : house;
 
       // Solar→Batt arc visibility — consistent with other pipes (only check entity config)
-      const styleSolarBatt = (hasSolar && hasBattery) ? '' : 'display: none;';
+      const styleSolarBatt = (hasSolar && hasBattery && !this.config.hide_solar_to_battery_pipe) ? '' : 'display: none;';
 
       // Venus pipe visibility (mirrors battery pattern)
       const styleVenus = hasVenus ? '' : 'display: none;';
-      const styleSolarVenus = (hasSolar && hasVenus) ? '' : 'display: none;';
+      const styleSolarVenus = (hasSolar && hasVenus && !this.config.hide_solar_to_venus_pipe) ? '' : 'display: none;';
 
-      const isTopArcActive = (solarToBatt > 0) && !batteryChargeViaHouse;
       const hasTopRow = hasSolar || hasGrid || hasBattery;
       const topShift = !hasTopRow ? 190 : 0;
       const anyRow2Visible = showC4 || showC5 || showC6 || showC7;

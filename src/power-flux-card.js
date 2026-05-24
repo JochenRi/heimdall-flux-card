@@ -82,6 +82,8 @@ console.log(
         consumer_7_pipe_threshold: 0,
         consumer_6_enabled: false,
         consumer_7_enabled: false,
+        hide_solar_to_battery_pipe: false,
+        hide_solar_to_venus_pipe: false,
         show_donut_border: false,
         show_neon_glow: true,
         show_comet_tail: false,
@@ -1362,13 +1364,12 @@ console.log(
       const houseDisplay = (entities.house && entities.house !== "") ? getVal(entities.house) : house;
 
       // Solar→Batt arc visibility — consistent with other pipes (only check entity config)
-      const styleSolarBatt = (hasSolar && hasBattery) ? '' : 'display: none;';
+      const styleSolarBatt = (hasSolar && hasBattery && !this.config.hide_solar_to_battery_pipe) ? '' : 'display: none;';
 
       // Venus pipe visibility (mirrors battery pattern)
       const styleVenus = hasVenus ? '' : 'display: none;';
-      const styleSolarVenus = (hasSolar && hasVenus) ? '' : 'display: none;';
+      const styleSolarVenus = (hasSolar && hasVenus && !this.config.hide_solar_to_venus_pipe) ? '' : 'display: none;';
 
-      const isTopArcActive = (solarToBatt > 0) && !batteryChargeViaHouse;
       const hasTopRow = hasSolar || hasGrid || hasBattery;
       const topShift = !hasTopRow ? 190 : 0;
       const anyRow2Visible = showC4 || showC5 || showC6 || showC7;

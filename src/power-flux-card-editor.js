@@ -725,6 +725,14 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             <div class="switch-row">
                 <ha-switch
+                    .checked=${this._config.hide_solar_to_battery_pipe === true}
+                    .configValue=${'hide_solar_to_battery_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
+            </div>
+            <div class="switch-row">
+                <ha-switch
                     .checked=${this._config.battery_show_power === true}
                     .configValue=${'battery_show_power'}
                     @change=${this._valueChanged}
@@ -859,6 +867,14 @@ class PowerFluxCardEditor extends LitElement {
                     @change=${this._valueChanged}
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.venus_charge_via_house')}</div>
+            </div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.hide_solar_to_venus_pipe === true}
+                    .configValue=${'hide_solar_to_venus_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
             </div>
             <div class="switch-row">
                 <ha-switch

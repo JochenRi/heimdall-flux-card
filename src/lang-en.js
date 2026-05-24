@@ -55,6 +55,7 @@ export default {
     "editor.colored_values": "Colored Text Values",
     "editor.hide_consumer_icons": "Hide Consumer Icons",
     "editor.invert_consumer": "Invert Sensor Value (+/-)",
+    "editor.hide_solar_arc": "Hide top solar pipe",
     "editor.secondary_sensor": "Secondary Sensor (display only)",
     "editor.grid_to_battery_sensor": "Grid to Battery Sensor (W, optional)",
     "editor.grid_to_battery_hint": "Optional: separate sensor for grid-to-battery flow. If empty, the value is calculated automatically.",
