@@ -4179,7 +4179,14 @@ console.log(
         const produced = safeRead(pvProducedEnt);
         const forecast = safeRead(pvForecastEnt);
         
-        if (forecast > 0) {
+        // Phase 5.27: only render the donut when there's something meaningful to
+        // show. If produced == 0 (e.g. before sunrise), the donut would just be
+        // a near-invisible grey ring AND remove the solar bubble's normal border
+        // (via `.bubble.solar.donut { border: none !important; }`). Net effect:
+        // the bubble looked "borderless" to the user. Now we suppress the donut
+        // until there's at least some production, so the bubble keeps its normal
+        // yellow border and the donut "wakes up" with the first kWh.
+        if (produced > 0 && forecast > 0) {
           // Normal case: progress = produced / forecast, clamped to [0, 100]
           let progressPct = (produced / forecast) * 100;
           if (progressPct > 100) progressPct = 100; // over-forecast: clamp, ring becomes fully yellow
@@ -4190,15 +4197,14 @@ console.log(
           if (progressPct > 0) { stops.push(`var(--pipe-solar-color) ${current}% ${current + progressPct}%`); current += progressPct; }
           if (restPct > 0) { stops.push(`var(--solar-donut-rest-color, rgba(120, 120, 120, 0.4)) ${current}% 100%`); }
           solarGradientVal = `conic-gradient(from 330deg, ${stops.join(', ')})`;
-        } else if (produced > 0) {
+          solarDonutActive = true;
+        } else if (produced > 0 && forecast === 0) {
           // Forecast sensor is 0/broken but production is happening:
           // show full yellow as a sane fallback rather than empty ring.
           solarGradientVal = 'var(--pipe-solar-color)';
-        } else {
-          // Both 0 (night, midnight reset): neutral grey ring
-          solarGradientVal = 'var(--solar-donut-rest-color, rgba(120, 120, 120, 0.4))';
+          solarDonutActive = true;
         }
-        solarDonutActive = true;
+        // else: produced == 0 -> donut stays off, bubble keeps its normal yellow border.
       }
 
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
@@ -4529,17 +4535,6 @@ console.log(
                   // (a) flowing, (b) donut active, or (c) global always-color toggle on.
                   const bubbleStateClass = (isSolarActive || solarDonutActive || alwaysColor) ? 'solar' : 'inactive';
                   const glowOnState = (isSolarActive || solarDonutActive || alwaysColor) ? glowClass : '';
-                  // ============ PHASE 5.26 DEBUG (REMOVE AFTER BUG FOUND) ============
-                  console.log('[HEIMDALL DEBUG] PV-bubble render:', {
-                    'config.always_color_bubbles': this.config.always_color_bubbles,
-                    'alwaysColor (computed)': alwaysColor,
-                    'isSolarActive': isSolarActive,
-                    'solarDonutActive': solarDonutActive,
-                    'solarVal': solarVal,
-                    'bubbleStateClass': bubbleStateClass,
-                    'demo_mode': this.config.demo_mode
-                  });
-                  // ============ END DEBUG ============
                   return html`
                   <div class="bubble ${bubbleStateClass} node-solar ${solarDonutActive ? 'donut' : ''} ${tintClass} ${glowOnState}"
                       style="${solarDonutActive ? `--solar-gradient: ${solarGradientVal};` : ''}"
