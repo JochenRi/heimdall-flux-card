@@ -3094,9 +3094,20 @@ console.log(
     // Slots: live (current power), daily1, daily2, daily3 (each can be on/off).
     // If only one slot is enabled, no rotation -- always show that one.
     // If zero slots enabled, falls back to live.
+    // Phase 5.19-fix: defaults for daily-slot colors so the visual works
+    // out-of-the-box without the user having to interact with each color
+    // picker. User picks override the default.
     _getBubbleRotationDisplay(prefix, liveText, liveColor) {
       const cfg = this.config;
       const ent = cfg.entities || {};
+      
+      // Per-slot fallback colors. Picked to be distinguishable on dark and
+      // light backgrounds: red (consumption), green (export), blue (cost/total).
+      const DAILY_DEFAULT_COLORS = {
+        1: '#ff3333', // red
+        2: '#33ff77', // green
+        3: '#3377ff', // blue
+      };
       
       // Collect enabled slots in order: live, daily1, daily2, daily3.
       // Each slot is {kind, text, color}. A daily slot is only counted if its
@@ -3118,7 +3129,8 @@ console.log(
             if (!isNaN(numVal)) {
               const unit = this.hass.states[sensorEnt].attributes?.unit_of_measurement || 'kWh';
               const text = numVal.toFixed(1) + ' ' + unit;
-              const color = cfg[`${prefix}_rotate_color_daily_${slotNum}`] || liveColor;
+              // Use user color if set, otherwise per-slot default
+              const color = cfg[`${prefix}_rotate_color_daily_${slotNum}`] || DAILY_DEFAULT_COLORS[slotNum];
               slots.push({ kind: 'daily', text, color });
             }
           }
