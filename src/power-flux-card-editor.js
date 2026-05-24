@@ -600,7 +600,16 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             <h2>${this._localize('editor.battery_section')}</h2>
         </div>
-        
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.battery_enabled !== false}
+                .configValue=${'battery_enabled'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.storage_enabled')}</div>
+        </div>
+
         ${this._renderEntitySelector(entitySelectorSchema, entities.battery, 'battery', this._localize('editor.entity'))}
 
         <div class="separator"></div>
@@ -750,7 +759,16 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             <h2>${this._localize('editor.venus_section')}</h2>
         </div>
-        
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.venus_enabled !== false}
+                .configValue=${'venus_enabled'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.storage_enabled')}</div>
+        </div>
+
         ${this._renderEntitySelector(entitySelectorSchema, entities.venus || "", 'venus', this._localize('editor.venus_entity'))}
 
         <div class="separator"></div>

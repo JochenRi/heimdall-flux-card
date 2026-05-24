@@ -61,6 +61,7 @@ const lang_de = {
     "editor.hide_consumer_icons": "Icons unten ausblenden",
     "editor.invert_consumer": "Sensorwert invertieren (+/-)",
     "editor.hide_solar_arc": "Solar-Pipe (oben) ausblenden",
+    "editor.storage_enabled": "Speicher aktiviert",
     "editor.secondary_sensor": "Zweiter Sensor (nur Anzeige)",
     "editor.grid_to_battery_sensor": "Netz-zu-Batterie Sensor (W, Optional)",
     "editor.grid_to_battery_hint": "Optional: separater Sensor für den Netz-zu-Batterie Fluss. Wenn leer, wird der Wert automatisch berechnet.",
@@ -170,6 +171,7 @@ const lang_en = {
     "editor.hide_consumer_icons": "Hide Consumer Icons",
     "editor.invert_consumer": "Invert Sensor Value (+/-)",
     "editor.hide_solar_arc": "Hide top solar pipe",
+    "editor.storage_enabled": "Storage enabled",
     "editor.secondary_sensor": "Secondary Sensor (display only)",
     "editor.grid_to_battery_sensor": "Grid to Battery Sensor (W, optional)",
     "editor.grid_to_battery_hint": "Optional: separate sensor for grid-to-battery flow. If empty, the value is calculated automatically.",
@@ -830,7 +832,16 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             <h2>${this._localize('editor.battery_section')}</h2>
         </div>
-        
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.battery_enabled !== false}
+                .configValue=${'battery_enabled'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.storage_enabled')}</div>
+        </div>
+
         ${this._renderEntitySelector(entitySelectorSchema, entities.battery, 'battery', this._localize('editor.entity'))}
 
         <div class="separator"></div>
@@ -980,7 +991,16 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             <h2>${this._localize('editor.venus_section')}</h2>
         </div>
-        
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.venus_enabled !== false}
+                .configValue=${'venus_enabled'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.storage_enabled')}</div>
+        </div>
+
         ${this._renderEntitySelector(entitySelectorSchema, entities.venus || "", 'venus', this._localize('editor.venus_entity'))}
 
         <div class="separator"></div>
@@ -2306,6 +2326,8 @@ console.log(
         consumer_7_pipe_threshold: 0,
         consumer_6_enabled: false,
         consumer_7_enabled: false,
+        battery_enabled: true,
+        venus_enabled: true,
         hide_solar_to_battery_pipe: false,
         hide_solar_to_venus_pipe: false,
         show_donut_border: false,
@@ -3371,8 +3393,8 @@ console.log(
       const hasSolar = !!(entities.solar && entities.solar !== "");
       const hasGridCombined = !!(entities.grid_combined && entities.grid_combined !== "");
       const hasGrid = !!(entities.grid && entities.grid !== "") || hasGridCombined;
-      const hasBattery = !!(entities.battery && entities.battery !== "");
-      const hasVenus = !!(entities.venus && entities.venus !== "");
+      const hasBattery = !!(entities.battery && entities.battery !== "") && this.config.battery_enabled !== false;
+      const hasVenus = !!(entities.venus && entities.venus !== "") && this.config.venus_enabled !== false;
 
       const styleSolar = hasSolar ? '' : 'display: none;';
       const styleGrid = hasGrid ? '' : 'display: none;';

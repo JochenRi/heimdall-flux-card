@@ -56,6 +56,7 @@ export default {
     "editor.hide_consumer_icons": "Icons unten ausblenden",
     "editor.invert_consumer": "Sensorwert invertieren (+/-)",
     "editor.hide_solar_arc": "Solar-Pipe (oben) ausblenden",
+    "editor.storage_enabled": "Speicher aktiviert",
     "editor.secondary_sensor": "Zweiter Sensor (nur Anzeige)",
     "editor.grid_to_battery_sensor": "Netz-zu-Batterie Sensor (W, Optional)",
     "editor.grid_to_battery_hint": "Optional: separater Sensor für den Netz-zu-Batterie Fluss. Wenn leer, wird der Wert automatisch berechnet.",

@@ -82,6 +82,8 @@ console.log(
         consumer_7_pipe_threshold: 0,
         consumer_6_enabled: false,
         consumer_7_enabled: false,
+        battery_enabled: true,
+        venus_enabled: true,
         hide_solar_to_battery_pipe: false,
         hide_solar_to_venus_pipe: false,
         show_donut_border: false,
@@ -1147,8 +1149,8 @@ console.log(
       const hasSolar = !!(entities.solar && entities.solar !== "");
       const hasGridCombined = !!(entities.grid_combined && entities.grid_combined !== "");
       const hasGrid = !!(entities.grid && entities.grid !== "") || hasGridCombined;
-      const hasBattery = !!(entities.battery && entities.battery !== "");
-      const hasVenus = !!(entities.venus && entities.venus !== "");
+      const hasBattery = !!(entities.battery && entities.battery !== "") && this.config.battery_enabled !== false;
+      const hasVenus = !!(entities.venus && entities.venus !== "") && this.config.venus_enabled !== false;
 
       const styleSolar = hasSolar ? '' : 'display: none;';
       const styleGrid = hasGrid ? '' : 'display: none;';
