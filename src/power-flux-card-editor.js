@@ -84,7 +84,8 @@ class PowerFluxCardEditor extends LitElement {
                 'grid_donut_import_today', 'grid_donut_export_today',
                 'solar_rotate_daily_1', 'solar_rotate_daily_2', 'solar_rotate_daily_3',
                 'pv_donut_produced_today', 'pv_donut_forecast_today',
-                'battery_rotate_daily_1', 'battery_rotate_daily_2', 'battery_rotate_daily_3'
+                'battery_rotate_daily_1', 'battery_rotate_daily_2', 'battery_rotate_daily_3',
+                'venus_rotate_daily_1', 'venus_rotate_daily_2', 'venus_rotate_daily_3'
             ];
 
             let newConfig = { ...this._config };
@@ -1122,131 +1123,100 @@ class PowerFluxCardEditor extends LitElement {
             <div class="switch-label">${this._localize('editor.storage_enabled')}</div>
         </div>
 
-        ${this._renderEntitySelector(entitySelectorSchema, entities.venus || "", 'venus', this._localize('editor.venus_entity'))}
+        <!-- Group: Sensors & display -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:tune"></ha-icon>
+                ${this._localize('editor.group_sensors_display')}
+            </div>
 
-        <div class="separator"></div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus || "", 'venus', this._localize('editor.venus_entity'))}
 
-        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
-            ${this._localize('editor.venus_separate_hint')}
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.venus_charge || "", 'venus_charge', this._localize('editor.venus_charge_sensor'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.venus_discharge || "", 'venus_discharge', this._localize('editor.venus_discharge_sensor'))}
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 4px; margin-bottom: 8px;">
+                ${this._localize('editor.venus_separate_hint')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_charge || "", 'venus_charge', this._localize('editor.venus_charge_sensor'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_discharge || "", 'venus_discharge', this._localize('editor.venus_discharge_sensor'))}
 
-        <div class="separator"></div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_soc || "", 'venus_soc', this._localize('editor.venus_soc_label'))}
 
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${textSelectorSchema}
-            .value=${this._config.venus_label}
-            .configValue=${'venus_label'}
-            .label=${this._localize('editor.label') + " (Optional)"}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_venus || "", 'secondary_venus', this._localize('editor.venus_secondary_sensor'))}
 
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${iconSelectorSchema}
-            .value=${this._config.venus_icon}
-            .configValue=${'venus_icon'}
-            .label=${this._localize('editor.icon') + " (Optional)"}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-
-        <div class="separator"></div>
-
-        ${this._renderEntitySelector(entitySelectorSchema, entities.venus_soc || "", 'venus_soc', this._localize('editor.venus_soc_label'))}
-
-        <div class="separator"></div>
-
-        ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_venus || "", 'secondary_venus', this._localize('editor.venus_secondary_sensor'))}
-
-        ${this._renderColorPickerQuint('color_venus', 'color_pipe_venus', 'color_text_venus', 'color_icon_venus', 'color_secondary_venus', '#06b6d4')}
-        
-        <div class="separator"></div>
-        
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_label_venus === true} 
-                .configValue=${'show_label_venus'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.label_toggle')}</div>
-        </div>
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.venus_unit_kw === true}
-                .configValue=${'venus_unit_kw'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.venus_unit_kw')}</div>
-        </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_flow_rate_venus !== false} 
-                .configValue=${'show_flow_rate_venus'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
-        </div>
-
-        <div>
             <ha-selector
                 .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.venus_animation_threshold !== undefined ? this._config.venus_animation_threshold : 1}
-                .configValue=${'venus_animation_threshold'}
-                .label=${this._localize('editor.bubble_animation_threshold')}
+                .selector=${textSelectorSchema}
+                .value=${this._config.venus_label}
+                .configValue=${'venus_label'}
+                .label=${this._localize('editor.label') + " (Optional)"}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
-        </div>
 
-        <div>
             <ha-selector
                 .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.venus_label_offset_x !== undefined ? this._config.venus_label_offset_x : 0}
-                .configValue=${'venus_label_offset_x'}
-                .label=${this._localize('editor.bubble_label_offset_x')}
+                .selector=${iconSelectorSchema}
+                .value=${this._config.venus_icon}
+                .configValue=${'venus_icon'}
+                .label=${this._localize('editor.icon') + " (Optional)"}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
+
+            ${this._renderColorPickerQuint('color_venus', 'color_pipe_venus', 'color_text_venus', 'color_icon_venus', 'color_secondary_venus', '#06b6d4')}
         </div>
 
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.venus_label_offset_y !== undefined ? this._config.venus_label_offset_y : 0}
-                .configValue=${'venus_label_offset_y'}
-                .label=${this._localize('editor.bubble_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
+        <!-- Group: Behavior -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:cog"></ha-icon>
+                ${this._localize('editor.group_behavior')}
+            </div>
 
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.invert_venus === true} 
-                .configValue=${'invert_venus'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.invert_venus')}</div>
-        </div>
             <div class="switch-row">
                 <ha-switch
-                    .checked=${this._config.venus_charge_via_house === true}
-                    .configValue=${'venus_charge_via_house'}
+                    .checked=${this._config.show_label_venus === true}
+                    .configValue=${'show_label_venus'}
                     @change=${this._valueChanged}
                 ></ha-switch>
-                <div class="switch-label">${this._localize('editor.venus_charge_via_house')}</div>
+                <div class="switch-label">${this._localize('editor.label_toggle')}</div>
             </div>
+
             <div class="switch-row">
                 <ha-switch
-                    .checked=${this._config.hide_solar_to_venus_pipe === true}
-                    .configValue=${'hide_solar_to_venus_pipe'}
+                    .checked=${this._config.venus_unit_kw === true}
+                    .configValue=${'venus_unit_kw'}
                     @change=${this._valueChanged}
                 ></ha-switch>
-                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
+                <div class="switch-label">${this._localize('editor.venus_unit_kw')}</div>
             </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_venus !== false}
+                    .configValue=${'show_flow_rate_venus'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.venus_animation_threshold !== undefined ? this._config.venus_animation_threshold : 1}
+                    .configValue=${'venus_animation_threshold'}
+                    .label=${this._localize('editor.bubble_animation_threshold')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.invert_venus === true}
+                    .configValue=${'invert_venus'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.invert_venus')}</div>
+            </div>
+
             <div class="switch-row">
                 <ha-switch
                     .checked=${this._config.venus_show_power === true}
@@ -1255,6 +1225,135 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.venus_show_power')}</div>
             </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.venus_charge_via_house === true}
+                    .configValue=${'venus_charge_via_house'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.venus_charge_via_house')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.hide_solar_to_venus_pipe === true}
+                    .configValue=${'hide_solar_to_venus_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
+            </div>
+        </div>
+
+        <!-- Group: Watt-label positioning -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:cursor-move"></ha-icon>
+                ${this._localize('editor.group_label_positions')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
+                ${this._localize('editor.venus_label_pos')}
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                    .value=${this._config.venus_label_offset_x !== undefined ? this._config.venus_label_offset_x : 0}
+                    .configValue=${'venus_label_offset_x'}
+                    .label=${this._localize('editor.bubble_label_offset_x')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                    .value=${this._config.venus_label_offset_y !== undefined ? this._config.venus_label_offset_y : 0}
+                    .configValue=${'venus_label_offset_y'}
+                    .label=${this._localize('editor.bubble_label_offset_y')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+        </div>
+
+        <!-- Group: Value rotation -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:rotate-3d-variant"></ha-icon>
+                ${this._localize('editor.rotation_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.venus_rotate_show_live !== false}
+                    .configValue=${'venus_rotate_show_live'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+            </div>
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.venus_rotate_show_daily_1 === true}
+                    .configValue=${'venus_rotate_show_daily_1'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_rotate_daily_1 || "", 'venus_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
+            ${this._renderColorPicker('venus_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.venus_rotate_show_daily_2 === true}
+                    .configValue=${'venus_rotate_show_daily_2'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_rotate_daily_2 || "", 'venus_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
+            ${this._renderColorPicker('venus_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.venus_rotate_show_daily_3 === true}
+                    .configValue=${'venus_rotate_show_daily_3'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_rotate_daily_3 || "", 'venus_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
+            ${this._renderColorPicker('venus_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+        </div>
+
+        <!-- Group: SoC donut -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:donut-small"></ha-icon>
+                ${this._localize('editor.venus_soc_donut_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.venus_soc_donut_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.venus_soc_donut_mode === true}
+                    .configValue=${'venus_soc_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.venus_soc_donut_enabled')}</div>
+            </div>
+        </div>
       `;
     }
 

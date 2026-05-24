@@ -602,6 +602,16 @@ console.log(
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.37: Venus SoC donut ring */
+      .bubble.venus.donut { border: none !important; background: transparent; }
+      .bubble.venus.donut.tinted { background: color-mix(in srgb, var(--pipe-venus-color, var(--venus-color)), transparent 85%); }
+      .bubble.venus.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--venus-gradient, var(--pipe-venus-color, var(--venus-color)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -1812,6 +1822,26 @@ console.log(
         }
       }
 
+      // --- Venus SoC Donut Gradient (Phase 5.37) ---
+      // Identical pattern to the battery donut. Activated by venus_soc_donut_mode.
+      let venusGradientVal = '';
+      let venusDonutActive = false;
+      
+      if (hasVenus && this.config.venus_soc_donut_mode === true && entities.venus_soc) {
+        const socRaw = parseFloat(getVal(entities.venus_soc));
+        if (!isNaN(socRaw) && socRaw >= 0) {
+          const socClamped = Math.max(0, Math.min(100, socRaw));
+          const restPct = 100 - socClamped;
+          
+          let stops = [];
+          let current = 0;
+          if (socClamped > 0) { stops.push(`var(--pipe-venus-color) ${current}% ${current + socClamped}%`); current += socClamped; }
+          if (restPct > 0) { stops.push(`var(--venus-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          venusGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          venusDonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -2200,13 +2230,27 @@ console.log(
                 })() : ''}
                 
                 ${/* Venus bubble: gated by hasVenus (Phase 5.14 - was missing wrapper before). */ ''}
-                ${hasVenus ? html`
-                <div class="bubble venus node-venus ${tintClass} ${glowClass}"
-                    @click=${() => this._handleClick(entities.venus)}>
-                    ${renderMainIcon('venus', venusSoc, iconVenus)}
-                    ${renderSecondaryOrLabel(labelVenusText, showLabelVenus, entities.secondary_venus, hasSecondaryVenus, 'secondary_venus')}
-                    <div class="value" style="${this.config.color_text_venus ? 'color: var(--text-venus-color);' : 'color: var(--venus-color);'}">${this.config.venus_show_power ? this._formatPower(venus) : Math.round(venusSoc) + '%'}</div>
-                </div>` : ''}
+                ${hasVenus ? (() => {
+                  // Phase 5.37: rotation + SoC donut for venus bubble.
+                  // Mirror of the battery treatment in phase 5.36. The live slot
+                  // shows EITHER the SoC% or the power value (W) depending on
+                  // the venus_show_power toggle -- preserved as default behaviour.
+                  const liveText = this.config.venus_show_power
+                    ? this._formatPower(venus)
+                    : Math.round(venusSoc) + '%';
+                  const liveColor = this.config.color_text_venus
+                    ? 'var(--text-venus-color)'
+                    : 'var(--venus-color)';
+                  const rot = this._getBubbleRotationDisplay('venus', liveText, liveColor);
+                  return html`
+                  <div class="bubble venus node-venus ${venusDonutActive ? 'donut' : ''} ${tintClass} ${glowClass}"
+                      style="${venusDonutActive ? `--venus-gradient: ${venusGradientVal};` : ''}"
+                      @click=${() => this._handleClick(entities.venus)}>
+                      ${renderMainIcon('venus', venusSoc, iconVenus)}
+                      ${renderSecondaryOrLabel(labelVenusText, showLabelVenus, entities.secondary_venus, hasSecondaryVenus, 'secondary_venus')}
+                      <div class="value rotating-value" style="color: ${rot.color};">${rot.text}</div>
+                  </div>`;
+                })() : ''}
                 
                 <div class="bubble house node-house ${showDonut ? 'donut' : ''} ${tintClass}" 
                     style="${houseBubbleStyle}"
