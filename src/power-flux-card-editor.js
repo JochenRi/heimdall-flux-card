@@ -85,7 +85,8 @@ class PowerFluxCardEditor extends LitElement {
                 'solar_rotate_daily_1', 'solar_rotate_daily_2', 'solar_rotate_daily_3',
                 'pv_donut_produced_today', 'pv_donut_forecast_today',
                 'battery_rotate_daily_1', 'battery_rotate_daily_2', 'battery_rotate_daily_3',
-                'venus_rotate_daily_1', 'venus_rotate_daily_2', 'venus_rotate_daily_3'
+                'venus_rotate_daily_1', 'venus_rotate_daily_2', 'venus_rotate_daily_3',
+                'consumer_1_rotate_daily_1', 'consumer_1_rotate_daily_2', 'consumer_1_rotate_daily_3'
             ];
 
             let newConfig = { ...this._config };
@@ -1544,6 +1545,60 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_1 || "", 'secondary_consumer_1', this._localize('editor.secondary_sensor'))}
 
             ${this._renderColorPickerQuint('color_consumer_1', 'color_pipe_consumer_1', 'color_text_consumer_1', 'color_icon_consumer_1', 'color_secondary_consumer_1', '#a855f7')}
+
+            <!-- Phase 5.44: rotation for Tesla bubble (analog Battery/Venus) -->
+            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
+                <ha-icon icon="mdi:rotate-3d-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
+                ${this._localize('editor.rotation_section')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_1_rotate_show_live !== false}
+                    .configValue=${'consumer_1_rotate_show_live'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+            </div>
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_1_rotate_show_daily_1 === true}
+                    .configValue=${'consumer_1_rotate_show_daily_1'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_rotate_daily_1 || "", 'consumer_1_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
+            ${this._renderColorPicker('consumer_1_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_1_rotate_show_daily_2 === true}
+                    .configValue=${'consumer_1_rotate_show_daily_2'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_rotate_daily_2 || "", 'consumer_1_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
+            ${this._renderColorPicker('consumer_1_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_1_rotate_show_daily_3 === true}
+                    .configValue=${'consumer_1_rotate_show_daily_3'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_rotate_daily_3 || "", 'consumer_1_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
+            ${this._renderColorPicker('consumer_1_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
         </div>
 
         <div class="consumer-group">

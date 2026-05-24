@@ -2132,12 +2132,35 @@ console.log(
           subLine = html`<div class="sub label-val" style="${textStyle} opacity: 0.7;">${label}</div>`;
         }
 
+        // Phase 5.44: rotation layer for consumer bubbles. If the user has
+        // configured at least one daily-slot sensor (consumer_X_rotate_daily_N)
+        // and enabled it, the bigValue cycles through live + enabled daily
+        // slots on the global rotation_interval_sec tick. Uses the same
+        // generic _getBubbleRotationDisplay helper as Solar/Grid/Battery/Venus.
+        // Backward-compatible: when no rotation is configured, behaves
+        // exactly as before.
+        let bigValueStyle = textStyle;
+        const cfg = this.config;
+        const hasAnyRotationSlot =
+          cfg[`${configKey}_rotate_show_daily_1`] === true ||
+          cfg[`${configKey}_rotate_show_daily_2`] === true ||
+          cfg[`${configKey}_rotate_show_daily_3`] === true;
+        if (hasAnyRotationSlot) {
+          // Live text is whatever bigValue currently holds (power or secondary)
+          const liveText = bigValue;
+          // Live colour falls back to the consumer hex colour
+          const liveColor = hexColor;
+          const rot = this._getBubbleRotationDisplay(configKey, liveText, liveColor);
+          bigValue = rot.text;
+          bigValueStyle = `color: ${rot.color};`;
+        }
+
         return html`
             <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${tintClass} ${glowClass}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
                 ${subLine}
-                <div class="value" style="${textStyle}">${bigValue}</div>
+                <div class="value ${hasAnyRotationSlot ? 'rotating-value' : ''}" style="${bigValueStyle}">${bigValue}</div>
             </div>
         `;
       };
