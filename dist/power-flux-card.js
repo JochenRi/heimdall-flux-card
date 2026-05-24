@@ -4529,6 +4529,17 @@ console.log(
                   // (a) flowing, (b) donut active, or (c) global always-color toggle on.
                   const bubbleStateClass = (isSolarActive || solarDonutActive || alwaysColor) ? 'solar' : 'inactive';
                   const glowOnState = (isSolarActive || solarDonutActive || alwaysColor) ? glowClass : '';
+                  // ============ PHASE 5.26 DEBUG (REMOVE AFTER BUG FOUND) ============
+                  console.log('[HEIMDALL DEBUG] PV-bubble render:', {
+                    'config.always_color_bubbles': this.config.always_color_bubbles,
+                    'alwaysColor (computed)': alwaysColor,
+                    'isSolarActive': isSolarActive,
+                    'solarDonutActive': solarDonutActive,
+                    'solarVal': solarVal,
+                    'bubbleStateClass': bubbleStateClass,
+                    'demo_mode': this.config.demo_mode
+                  });
+                  // ============ END DEBUG ============
                   return html`
                   <div class="bubble ${bubbleStateClass} node-solar ${solarDonutActive ? 'donut' : ''} ${tintClass} ${glowOnState}"
                       style="${solarDonutActive ? `--solar-gradient: ${solarGradientVal};` : ''}"
