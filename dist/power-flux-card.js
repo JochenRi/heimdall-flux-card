@@ -3089,9 +3089,16 @@ console.log(
 
       .value { 
         font-weight: bold; font-size: 15px; white-space: nowrap; z-index: 2; transition: color 0.3s ease;
-        line-height: 1.2; position: absolute; bottom: 11px; left: 0; width: 100%; text-align: center; margin: 0;
+        /* Phase 5.32: anchor the value to the original 90px bubble height, not
+         * the new variable height. With `bottom: 11px` the text would float
+         * downward as the bubble grows (because "11px from the bottom edge"
+         * moves further away from the centre). Instead we compute the top
+         * offset that the value would have had in a 90px bubble (90 - 11 - 15
+         * line-height = 64px) so the text sits at the same Y position
+         * regardless of bubble size. */
+        line-height: 1.2; position: absolute; top: 64px; left: 0; width: 100%; text-align: center; margin: 0;
       }
-      .bubble.grid .value, .bubble.house .value { bottom: 15px; }
+      .bubble.grid .value, .bubble.house .value { top: 60px; }
       .direction-arrow { font-size: 12px; margin-right: 0px; vertical-align: top; }
       
       @keyframes spin { 100% { transform: rotate(360deg); } }
