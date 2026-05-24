@@ -526,8 +526,15 @@ console.log(
       }
 
       .bubble {
-        width: 90px;
-        height: 90px;
+        width: var(--bubble-size, 90px);
+        height: var(--bubble-size, 90px);
+        /* Phase 5.31: re-center bubble around its original anchor point so that
+         * pipes keep meeting the bubble's visual center as size scales. The
+         * delta is half the difference between the configured size and the
+         * original 90px default. Negative margins shift the bubble's top-left
+         * corner outward, keeping the center anchored. */
+        margin-top: calc((90px - var(--bubble-size, 90px)) / 2);
+        margin-left: calc((90px - var(--bubble-size, 90px)) / 2);
         border-radius: 50%;
         background: transparent;
         border: 2px solid var(--divider-color, #333);
@@ -2002,7 +2009,7 @@ console.log(
       const strokeWidthVal = showDashedLine ? 4 : 8;
 
       return html`
-      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardHeightPx}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px;">
+      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardHeightPx}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;">
         
         <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-left: ${centerMarginLeft}px;">
             

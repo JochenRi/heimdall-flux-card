@@ -11,6 +11,7 @@ export default {
     "editor.options_section": "Darstellung & Optionen",
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
+    "editor.bubble_size": "Bubble-Größe (px)",
     "editor.bubble_animation_threshold": "Animation erst ab (W)",
     "editor.demo_mode": "Demo-Modus (1000W an allen Pipes)",
     "editor.card_offset_x": "Card horizontal verschieben (px)",

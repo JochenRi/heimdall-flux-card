@@ -11,6 +11,7 @@ export default {
     "editor.options_section": "Appearance & Options",
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
+    "editor.bubble_size": "Bubble size (px)",
     "editor.bubble_animation_threshold": "Animate above (W)",
     "editor.demo_mode": "Demo mode (1000W on all pipes)",
     "editor.card_offset_x": "Card horizontal offset (px)",

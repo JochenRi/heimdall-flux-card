@@ -16,6 +16,7 @@ const lang_de = {
     "editor.options_section": "Darstellung & Optionen",
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
+    "editor.bubble_size": "Bubble-Größe (px)",
     "editor.bubble_animation_threshold": "Animation erst ab (W)",
     "editor.demo_mode": "Demo-Modus (1000W an allen Pipes)",
     "editor.card_offset_x": "Card horizontal verschieben (px)",
@@ -151,6 +152,7 @@ const lang_en = {
     "editor.options_section": "Appearance & Options",
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
+    "editor.bubble_size": "Bubble size (px)",
     "editor.bubble_animation_threshold": "Animate above (W)",
     "editor.demo_mode": "Demo mode (1000W on all pipes)",
     "editor.card_offset_x": "Card horizontal offset (px)",
@@ -2300,6 +2302,17 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-selector>
         </div>
 
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 70, max: 130, step: 2, mode: "slider" } }}
+                .value=${this._config.bubble_size !== undefined ? this._config.bubble_size : 90}
+                .configValue=${'bubble_size'}
+                .label=${this._localize('editor.bubble_size')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
         <div class="switch-row">
             <ha-switch
                 .checked=${this._config.transparent_background === true}
@@ -2995,8 +3008,15 @@ console.log(
       }
 
       .bubble {
-        width: 90px;
-        height: 90px;
+        width: var(--bubble-size, 90px);
+        height: var(--bubble-size, 90px);
+        /* Phase 5.31: re-center bubble around its original anchor point so that
+         * pipes keep meeting the bubble's visual center as size scales. The
+         * delta is half the difference between the configured size and the
+         * original 90px default. Negative margins shift the bubble's top-left
+         * corner outward, keeping the center anchored. */
+        margin-top: calc((90px - var(--bubble-size, 90px)) / 2);
+        margin-left: calc((90px - var(--bubble-size, 90px)) / 2);
         border-radius: 50%;
         background: transparent;
         border: 2px solid var(--divider-color, #333);
@@ -4471,7 +4491,7 @@ console.log(
       const strokeWidthVal = showDashedLine ? 4 : 8;
 
       return html`
-      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardHeightPx}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px;">
+      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardHeightPx}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;">
         
         <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-left: ${centerMarginLeft}px;">
             

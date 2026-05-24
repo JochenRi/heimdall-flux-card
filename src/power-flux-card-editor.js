@@ -2018,6 +2018,17 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-selector>
         </div>
 
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 70, max: 130, step: 2, mode: "slider" } }}
+                .value=${this._config.bubble_size !== undefined ? this._config.bubble_size : 90}
+                .configValue=${'bubble_size'}
+                .label=${this._localize('editor.bubble_size')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
         <div class="switch-row">
             <ha-switch
                 .checked=${this._config.transparent_background === true}
