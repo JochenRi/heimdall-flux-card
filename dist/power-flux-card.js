@@ -4111,6 +4111,7 @@ console.log(
                     <div class="value" style="${this.config.color_text_battery ? 'color: var(--text-battery-color);' : getColorStyle('--neon-green')}">${this.config.battery_show_power ? this._formatPower(battery) : Math.round(battSoc) + '%'}</div>
                 </div>` : ''}
                 
+                ${/* Venus bubble: gated by hasVenus (Phase 5.14 - was missing wrapper before). */ ''}
                 ${hasVenus ? html`
                 <div class="bubble venus node-venus ${tintClass} ${glowClass}"
                     @click=${() => this._handleClick(entities.venus)}>
