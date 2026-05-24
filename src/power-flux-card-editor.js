@@ -2027,6 +2027,15 @@ class PowerFluxCardEditor extends LitElement {
             <div class="switch-label">${this._localize('editor.transparent_background')}</div>
         </div>
 
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.always_color_bubbles === true}
+                .configValue=${'always_color_bubbles'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.always_color_bubbles')}</div>
+        </div>
+
         <div>
             <ha-selector
                 .hass=${this.hass}

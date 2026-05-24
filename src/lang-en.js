@@ -48,6 +48,7 @@ export default {
     "editor.consumer_3_title": "🏊 Right (Cyan)",
     "editor.zoom_label": "🔍 Zoom (Standard View)",
     "editor.transparent_background": "Hide card background",
+    "editor.always_color_bubbles": "Always color bubbles (even at 0 W)",
     "editor.rotation_section": "🔄 Value rotation in bubble",
     "editor.rotation_hint": "Show extra daily counters in the bubble that alternate with the live value.",
     "editor.rotation_show_live": "Show live value (e.g. current power)",

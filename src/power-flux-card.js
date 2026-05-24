@@ -1732,13 +1732,18 @@ console.log(
         solarDonutActive = true;
       }
 
-      // Phase 5.24: if a donut is active for a bubble, keep its icon in the
-      // bubble's "active" color even if power is currently zero. Otherwise
-      // the donut would surround a grey icon which makes no visual sense.
-      const solarColor = (isSolarActive || solarDonutActive) ? 'var(--icon-solar-color)' : 'var(--secondary-text-color)';
-      const gridColor = isGridExporting ? 'var(--export-color)' : ((isGridActive || gridDonutActive) ? 'var(--neon-blue)' : 'var(--secondary-text-color)');
-      const gridIconColor = ((isGridActive || gridDonutActive) && this.config.color_icon_grid) ? 'var(--icon-grid-color)' : gridColor;
-      const gridTextColor = ((isGridActive || gridDonutActive) && this.config.color_text_grid) ? 'var(--text-grid-color)' : gridColor;
+      // Phase 5.24/5.25: a bubble counts as "active for display" if either
+      //   (a) power is currently flowing, OR
+      //   (b) a donut is active on it (donut content is always meaningful), OR
+      //   (c) the user enabled the "always color bubbles" toggle (Phase 5.25)
+      // Otherwise the donut would surround a grey icon which makes no visual
+      // sense, and users who prefer always-coloured bubbles at zero flow have
+      // an opt-in via the global toggle in "Darstellung & Optionen".
+      const alwaysColor = this.config.always_color_bubbles === true;
+      const solarColor = (isSolarActive || solarDonutActive || alwaysColor) ? 'var(--icon-solar-color)' : 'var(--secondary-text-color)';
+      const gridColor = isGridExporting ? 'var(--export-color)' : ((isGridActive || gridDonutActive || alwaysColor) ? 'var(--neon-blue)' : 'var(--secondary-text-color)');
+      const gridIconColor = ((isGridActive || gridDonutActive || alwaysColor) && this.config.color_icon_grid) ? 'var(--icon-grid-color)' : gridColor;
+      const gridTextColor = ((isGridActive || gridDonutActive || alwaysColor) && this.config.color_text_grid) ? 'var(--text-grid-color)' : gridColor;
 
       // Animation threshold: pipes only animate (and labels show) when flow > this value
       // Default 1 = legacy behavior. User can raise to ignore standby drift (e.g. Tesla 2W idle).
@@ -2047,15 +2052,14 @@ console.log(
 
                 ${hasSolar ? (() => {
                   const liveText = this._formatPower(solarVal);
-                  const liveColor = isSolarActive
+                  const liveColor = (isSolarActive || alwaysColor)
                     ? (this.config.color_text_solar ? 'var(--text-solar-color)' : 'var(--neon-yellow)')
                     : solarColor;
                   const rot = this._getBubbleRotationDisplay('solar', liveText, liveColor);
-                  // Phase 5.24: when the donut is active, keep the bubble in its
-                  // "active" color (yellow border) even if solarVal is 0. Otherwise
-                  // the donut would surround a grey ring which makes no visual sense.
-                  const bubbleStateClass = (isSolarActive || solarDonutActive) ? 'solar' : 'inactive';
-                  const glowOnState = (isSolarActive || solarDonutActive) ? glowClass : '';
+                  // Phase 5.24/5.25: solar bubble stays in its active color if
+                  // (a) flowing, (b) donut active, or (c) global always-color toggle on.
+                  const bubbleStateClass = (isSolarActive || solarDonutActive || alwaysColor) ? 'solar' : 'inactive';
+                  const glowOnState = (isSolarActive || solarDonutActive || alwaysColor) ? glowClass : '';
                   return html`
                   <div class="bubble ${bubbleStateClass} node-solar ${solarDonutActive ? 'donut' : ''} ${tintClass} ${glowOnState}"
                       style="${solarDonutActive ? `--solar-gradient: ${solarGradientVal};` : ''}"
@@ -2070,12 +2074,12 @@ console.log(
                   const liveText = this._formatPower(isGridExporting ? gridExport : gridImport);
                   const rot = this._getBubbleRotationDisplay('grid', liveText, gridTextColor);
                   const showArrow = rot.kind === 'live';
-                  // Phase 5.24: when the donut is active, keep the bubble in its
-                  // "active" color even if currently no flow.
+                  // Phase 5.24/5.25: grid bubble stays in active color if flowing,
+                  // donut active, or global always-color toggle on.
                   const bubbleStateClass = isGridActive
                     ? (isGridExporting ? 'grid exporting' : 'grid')
-                    : (gridDonutActive ? 'grid' : 'inactive');
-                  const glowOnState = (isGridActive || gridDonutActive) ? glowClass : '';
+                    : ((gridDonutActive || alwaysColor) ? 'grid' : 'inactive');
+                  const glowOnState = (isGridActive || gridDonutActive || alwaysColor) ? glowClass : '';
                   return html`
                   <div class="bubble ${bubbleStateClass} node-grid ${gridDonutActive ? 'donut' : ''} ${tintClass} ${glowOnState}"
                       style="${gridDonutActive ? `--grid-gradient: ${gridGradientVal};` : ''}"

@@ -48,6 +48,7 @@ export default {
     "editor.consumer_3_title": "🏊 Rechts (Türkis)",
     "editor.zoom_label": "🔍 Zoom (Standard View)",
     "editor.transparent_background": "Karten-Hintergrund ausblenden",
+    "editor.always_color_bubbles": "Bubbles immer farbig (auch bei 0 W)",
     "editor.rotation_section": "🔄 Wert-Rotation in Bubble",
     "editor.rotation_hint": "Zusätzliche Tageszähler in der Bubble anzeigen die abwechselnd mit dem Live-Wert eingeblendet werden.",
     "editor.rotation_show_live": "Live-Wert anzeigen (z.B. aktuelle Leistung)",
