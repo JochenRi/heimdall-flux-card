@@ -4394,6 +4394,24 @@ console.log(
       const finalCardHeightPx = contentHeight * scale;
       const visualWidth = 800 * scale;
       const centerMarginLeft = Math.max(0, (availableWidth - visualWidth) / 2);
+      
+      // Phase 5.38: when the card background is opaque (transparent_background = false),
+      // ensure it grows to fit the visually displaced content. Three factors can push
+      // content outside the natural content box:
+      //   1. card_offset_y (translate): moves content up/down within the card frame
+      //   2. bubble_size > 90: bubbles overflow their original 90px design footprint
+      //      because of the negative-margin re-centering from phase 5.31
+      //   3. zoom > 1: amplifies both effects via the scale transform
+      // We compute additional vertical padding so the opaque background always
+      // contains the visible content, regardless of how the offsets are set.
+      const cardOffsetY = this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0;
+      const bubbleSize = this.config.bubble_size || 90;
+      const bubbleOverflowPerSide = Math.max(0, (bubbleSize - 90) / 2) * scale;
+      // 2x the abs offset gives symmetric headroom for either positive or negative
+      // displacement, avoiding the need to inspect the sign separately.
+      const offsetOverflow = Math.abs(cardOffsetY) * 2;
+      const backgroundPaddingV = bubbleOverflowPerSide + offsetOverflow;
+      const finalCardBackgroundHeightPx = finalCardHeightPx + backgroundPaddingV * 2;
 
       let houseGradientVal = '';
       let houseTextCol = useColoredValues ? 'var(--neon-pink)' : '';
@@ -4946,9 +4964,9 @@ console.log(
       const strokeWidthVal = showDashedLine ? 4 : 8;
 
       return html`
-      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardHeightPx}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;">
+      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardBackgroundHeightPx}px; padding-top: ${backgroundPaddingV}px; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;">
         
-        <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-left: ${centerMarginLeft}px;">
+        <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-left: ${centerMarginLeft}px; margin-top: ${-backgroundPaddingV}px;">
             
             <div class="absolute-container" style="height: ${baseHeight}px; top: -${topShift}px;">
                 <svg height="${baseHeight}" viewBox="0 0 800 ${baseHeight}" preserveAspectRatio="xMidYMid meet">
