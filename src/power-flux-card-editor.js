@@ -82,7 +82,8 @@ class PowerFluxCardEditor extends LitElement {
                 'donut_today_solar', 'donut_today_battery', 'donut_today_venus', 'donut_today_grid',
                 'grid_rotate_daily_1', 'grid_rotate_daily_2', 'grid_rotate_daily_3',
                 'grid_donut_import_today', 'grid_donut_export_today',
-                'solar_rotate_daily_1', 'solar_rotate_daily_2', 'solar_rotate_daily_3'
+                'solar_rotate_daily_1', 'solar_rotate_daily_2', 'solar_rotate_daily_3',
+                'pv_donut_produced_today', 'pv_donut_forecast_today'
             ];
 
             let newConfig = { ...this._config };
@@ -533,6 +534,25 @@ class PowerFluxCardEditor extends LitElement {
         </div>
         ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_3 || "", 'solar_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
         ${this._renderColorPicker('solar_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+
+        <div class="separator"></div>
+        <div class="section-title">${this._localize('editor.pv_donut_section')}</div>
+        
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.pv_donut_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.pv_donut_today_mode === true}
+                .configValue=${'pv_donut_today_mode'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.pv_donut_enabled')}</div>
+        </div>
+
+        ${this._renderEntitySelector(entitySelectorSchema, entities.pv_donut_produced_today || "", 'pv_donut_produced_today', this._localize('editor.pv_donut_produced_sensor'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.pv_donut_forecast_today || "", 'pv_donut_forecast_today', this._localize('editor.pv_donut_forecast_sensor'))}
       `;
     }
 

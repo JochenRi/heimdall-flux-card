@@ -575,6 +575,16 @@ console.log(
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.23: PV solar donut -- forecast progress ring */
+      .bubble.solar.donut { border: none !important; background: transparent; }
+      .bubble.solar.donut.tinted { background: color-mix(in srgb, var(--neon-yellow), transparent 85%); }
+      .bubble.solar.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--solar-gradient, var(--neon-yellow));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -1675,6 +1685,53 @@ console.log(
         gridDonutActive = true;
       }
 
+      // --- PV Donut Gradient (Phase 5.23) ---
+      // Visualizes today's forecast progress: how much of the day's expected
+      // production has already been generated.
+      //   Yellow segment: produced / forecast * 100 (capped at 100)
+      //   Grey rest:      remainder up to 100%
+      // Morning: ring nearly all yellow (= "lots of sun coming")
+      // Midday:  ring half yellow / half grey (= "halfway through forecast")
+      // Evening: ring almost all grey or full yellow (= "almost done" / "fully done")
+      let solarGradientVal = '';
+      let solarDonutActive = false;
+      
+      const pvDonutMode = this.config.pv_donut_today_mode === true;
+      const pvProducedEnt = entities.pv_donut_produced_today;
+      const pvForecastEnt = entities.pv_donut_forecast_today;
+      const hasPvDonutSensors = !!((pvProducedEnt && pvProducedEnt !== "") && (pvForecastEnt && pvForecastEnt !== ""));
+      
+      if (hasSolar && pvDonutMode && hasPvDonutSensors) {
+        const safeRead = (ent) => {
+          if (!ent || ent === "") return 0;
+          const v = parseFloat(getVal(ent));
+          return isNaN(v) || v < 0 ? 0 : v;
+        };
+        const produced = safeRead(pvProducedEnt);
+        const forecast = safeRead(pvForecastEnt);
+        
+        if (forecast > 0) {
+          // Normal case: progress = produced / forecast, clamped to [0, 100]
+          let progressPct = (produced / forecast) * 100;
+          if (progressPct > 100) progressPct = 100; // over-forecast: clamp, ring becomes fully yellow
+          const restPct = 100 - progressPct;
+          
+          let stops = [];
+          let current = 0;
+          if (progressPct > 0) { stops.push(`var(--pipe-solar-color) ${current}% ${current + progressPct}%`); current += progressPct; }
+          if (restPct > 0) { stops.push(`var(--solar-donut-rest-color, rgba(120, 120, 120, 0.4)) ${current}% 100%`); }
+          solarGradientVal = `conic-gradient(from 330deg, ${stops.join(', ')})`;
+        } else if (produced > 0) {
+          // Forecast sensor is 0/broken but production is happening:
+          // show full yellow as a sane fallback rather than empty ring.
+          solarGradientVal = 'var(--pipe-solar-color)';
+        } else {
+          // Both 0 (night, midnight reset): neutral grey ring
+          solarGradientVal = 'var(--solar-donut-rest-color, rgba(120, 120, 120, 0.4))';
+        }
+        solarDonutActive = true;
+      }
+
       const solarColor = isSolarActive ? 'var(--icon-solar-color)' : 'var(--secondary-text-color)';
       const gridColor = isGridExporting ? 'var(--export-color)' : (isGridActive ? 'var(--neon-blue)' : 'var(--secondary-text-color)');
       const gridIconColor = (isGridActive && this.config.color_icon_grid) ? 'var(--icon-grid-color)' : gridColor;
@@ -1992,7 +2049,8 @@ console.log(
                     : solarColor;
                   const rot = this._getBubbleRotationDisplay('solar', liveText, liveColor);
                   return html`
-                  <div class="bubble ${isSolarActive ? 'solar' : 'inactive'} node-solar ${tintClass} ${isSolarActive ? glowClass : ''}"
+                  <div class="bubble ${isSolarActive ? 'solar' : 'inactive'} node-solar ${solarDonutActive ? 'donut' : ''} ${tintClass} ${isSolarActive ? glowClass : ''}"
+                      style="${solarDonutActive ? `--solar-gradient: ${solarGradientVal};` : ''}"
                       @click=${() => this._handleClick(entities.solar)}>
                       ${renderMainIcon('solar', solarVal, iconSolar, solarColor)}
                       ${renderSecondaryOrLabel(labelSolarText, showLabelSolar, entities.secondary_solar, hasSecondarySolar, 'secondary_solar')}

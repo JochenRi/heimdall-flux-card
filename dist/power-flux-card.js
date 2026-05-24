@@ -71,6 +71,11 @@ const lang_de = {
     "editor.grid_donut_enabled": "Tages-Donut aktivieren",
     "editor.grid_donut_import_sensor": "Sensor Netzbezug heute (kWh)",
     "editor.grid_donut_export_sensor": "Sensor Netzeinspeisung heute (kWh)",
+    "editor.pv_donut_section": "🍩 PV-Donut (Forecast-Fortschritt)",
+    "editor.pv_donut_hint": "Visualisiert wie viel von der heutigen Tages-Prognose schon erzeugt wurde. Gelber Anteil = bereits erzeugt, grauer Anteil = noch erwartet. Morgens fast voll gelb (= viel Strom kommt noch), abends fast leer.",
+    "editor.pv_donut_enabled": "Forecast-Donut aktivieren",
+    "editor.pv_donut_produced_sensor": "Sensor heute erzeugt (kWh)",
+    "editor.pv_donut_forecast_sensor": "Sensor Tages-Prognose (kWh)",
     "editor.neon_glow": "Neon Glow",
     "editor.donut_chart": "Donut Chart (Grid/Haus)",
     "editor.comet_tail": "Comet Tail Effect",
@@ -200,6 +205,11 @@ const lang_en = {
     "editor.grid_donut_enabled": "Enable today's donut",
     "editor.grid_donut_import_sensor": "Daily grid import sensor (kWh)",
     "editor.grid_donut_export_sensor": "Daily grid export sensor (kWh)",
+    "editor.pv_donut_section": "🍩 PV donut (forecast progress)",
+    "editor.pv_donut_hint": "Visualizes how much of today's forecast has already been produced. Yellow portion = produced so far, grey portion = still expected. Morning: mostly yellow (= lots of sun still to come). Evening: mostly empty.",
+    "editor.pv_donut_enabled": "Enable forecast donut",
+    "editor.pv_donut_produced_sensor": "Today's production sensor (kWh)",
+    "editor.pv_donut_forecast_sensor": "Today's forecast sensor (kWh)",
     "editor.neon_glow": "Neon Glow",
     "editor.donut_chart": "Donut Chart (Grid/House)",
     "editor.comet_tail": "Comet Tail Effect",
@@ -352,7 +362,8 @@ class PowerFluxCardEditor extends LitElement {
                 'donut_today_solar', 'donut_today_battery', 'donut_today_venus', 'donut_today_grid',
                 'grid_rotate_daily_1', 'grid_rotate_daily_2', 'grid_rotate_daily_3',
                 'grid_donut_import_today', 'grid_donut_export_today',
-                'solar_rotate_daily_1', 'solar_rotate_daily_2', 'solar_rotate_daily_3'
+                'solar_rotate_daily_1', 'solar_rotate_daily_2', 'solar_rotate_daily_3',
+                'pv_donut_produced_today', 'pv_donut_forecast_today'
             ];
 
             let newConfig = { ...this._config };
@@ -803,6 +814,25 @@ class PowerFluxCardEditor extends LitElement {
         </div>
         ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_3 || "", 'solar_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
         ${this._renderColorPicker('solar_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+
+        <div class="separator"></div>
+        <div class="section-title">${this._localize('editor.pv_donut_section')}</div>
+        
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.pv_donut_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.pv_donut_today_mode === true}
+                .configValue=${'pv_donut_today_mode'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.pv_donut_enabled')}</div>
+        </div>
+
+        ${this._renderEntitySelector(entitySelectorSchema, entities.pv_donut_produced_today || "", 'pv_donut_produced_today', this._localize('editor.pv_donut_produced_sensor'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.pv_donut_forecast_today || "", 'pv_donut_forecast_today', this._localize('editor.pv_donut_forecast_sensor'))}
       `;
     }
 
@@ -3003,6 +3033,16 @@ console.log(
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.23: PV solar donut -- forecast progress ring */
+      .bubble.solar.donut { border: none !important; background: transparent; }
+      .bubble.solar.donut.tinted { background: color-mix(in srgb, var(--neon-yellow), transparent 85%); }
+      .bubble.solar.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--solar-gradient, var(--neon-yellow));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -4103,6 +4143,53 @@ console.log(
         gridDonutActive = true;
       }
 
+      // --- PV Donut Gradient (Phase 5.23) ---
+      // Visualizes today's forecast progress: how much of the day's expected
+      // production has already been generated.
+      //   Yellow segment: produced / forecast * 100 (capped at 100)
+      //   Grey rest:      remainder up to 100%
+      // Morning: ring nearly all yellow (= "lots of sun coming")
+      // Midday:  ring half yellow / half grey (= "halfway through forecast")
+      // Evening: ring almost all grey or full yellow (= "almost done" / "fully done")
+      let solarGradientVal = '';
+      let solarDonutActive = false;
+      
+      const pvDonutMode = this.config.pv_donut_today_mode === true;
+      const pvProducedEnt = entities.pv_donut_produced_today;
+      const pvForecastEnt = entities.pv_donut_forecast_today;
+      const hasPvDonutSensors = !!((pvProducedEnt && pvProducedEnt !== "") && (pvForecastEnt && pvForecastEnt !== ""));
+      
+      if (hasSolar && pvDonutMode && hasPvDonutSensors) {
+        const safeRead = (ent) => {
+          if (!ent || ent === "") return 0;
+          const v = parseFloat(getVal(ent));
+          return isNaN(v) || v < 0 ? 0 : v;
+        };
+        const produced = safeRead(pvProducedEnt);
+        const forecast = safeRead(pvForecastEnt);
+        
+        if (forecast > 0) {
+          // Normal case: progress = produced / forecast, clamped to [0, 100]
+          let progressPct = (produced / forecast) * 100;
+          if (progressPct > 100) progressPct = 100; // over-forecast: clamp, ring becomes fully yellow
+          const restPct = 100 - progressPct;
+          
+          let stops = [];
+          let current = 0;
+          if (progressPct > 0) { stops.push(`var(--pipe-solar-color) ${current}% ${current + progressPct}%`); current += progressPct; }
+          if (restPct > 0) { stops.push(`var(--solar-donut-rest-color, rgba(120, 120, 120, 0.4)) ${current}% 100%`); }
+          solarGradientVal = `conic-gradient(from 330deg, ${stops.join(', ')})`;
+        } else if (produced > 0) {
+          // Forecast sensor is 0/broken but production is happening:
+          // show full yellow as a sane fallback rather than empty ring.
+          solarGradientVal = 'var(--pipe-solar-color)';
+        } else {
+          // Both 0 (night, midnight reset): neutral grey ring
+          solarGradientVal = 'var(--solar-donut-rest-color, rgba(120, 120, 120, 0.4))';
+        }
+        solarDonutActive = true;
+      }
+
       const solarColor = isSolarActive ? 'var(--icon-solar-color)' : 'var(--secondary-text-color)';
       const gridColor = isGridExporting ? 'var(--export-color)' : (isGridActive ? 'var(--neon-blue)' : 'var(--secondary-text-color)');
       const gridIconColor = (isGridActive && this.config.color_icon_grid) ? 'var(--icon-grid-color)' : gridColor;
@@ -4420,7 +4507,8 @@ console.log(
                     : solarColor;
                   const rot = this._getBubbleRotationDisplay('solar', liveText, liveColor);
                   return html`
-                  <div class="bubble ${isSolarActive ? 'solar' : 'inactive'} node-solar ${tintClass} ${isSolarActive ? glowClass : ''}"
+                  <div class="bubble ${isSolarActive ? 'solar' : 'inactive'} node-solar ${solarDonutActive ? 'donut' : ''} ${tintClass} ${isSolarActive ? glowClass : ''}"
+                      style="${solarDonutActive ? `--solar-gradient: ${solarGradientVal};` : ''}"
                       @click=${() => this._handleClick(entities.solar)}>
                       ${renderMainIcon('solar', solarVal, iconSolar, solarColor)}
                       ${renderSecondaryOrLabel(labelSolarText, showLabelSolar, entities.secondary_solar, hasSecondarySolar, 'secondary_solar')}
