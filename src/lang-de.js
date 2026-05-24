@@ -18,6 +18,7 @@ export default {
     "editor.group_label_positions": "Position der Watt-Labels",
     "editor.solar_label_pos_solar_house": "Label: Solar → Haus",
     "editor.solar_label_pos_solar_grid": "Label: Solar → Netz (Einspeisung)",
+    "editor.grid_label_pos_import": "Label: Netz → Haus (Bezug)",
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
     "editor.bubble_size": "Bubble-Größe (px)",

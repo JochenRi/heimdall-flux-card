@@ -645,177 +645,204 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             <h2>${this._localize('editor.grid_section')}</h2>
         </div>
-        
-        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_combined || "", 'grid_combined', this._localize('editor.grid_combined_sensor'))}
-        
-        <div class="separator"></div>
 
-        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
-            ${this._localize('editor.grid_combined_hint')}
-        </div>
+        <!-- Group: Sensors & display -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:tune"></ha-icon>
+                ${this._localize('editor.group_sensors_display')}
+            </div>
 
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_combined || "", 'grid_combined', this._localize('editor.grid_combined_sensor'))}
 
-        ${this._renderEntitySelector(entitySelectorSchema, entities.grid, 'grid', this._localize('card.label_import') + " (W)")}
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 4px; margin-bottom: 8px;">
+                ${this._localize('editor.grid_combined_hint')}
+            </div>
 
-        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_export, 'grid_export', this._localize('card.label_export') + " (W, Optional)")}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid, 'grid', this._localize('card.label_import') + " (W)")}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_export, 'grid_export', this._localize('card.label_export') + " (W, Optional)")}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_grid || "", 'secondary_grid', this._localize('editor.secondary_sensor'))}
 
-        <div class="separator"></div>
-
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${textSelectorSchema}
-            .value=${this._config.grid_label}
-            .configValue=${'grid_label'}
-            .label=${this._localize('editor.label') + " (Optional)"}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${iconSelectorSchema}
-            .value=${this._config.grid_icon}
-            .configValue=${'grid_icon'}
-            .label=${this._localize('editor.icon') + " (Optional)"}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-
-        ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_grid || "", 'secondary_grid', this._localize('editor.secondary_sensor'))}
-
-        ${this._renderColorPickerQuint('color_grid', 'color_pipe_grid', 'color_text_grid', 'color_icon_grid', 'color_secondary_grid', '#3b82f6')}
-
-        ${this._renderColorPicker('color_export', this._localize('editor.export_color'), '#ff3333')}
-
-        <div class="separator"></div>
-        
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_label_grid === true} 
-                .configValue=${'show_label_grid'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.label_toggle')}</div>
-        </div>
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.grid_unit_kw === true}
-                .configValue=${'grid_unit_kw'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.grid_unit_kw')}</div>
-        </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_flow_rate_grid !== false} 
-                .configValue=${'show_flow_rate_grid'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
-        </div>
-
-        <div>
             <ha-selector
                 .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.grid_animation_threshold !== undefined ? this._config.grid_animation_threshold : 1}
-                .configValue=${'grid_animation_threshold'}
-                .label=${this._localize('editor.bubble_animation_threshold')}
+                .selector=${textSelectorSchema}
+                .value=${this._config.grid_label}
+                .configValue=${'grid_label'}
+                .label=${this._localize('editor.label') + " (Optional)"}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
-        </div>
 
-        <div>
             <ha-selector
                 .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.grid_label_offset_x !== undefined ? this._config.grid_label_offset_x : 0}
-                .configValue=${'grid_label_offset_x'}
-                .label=${this._localize('editor.bubble_label_offset_x')}
+                .selector=${iconSelectorSchema}
+                .value=${this._config.grid_icon}
+                .configValue=${'grid_icon'}
+                .label=${this._localize('editor.icon') + " (Optional)"}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
+
+            ${this._renderColorPickerQuint('color_grid', 'color_pipe_grid', 'color_text_grid', 'color_icon_grid', 'color_secondary_grid', '#3b82f6')}
+            ${this._renderColorPicker('color_export', this._localize('editor.export_color'), '#ff3333')}
         </div>
 
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.grid_label_offset_y !== undefined ? this._config.grid_label_offset_y : 0}
-                .configValue=${'grid_label_offset_y'}
-                .label=${this._localize('editor.bubble_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+        <!-- Group: Behavior -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:cog"></ha-icon>
+                ${this._localize('editor.group_behavior')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_label_grid === true}
+                    .configValue=${'show_label_grid'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.label_toggle')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.grid_unit_kw === true}
+                    .configValue=${'grid_unit_kw'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.grid_unit_kw')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_grid !== false}
+                    .configValue=${'show_flow_rate_grid'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.grid_animation_threshold !== undefined ? this._config.grid_animation_threshold : 1}
+                    .configValue=${'grid_animation_threshold'}
+                    .label=${this._localize('editor.bubble_animation_threshold')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
         </div>
 
-        <div class="separator"></div>
-        <div class="section-title">${this._localize('editor.rotation_section')}</div>
-        
-        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
-            ${this._localize('editor.rotation_hint')}
+        <!-- Group: Watt-label positioning -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:cursor-move"></ha-icon>
+                ${this._localize('editor.group_label_positions')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
+                ${this._localize('editor.grid_label_pos_import')}
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                    .value=${this._config.grid_label_offset_x !== undefined ? this._config.grid_label_offset_x : 0}
+                    .configValue=${'grid_label_offset_x'}
+                    .label=${this._localize('editor.bubble_label_offset_x')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                    .value=${this._config.grid_label_offset_y !== undefined ? this._config.grid_label_offset_y : 0}
+                    .configValue=${'grid_label_offset_y'}
+                    .label=${this._localize('editor.bubble_label_offset_y')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
         </div>
 
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.grid_rotate_show_live !== false}
-                .configValue=${'grid_rotate_show_live'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+        <!-- Group: Value rotation -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:rotate-3d-variant"></ha-icon>
+                ${this._localize('editor.rotation_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.grid_rotate_show_live !== false}
+                    .configValue=${'grid_rotate_show_live'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+            </div>
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.grid_rotate_show_daily_1 === true}
+                    .configValue=${'grid_rotate_show_daily_1'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_1 || "", 'grid_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
+            ${this._renderColorPicker('grid_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.grid_rotate_show_daily_2 === true}
+                    .configValue=${'grid_rotate_show_daily_2'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_2 || "", 'grid_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
+            ${this._renderColorPicker('grid_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+
+            <div class="separator"></div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.grid_rotate_show_daily_3 === true}
+                    .configValue=${'grid_rotate_show_daily_3'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_3 || "", 'grid_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
+            ${this._renderColorPicker('grid_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
         </div>
 
-        <div class="separator"></div>
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.grid_rotate_show_daily_1 === true}
-                .configValue=${'grid_rotate_show_daily_1'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_1 || "", 'grid_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-        ${this._renderColorPicker('grid_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+        <!-- Group: Grid donut -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:donut-small"></ha-icon>
+                ${this._localize('editor.grid_donut_section')}
+            </div>
 
-        <div class="separator"></div>
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.grid_rotate_show_daily_2 === true}
-                .configValue=${'grid_rotate_show_daily_2'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_2 || "", 'grid_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-        ${this._renderColorPicker('grid_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.grid_donut_hint')}
+            </div>
 
-        <div class="separator"></div>
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.grid_rotate_show_daily_3 === true}
-                .configValue=${'grid_rotate_show_daily_3'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_3 || "", 'grid_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-        ${this._renderColorPicker('grid_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.grid_donut_today_mode === true}
+                    .configValue=${'grid_donut_today_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.grid_donut_enabled')}</div>
+            </div>
 
-        <div class="separator"></div>
-        <div class="section-title">${this._localize('editor.grid_donut_section')}</div>
-        
-        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
-            ${this._localize('editor.grid_donut_hint')}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_import_today || "", 'grid_donut_import_today', this._localize('editor.grid_donut_import_sensor'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_export_today || "", 'grid_donut_export_today', this._localize('editor.grid_donut_export_sensor'))}
         </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.grid_donut_today_mode === true}
-                .configValue=${'grid_donut_today_mode'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.grid_donut_enabled')}</div>
-        </div>
-
-        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_import_today || "", 'grid_donut_import_today', this._localize('editor.grid_donut_import_sensor'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_export_today || "", 'grid_donut_export_today', this._localize('editor.grid_donut_export_sensor'))}
       `;
     }
 

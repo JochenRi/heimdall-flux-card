@@ -18,6 +18,7 @@ export default {
     "editor.group_label_positions": "Watt label positions",
     "editor.solar_label_pos_solar_house": "Label: Solar → House",
     "editor.solar_label_pos_solar_grid": "Label: Solar → Grid (export)",
+    "editor.grid_label_pos_import": "Label: Grid → House (import)",
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
     "editor.bubble_size": "Bubble size (px)",
