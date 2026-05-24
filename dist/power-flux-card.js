@@ -10,10 +10,11 @@ const lang_de = {
     "editor.main_title": "Haupt Entitäten",
     "editor.solar_section": "Solar/PV",
     "editor.grid_section": "Netz Import/Export",
-    "editor.battery_section": "Batterie",
-    "editor.venus_section": "Venus (2. Batterie)",
+    "editor.battery_section": "Batterie 1",
+    "editor.venus_section": "Batterie 2",
     "editor.consumer_1_section": "Tesla",
-    "editor.consumers_section": "Zusätzliche Verbraucher",
+    "editor.consumers_section": "Haus",
+    "editor.bubble_fallback": "Bubble {n}",
     "editor.options_section": "Darstellung & Optionen",
     "editor.group_sizing": "Größen & Position",
     "editor.background_padding_section": "Hintergrund-Padding (manuell)",
@@ -184,10 +185,11 @@ const lang_en = {
     "editor.main_title": "Main Entities",
     "editor.solar_section": "Solar",
     "editor.grid_section": "Grid Connection",
-    "editor.battery_section": "Battery",
-    "editor.venus_section": "Venus (2nd Battery)",
+    "editor.battery_section": "Battery 1",
+    "editor.venus_section": "Battery 2",
     "editor.consumer_1_section": "Tesla",
-    "editor.consumers_section": "Additional Consumers",
+    "editor.consumers_section": "House",
+    "editor.bubble_fallback": "Bubble {n}",
     "editor.options_section": "Appearance & Options",
     "editor.group_sizing": "Size & Position",
     "editor.background_padding_section": "Background padding (manual)",
@@ -1749,6 +1751,166 @@ class PowerFluxCardEditor extends LitElement {
       `;
     }
 
+    // Phase 5.46: helper -- consumer menu label.
+    // Returns the user-set consumer_N_label if non-empty, otherwise a
+    // generic "Bubble N" fallback. Keeps the main menu universal: tesla
+    // owners see "Tesla", pool owners see "Pool", everyone else just
+    // sees their bubbles numbered.
+    _consumerMenuLabel(idx) {
+        const userLabel = this._config[`consumer_${idx}_label`];
+        if (userLabel && typeof userLabel === 'string' && userLabel.trim() !== '') {
+            return userLabel;
+        }
+        return this._localize('editor.bubble_fallback').replace('{n}', idx);
+    }
+
+    // Phase 5.46: per-bubble menu-icon resolver.
+    // Returns the user-set consumer_N_icon if configured, otherwise the
+    // generic bubble icon. Used for the main menu items so users see
+    // their actual chosen icon next to each bubble entry.
+    _consumerMenuIcon(idx) {
+        return this._config[`consumer_${idx}_icon`] || 'mdi:circle-outline';
+    }
+
+    // Phase 5.46: generic sub-view renderer for Consumer 2..7.
+    // Consumer 1 (Tesla) gets its own _renderConsumer1View because it has
+    // the rotation block added in phase 5.44; the rest share this generic
+    // template until they need their own special-purpose features. When
+    // rotation/SoC/mix-ring is later added to other bubbles, they each get
+    // promoted to their own _renderConsumerNView like Tesla.
+    _renderConsumerNView(idx, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const defaultColors = ['#a855f7', '#f97316', '#06b6d4', '#eab308', '#6366f1', '#14b8a6', '#ec4899'];
+        const defaultColor = defaultColors[idx - 1] || '#888888';
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._consumerMenuLabel(idx)}</h2>
+        </div>
+
+        <div class="consumer-group">
+            <div class="consumer-title" style="color: ${defaultColor};">${this._localize(`editor.consumer_${idx}_title`)}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config[`consumer_${idx}_enabled`] !== false}
+                    .configValue=${`consumer_${idx}_enabled`}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities[`consumer_${idx}`], `consumer_${idx}`, this._localize('editor.entity'))}
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${textSelectorSchema}
+                .value=${this._config[`consumer_${idx}_label`]}
+                .configValue=${`consumer_${idx}_label`}
+                .label=${this._localize('editor.label')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${iconSelectorSchema}
+                .value=${this._config[`consumer_${idx}_icon`]}
+                .configValue=${`consumer_${idx}_icon`}
+                .label=${this._localize('editor.icon')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.invert_consumer')}</span>
+                <ha-switch
+                    .checked=${this._config[`invert_consumer_${idx}`] === true}
+                    .configValue=${`invert_consumer_${idx}`}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.consumer_hide_pipe')}</span>
+                <ha-switch
+                    .checked=${this._config[`consumer_${idx}_hide_pipe`] === true}
+                    .configValue=${`consumer_${idx}_hide_pipe`}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            ${this._config[`consumer_${idx}_hide_pipe`] === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
+                .value=${this._config[`consumer_${idx}_pipe_threshold`] !== undefined ? this._config[`consumer_${idx}_pipe_threshold`] : 0}
+                .configValue=${`consumer_${idx}_pipe_threshold`}
+                .label=${this._localize('editor.consumer_pipe_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_unit_kw')}</span>
+                <ha-switch
+                    .checked=${this._config[`consumer_${idx}_unit_kw`] === true}
+                    .configValue=${`consumer_${idx}_unit_kw`}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_power')}</span>
+                <ha-switch
+                    .checked=${this._config[`consumer_${idx}_show_power`] !== false}
+                    .configValue=${`consumer_${idx}_show_power`}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
+                <ha-switch
+                    .checked=${this._config[`show_flow_rate_consumer_${idx}`] === true}
+                    .configValue=${`show_flow_rate_consumer_${idx}`}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config[`consumer_${idx}_label_offset_x`] !== undefined ? this._config[`consumer_${idx}_label_offset_x`] : 0}
+                .configValue=${`consumer_${idx}_label_offset_x`}
+                .label=${this._localize('editor.consumer_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config[`consumer_${idx}_label_offset_y`] !== undefined ? this._config[`consumer_${idx}_label_offset_y`] : -25}
+                .configValue=${`consumer_${idx}_label_offset_y`}
+                .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config[`consumer_${idx}_animation_threshold`] !== undefined ? this._config[`consumer_${idx}_animation_threshold`] : 0}
+                .configValue=${`consumer_${idx}_animation_threshold`}
+                .label=${this._localize('editor.consumer_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities[`secondary_consumer_${idx}`] || "", `secondary_consumer_${idx}`, this._localize('editor.secondary_sensor'))}
+
+            ${this._renderColorPickerQuint(`color_consumer_${idx}`, `color_pipe_consumer_${idx}`, `color_text_consumer_${idx}`, `color_icon_consumer_${idx}`, `color_secondary_consumer_${idx}`, defaultColor)}
+        </div>
+        `;
+    }
+
     // Phase 5.45: dedicated sub-view for Tesla (Consumer 1) -- pulled out of
     // the consumers collective view so each major bubble has its own top-
     // level slot in the editor (Solar / Grid / Battery / Venus / Tesla / ...).
@@ -1976,701 +2138,6 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderColorPickerQuint('color_house', null, 'color_text_house', 'color_icon_house', 'color_secondary_house', '#ff0080')}
         </div>
 
-        <div class="consumer-group">
-            <div class="consumer-title" style="color: #f97316;">${this._localize('editor.consumer_2_title')}</div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_2_enabled !== false}
-                    .configValue=${'consumer_2_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2, 'consumer_2', this._localize('editor.entity'))}
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_2_label}
-                .configValue=${'consumer_2_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_2_icon}
-                .configValue=${'consumer_2_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_2 === true}
-                    .configValue=${'invert_consumer_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_2_hide_pipe === true}
-                    .configValue=${'consumer_2_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_2_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_2_pipe_threshold !== undefined ? this._config.consumer_2_pipe_threshold : 0}
-                .configValue=${'consumer_2_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_2_unit_kw === true}
-                    .configValue=${'consumer_2_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_2_show_power !== false}
-                    .configValue=${'consumer_2_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_2 === true}
-                    .configValue=${'show_flow_rate_consumer_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_2_label_offset_x !== undefined ? this._config.consumer_2_label_offset_x : 0}
-                .configValue=${'consumer_2_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_2_label_offset_y !== undefined ? this._config.consumer_2_label_offset_y : -25}
-                .configValue=${'consumer_2_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_2_animation_threshold !== undefined ? this._config.consumer_2_animation_threshold : 0}
-                .configValue=${'consumer_2_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_2 || "", 'secondary_consumer_2', this._localize('editor.secondary_sensor'))}
-
-            ${this._renderColorPickerQuint('color_consumer_2', 'color_pipe_consumer_2', 'color_text_consumer_2', 'color_icon_consumer_2', 'color_secondary_consumer_2', '#f97316')}
-        </div>
-
-        <div class="consumer-group">
-            <div class="consumer-title" style="color: #06b6d4;">${this._localize('editor.consumer_3_title')}</div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_3_enabled !== false}
-                    .configValue=${'consumer_3_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3, 'consumer_3', this._localize('editor.entity'))}
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_3_label}
-                .configValue=${'consumer_3_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_3_icon}
-                .configValue=${'consumer_3_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_3 === true}
-                    .configValue=${'invert_consumer_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_3_hide_pipe === true}
-                    .configValue=${'consumer_3_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_3_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_3_pipe_threshold !== undefined ? this._config.consumer_3_pipe_threshold : 0}
-                .configValue=${'consumer_3_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_3_unit_kw === true}
-                    .configValue=${'consumer_3_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_3_show_power !== false}
-                    .configValue=${'consumer_3_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_3 === true}
-                    .configValue=${'show_flow_rate_consumer_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_3_label_offset_x !== undefined ? this._config.consumer_3_label_offset_x : 0}
-                .configValue=${'consumer_3_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_3_label_offset_y !== undefined ? this._config.consumer_3_label_offset_y : -25}
-                .configValue=${'consumer_3_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_3_animation_threshold !== undefined ? this._config.consumer_3_animation_threshold : 0}
-                .configValue=${'consumer_3_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_3 || "", 'secondary_consumer_3', this._localize('editor.secondary_sensor'))}
-            ${this._renderColorPickerQuint('color_consumer_3', 'color_pipe_consumer_3', 'color_text_consumer_3', 'color_icon_consumer_3', 'color_secondary_consumer_3', '#06b6d4')}
-        </div>
-        <div class="consumer-group">
-            <div class="consumer-title" style="color: #eab308;">${this._localize('editor.consumer_4_title')}</div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_4_enabled !== false}
-                    .configValue=${'consumer_4_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4, 'consumer_4', this._localize('editor.entity'))}
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_4_label}
-                .configValue=${'consumer_4_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_4_icon}
-                .configValue=${'consumer_4_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_4 === true}
-                    .configValue=${'invert_consumer_4'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_4_hide_pipe === true}
-                    .configValue=${'consumer_4_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_4_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_4_pipe_threshold !== undefined ? this._config.consumer_4_pipe_threshold : 0}
-                .configValue=${'consumer_4_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_4_unit_kw === true}
-                    .configValue=${'consumer_4_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_4_show_power !== false}
-                    .configValue=${'consumer_4_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_4 === true}
-                    .configValue=${'show_flow_rate_consumer_4'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_4_label_offset_x !== undefined ? this._config.consumer_4_label_offset_x : 0}
-                .configValue=${'consumer_4_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_4_label_offset_y !== undefined ? this._config.consumer_4_label_offset_y : -25}
-                .configValue=${'consumer_4_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_4_animation_threshold !== undefined ? this._config.consumer_4_animation_threshold : 0}
-                .configValue=${'consumer_4_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_4 || "", 'secondary_consumer_4', this._localize('editor.secondary_sensor'))}
-            ${this._renderColorPickerQuint('color_consumer_4', 'color_pipe_consumer_4', 'color_text_consumer_4', 'color_icon_consumer_4', 'color_secondary_consumer_4', '#eab308')}
-        </div>
-        <div class="consumer-group">
-            <div class="consumer-title" style="color: #6366f1;">${this._localize('editor.consumer_5_title')}</div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_5_enabled !== false}
-                    .configValue=${'consumer_5_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5, 'consumer_5', this._localize('editor.entity'))}
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_5_label}
-                .configValue=${'consumer_5_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_5_icon}
-                .configValue=${'consumer_5_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_5 === true}
-                    .configValue=${'invert_consumer_5'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_5_hide_pipe === true}
-                    .configValue=${'consumer_5_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_5_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_5_pipe_threshold !== undefined ? this._config.consumer_5_pipe_threshold : 0}
-                .configValue=${'consumer_5_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_5_unit_kw === true}
-                    .configValue=${'consumer_5_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_5_show_power !== false}
-                    .configValue=${'consumer_5_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_5 === true}
-                    .configValue=${'show_flow_rate_consumer_5'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_5_label_offset_x !== undefined ? this._config.consumer_5_label_offset_x : 0}
-                .configValue=${'consumer_5_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_5_label_offset_y !== undefined ? this._config.consumer_5_label_offset_y : -25}
-                .configValue=${'consumer_5_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_5_animation_threshold !== undefined ? this._config.consumer_5_animation_threshold : 0}
-                .configValue=${'consumer_5_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_5 || "", 'secondary_consumer_5', this._localize('editor.secondary_sensor'))}
-            ${this._renderColorPickerQuint('color_consumer_5', 'color_pipe_consumer_5', 'color_text_consumer_5', 'color_icon_consumer_5', 'color_secondary_consumer_5', '#6366f1')}
-        </div>
-        <div class="consumer-group">
-            <div class="consumer-title" style="color: #14b8a6;">${this._localize('editor.consumer_6_title')}</div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_6_enabled === true}
-                    .configValue=${'consumer_6_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6, 'consumer_6', this._localize('editor.entity'))}
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_6_label || 'Entfeuchter'}
-                .configValue=${'consumer_6_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_6_icon || 'DEFAULT_ICO6'}
-                .configValue=${'consumer_6_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_6 === true}
-                    .configValue=${'invert_consumer_6'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_6_hide_pipe === true}
-                    .configValue=${'consumer_6_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_6_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_6_pipe_threshold !== undefined ? this._config.consumer_6_pipe_threshold : 0}
-                .configValue=${'consumer_6_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_6_unit_kw === true}
-                    .configValue=${'consumer_6_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_6_show_power !== false}
-                    .configValue=${'consumer_6_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_6 === true}
-                    .configValue=${'show_flow_rate_consumer_6'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_6_label_offset_x !== undefined ? this._config.consumer_6_label_offset_x : 0}
-                .configValue=${'consumer_6_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_6_label_offset_y !== undefined ? this._config.consumer_6_label_offset_y : -25}
-                .configValue=${'consumer_6_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_6_animation_threshold !== undefined ? this._config.consumer_6_animation_threshold : 0}
-                .configValue=${'consumer_6_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_6 || "", 'secondary_consumer_6', this._localize('editor.secondary_sensor'))}
-            ${this._renderColorPickerQuint('color_consumer_6', 'color_pipe_consumer_6', 'color_text_consumer_6', 'color_icon_consumer_6', 'color_secondary_consumer_6', '#14b8a6')}
-        </div>
-        <div class="consumer-group">
-            <div class="consumer-title" style="color: #ec4899;">${this._localize('editor.consumer_7_title')}</div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_7_enabled === true}
-                    .configValue=${'consumer_7_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7, 'consumer_7', this._localize('editor.entity'))}
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_7_label || 'Consumer 7'}
-                .configValue=${'consumer_7_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_7_icon || 'DEFAULT_ICO7'}
-                .configValue=${'consumer_7_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_7 === true}
-                    .configValue=${'invert_consumer_7'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_7_hide_pipe === true}
-                    .configValue=${'consumer_7_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_7_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_7_pipe_threshold !== undefined ? this._config.consumer_7_pipe_threshold : 0}
-                .configValue=${'consumer_7_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_7_unit_kw === true}
-                    .configValue=${'consumer_7_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_7_show_power !== false}
-                    .configValue=${'consumer_7_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_7 === true}
-                    .configValue=${'show_flow_rate_consumer_7'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_7_label_offset_x !== undefined ? this._config.consumer_7_label_offset_x : 0}
-                .configValue=${'consumer_7_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_7_label_offset_y !== undefined ? this._config.consumer_7_label_offset_y : -25}
-                .configValue=${'consumer_7_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_7_animation_threshold !== undefined ? this._config.consumer_7_animation_threshold : 0}
-                .configValue=${'consumer_7_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_7 || "", 'secondary_consumer_7', this._localize('editor.secondary_sensor'))}
-            ${this._renderColorPickerQuint('color_consumer_7', 'color_pipe_consumer_7', 'color_text_consumer_7', 'color_icon_consumer_7', 'color_secondary_consumer_7', '#ec4899')}
-        </div>
       `;
     }
 
@@ -2691,6 +2158,12 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'battery') return this._renderBatteryView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'venus') return this._renderVenusView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_1') return this._renderConsumer1View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'consumer_2') return this._renderConsumerNView(2, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'consumer_3') return this._renderConsumerNView(3, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'consumer_4') return this._renderConsumerNView(4, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'consumer_5') return this._renderConsumerNView(5, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'consumer_6') return this._renderConsumerNView(6, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'consumer_7') return this._renderConsumerNView(7, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'donut') return this._renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
 
@@ -2722,12 +2195,42 @@ class PowerFluxCardEditor extends LitElement {
         </div>
         
         <div class="menu-item" @click=${() => this._goSubView('consumer_1')}>
-            <div class="menu-icon"><ha-icon icon="${this._config.consumer_1_icon || 'mdi:car-electric'}"></ha-icon> ${this._localize('editor.consumer_1_section')}</div>
+            <div class="menu-icon"><ha-icon icon="${this._consumerMenuIcon(1)}"></ha-icon> ${this._consumerMenuLabel(1)}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+        
+        <div class="menu-item" @click=${() => this._goSubView('consumer_2')}>
+            <div class="menu-icon"><ha-icon icon="${this._consumerMenuIcon(2)}"></ha-icon> ${this._consumerMenuLabel(2)}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+        
+        <div class="menu-item" @click=${() => this._goSubView('consumer_3')}>
+            <div class="menu-icon"><ha-icon icon="${this._consumerMenuIcon(3)}"></ha-icon> ${this._consumerMenuLabel(3)}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+        
+        <div class="menu-item" @click=${() => this._goSubView('consumer_4')}>
+            <div class="menu-icon"><ha-icon icon="${this._consumerMenuIcon(4)}"></ha-icon> ${this._consumerMenuLabel(4)}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+        
+        <div class="menu-item" @click=${() => this._goSubView('consumer_5')}>
+            <div class="menu-icon"><ha-icon icon="${this._consumerMenuIcon(5)}"></ha-icon> ${this._consumerMenuLabel(5)}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+        
+        <div class="menu-item" @click=${() => this._goSubView('consumer_6')}>
+            <div class="menu-icon"><ha-icon icon="${this._consumerMenuIcon(6)}"></ha-icon> ${this._consumerMenuLabel(6)}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+        
+        <div class="menu-item" @click=${() => this._goSubView('consumer_7')}>
+            <div class="menu-icon"><ha-icon icon="${this._consumerMenuIcon(7)}"></ha-icon> ${this._consumerMenuLabel(7)}</div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
         </div>
         
         <div class="menu-item" @click=${() => this._goSubView('consumers')}>
-            <div class="menu-icon"><ha-icon icon="mdi:devices"></ha-icon> ${this._localize('editor.consumers_section')}</div>
+            <div class="menu-icon"><ha-icon icon="mdi:home"></ha-icon> ${this._localize('editor.consumers_section')}</div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
         </div>
 
