@@ -23,6 +23,21 @@ const lang_de = {
     "editor.group_appearance": "Erscheinungsbild",
     "editor.group_display": "Anzeige-Verhalten",
     "editor.group_debug": "Debug & Test",
+    "editor.group_bg_anim": "Hintergrund-Animation",
+    "editor.bg_anim_hint": "Sanfte animierte Farbverläufe im Karten-Hintergrund. Nur wirksam wenn Kartenhintergrund sichtbar ist. Respektiert 'Animationen reduzieren' im Betriebssystem.",
+    "editor.bg_anim_style": "Animations-Stil",
+    "editor.bg_anim_off": "Aus",
+    "editor.bg_anim_aurora": "Aurora (treibende Farb-Blobs)",
+    "editor.bg_anim_flow": "Slow Flow (sanfter Farbverlauf)",
+    "editor.bg_anim_pulse": "Pulse (rotierender Farbring)",
+    "editor.bg_anim_duration": "Geschwindigkeit (Sekunden pro Zyklus)",
+    "editor.bg_anim_intensity": "Intensität (Deckkraft, 0-30%)",
+    "editor.bg_anim_saturate": "Sättigung (0.5 = blass, 1.5 = kräftig)",
+    "editor.bg_anim_colors": "Farben (4 Stops)",
+    "editor.bg_color_1": "Farbe 1",
+    "editor.bg_color_2": "Farbe 2",
+    "editor.bg_color_3": "Farbe 3",
+    "editor.bg_color_4": "Farbe 4",
     "editor.group_sensors_display": "Sensoren & Darstellung",
     "editor.group_behavior": "Verhalten",
     "editor.group_label_positions": "Position der Watt-Labels",
@@ -182,6 +197,21 @@ const lang_en = {
     "editor.group_appearance": "Visual Effects",
     "editor.group_display": "Display Behavior",
     "editor.group_debug": "Debug & Test",
+    "editor.group_bg_anim": "Background Animation",
+    "editor.bg_anim_hint": "Subtle animated colour layer behind the card. Only visible when the card background is opaque. Respects 'reduce motion' OS preference.",
+    "editor.bg_anim_style": "Animation style",
+    "editor.bg_anim_off": "Off",
+    "editor.bg_anim_aurora": "Aurora (drifting colour blobs)",
+    "editor.bg_anim_flow": "Slow Flow (gradient slide)",
+    "editor.bg_anim_pulse": "Pulse (rotating colour ring)",
+    "editor.bg_anim_duration": "Speed (seconds per cycle)",
+    "editor.bg_anim_intensity": "Intensity (opacity, 0-30%)",
+    "editor.bg_anim_saturate": "Saturation (0.5 = pale, 1.5 = vivid)",
+    "editor.bg_anim_colors": "Colours (4 stops)",
+    "editor.bg_color_1": "Colour 1",
+    "editor.bg_color_2": "Colour 2",
+    "editor.bg_color_3": "Colour 3",
+    "editor.bg_color_4": "Colour 4",
     "editor.group_sensors_display": "Sensors & Display",
     "editor.group_behavior": "Behavior",
     "editor.group_label_positions": "Watt label positions",
@@ -2883,6 +2913,75 @@ class PowerFluxCardEditor extends LitElement {
             </div>
         </div>
 
+        <!-- Group: Background animation -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:animation-play"></ha-icon>
+                ${this._localize('editor.group_bg_anim')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.bg_anim_hint')}
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ select: { mode: "dropdown", options: [
+                        { value: "off", label: this._localize('editor.bg_anim_off') },
+                        { value: "aurora", label: this._localize('editor.bg_anim_aurora') },
+                        { value: "flow", label: this._localize('editor.bg_anim_flow') },
+                        { value: "pulse", label: this._localize('editor.bg_anim_pulse') }
+                    ] } }}
+                    .value=${this._config.bg_anim_style || 'off'}
+                    .configValue=${'bg_anim_style'}
+                    .label=${this._localize('editor.bg_anim_style')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 5, max: 120, step: 1, mode: "slider" } }}
+                    .value=${this._config.bg_anim_duration_sec !== undefined ? this._config.bg_anim_duration_sec : 30}
+                    .configValue=${'bg_anim_duration_sec'}
+                    .label=${this._localize('editor.bg_anim_duration')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 0.3, step: 0.01, mode: "slider" } }}
+                    .value=${this._config.bg_anim_intensity !== undefined ? this._config.bg_anim_intensity : 0.1}
+                    .configValue=${'bg_anim_intensity'}
+                    .label=${this._localize('editor.bg_anim_intensity')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0.5, max: 1.5, step: 0.05, mode: "slider" } }}
+                    .value=${this._config.bg_anim_saturate !== undefined ? this._config.bg_anim_saturate : 1}
+                    .configValue=${'bg_anim_saturate'}
+                    .label=${this._localize('editor.bg_anim_saturate')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 12px;">
+                ${this._localize('editor.bg_anim_colors')}
+            </div>
+            ${this._renderColorPicker('bg_color_1', this._localize('editor.bg_color_1'), '#ffdd00')}
+            ${this._renderColorPicker('bg_color_2', this._localize('editor.bg_color_2'), '#ff0040')}
+            ${this._renderColorPicker('bg_color_3', this._localize('editor.bg_color_3'), '#e100ff')}
+            ${this._renderColorPicker('bg_color_4', this._localize('editor.bg_color_4'), '#8d07d5')}
+        </div>
+
         <!-- Group: Debug & test -->
         <div class="option-group">
             <div class="group-title">
@@ -3308,6 +3407,120 @@ console.log(
         background: transparent !important;
         box-shadow: none !important;
         border: none !important;
+      }
+      
+      /* Phase 5.41: animated background effects.
+       * Three styles wrapped in a single ::before pseudo-element on ha-card.
+       * The active style is selected by the .bg-anim-{aurora|flow|pulse} class.
+       * All effects use GPU-accelerated properties only (transform, opacity,
+       * background-position). The whole layer is muted via opacity from the
+       * Intensity slider and saturate() from the Saturation slider.
+       *
+       * Layer is positioned absolutely behind content (z-index: 0, while
+       * scale-wrapper sits at z-index: 1+). overflow: hidden on ha-card keeps
+       * the moving colours contained within the visible card area.
+       *
+       * Defaults (from CSS vars set inline):
+       *   --bg-anim-duration : 30s
+       *   --bg-anim-opacity  : 0.1
+       *   --bg-anim-saturate : 1
+       *   --bg-color-1..4    : the four user-picked colours
+       */
+      ha-card.bg-anim-aurora,
+      ha-card.bg-anim-flow,
+      ha-card.bg-anim-pulse {
+        overflow: hidden;
+        position: relative;
+      }
+      ha-card.bg-anim-aurora::before,
+      ha-card.bg-anim-flow::before,
+      ha-card.bg-anim-pulse::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        border-radius: inherit;
+        opacity: var(--bg-anim-opacity, 0.1);
+        filter: saturate(var(--bg-anim-saturate, 1));
+        will-change: transform, background-position, opacity;
+      }
+      
+      /* Aurora style: four large radial-gradient blobs drifting slowly */
+      ha-card.bg-anim-aurora::before {
+        background:
+          radial-gradient(circle at 20% 30%, var(--bg-color-1, #ffdd00) 0%, transparent 45%),
+          radial-gradient(circle at 80% 20%, var(--bg-color-2, #ff0040) 0%, transparent 45%),
+          radial-gradient(circle at 70% 80%, var(--bg-color-3, #e100ff) 0%, transparent 45%),
+          radial-gradient(circle at 30% 70%, var(--bg-color-4, #8d07d5) 0%, transparent 45%);
+        background-size: 200% 200%;
+        animation: hflux-aurora-drift var(--bg-anim-duration, 30s) ease-in-out infinite alternate;
+      }
+      @keyframes hflux-aurora-drift {
+        0%   { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%; }
+        50%  { background-position: 100% 50%, 0% 50%, 50% 0%, 50% 100%; }
+        100% { background-position: 50% 100%, 50% 0%, 0% 50%, 100% 50%; }
+      }
+      
+      /* Slow Flow style: diagonal linear gradient sliding across */
+      ha-card.bg-anim-flow::before {
+        background: linear-gradient(
+          135deg,
+          var(--bg-color-1, #ffdd00) 0%,
+          var(--bg-color-2, #ff0040) 33%,
+          var(--bg-color-3, #e100ff) 66%,
+          var(--bg-color-4, #8d07d5) 100%
+        );
+        background-size: 400% 400%;
+        animation: hflux-flow-slide var(--bg-anim-duration, 30s) ease infinite;
+      }
+      @keyframes hflux-flow-slide {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      
+      /* Pulse style: rotating conic gradient with subtle brightness pulse */
+      ha-card.bg-anim-pulse::before {
+        background: conic-gradient(
+          from 0deg,
+          var(--bg-color-1, #ffdd00),
+          var(--bg-color-2, #ff0040),
+          var(--bg-color-3, #e100ff),
+          var(--bg-color-4, #8d07d5),
+          var(--bg-color-1, #ffdd00)
+        );
+        animation:
+          hflux-pulse-rotate var(--bg-anim-duration, 30s) linear infinite,
+          hflux-pulse-breathe calc(var(--bg-anim-duration, 30s) / 3) ease-in-out infinite;
+      }
+      @keyframes hflux-pulse-rotate {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+      }
+      @keyframes hflux-pulse-breathe {
+        0%, 100% { opacity: var(--bg-anim-opacity, 0.1); }
+        50%      { opacity: calc(var(--bg-anim-opacity, 0.1) * 1.5); }
+      }
+      
+      /* Respect user's motion-reduction preference: disable all keyframe
+       * animations on the background layer. The colour layer itself stays
+       * visible as a static blend, which is still better than blank. */
+      @media (prefers-reduced-motion: reduce) {
+        ha-card.bg-anim-aurora::before,
+        ha-card.bg-anim-flow::before,
+        ha-card.bg-anim-pulse::before {
+          animation: none !important;
+        }
+      }
+      
+      /* Make sure the actual card content sits above the animation layer.
+       * scale-wrapper is the immediate child holding the SVG flow diagram. */
+      ha-card.bg-anim-aurora > .scale-wrapper,
+      ha-card.bg-anim-flow > .scale-wrapper,
+      ha-card.bg-anim-pulse > .scale-wrapper {
+        position: relative;
+        z-index: 1;
       }
       
       /* --- COMPACT VIEW STYLES --- */
@@ -5011,9 +5224,35 @@ console.log(
         : (houseTextCol ? `color: ${houseTextCol};` : '');
       const dashArrayVal = showTail ? '30 360' : (showDashedLine ? '13 13' : '0 380');
       const strokeWidthVal = showDashedLine ? 4 : 8;
+      
+      // Phase 5.41: animated background style.
+      //   bg_anim_style: 'off' (default) | 'aurora' | 'flow' | 'pulse'
+      //   bg_anim_duration_sec: animation cycle length (5..120s, default 30)
+      //   bg_anim_intensity: opacity of the colour layer (0..0.3, default 0.1)
+      //   bg_anim_saturate: CSS saturate filter on the layer (0.5..1.5, default 1)
+      //   bg_color_1..4: four colour stops
+      // All effects are CSS-only (no JS animation loop) and GPU-accelerated.
+      // prefers-reduced-motion handled in CSS.
+      const bgAnimStyle = this.config.bg_anim_style || 'off';
+      const bgAnimEnabled = bgAnimStyle !== 'off' && !this.config.transparent_background;
+      const bgAnimClass = bgAnimEnabled ? `bg-anim-${bgAnimStyle}` : '';
+      const bgAnimDuration = this.config.bg_anim_duration_sec !== undefined ? this.config.bg_anim_duration_sec : 30;
+      const bgAnimOpacity = this.config.bg_anim_intensity !== undefined ? this.config.bg_anim_intensity : 0.1;
+      const bgAnimSaturate = this.config.bg_anim_saturate !== undefined ? this.config.bg_anim_saturate : 1;
+      const bgColor1 = this.config.bg_color_1 || '#ffdd00';
+      const bgColor2 = this.config.bg_color_2 || '#ff0040';
+      const bgColor3 = this.config.bg_color_3 || '#e100ff';
+      const bgColor4 = this.config.bg_color_4 || '#8d07d5';
+      const bgAnimVars = bgAnimEnabled
+        ? ` --bg-anim-duration: ${bgAnimDuration}s; --bg-anim-opacity: ${bgAnimOpacity}; --bg-anim-saturate: ${bgAnimSaturate}; --bg-color-1: ${bgColor1}; --bg-color-2: ${bgColor2}; --bg-color-3: ${bgColor3}; --bg-color-4: ${bgColor4};`
+        : '';
+      const haCardClasses = [
+        this.config.transparent_background ? 'transparent-bg' : '',
+        bgAnimClass,
+      ].filter(Boolean).join(' ');
 
       return html`
-      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;">
+      <ha-card class="${haCardClasses}" style="height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;${bgAnimVars}">
         
         <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-top: ${-padTop}px;">
             

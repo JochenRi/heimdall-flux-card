@@ -2553,6 +2553,75 @@ class PowerFluxCardEditor extends LitElement {
             </div>
         </div>
 
+        <!-- Group: Background animation -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:animation-play"></ha-icon>
+                ${this._localize('editor.group_bg_anim')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.bg_anim_hint')}
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ select: { mode: "dropdown", options: [
+                        { value: "off", label: this._localize('editor.bg_anim_off') },
+                        { value: "aurora", label: this._localize('editor.bg_anim_aurora') },
+                        { value: "flow", label: this._localize('editor.bg_anim_flow') },
+                        { value: "pulse", label: this._localize('editor.bg_anim_pulse') }
+                    ] } }}
+                    .value=${this._config.bg_anim_style || 'off'}
+                    .configValue=${'bg_anim_style'}
+                    .label=${this._localize('editor.bg_anim_style')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 5, max: 120, step: 1, mode: "slider" } }}
+                    .value=${this._config.bg_anim_duration_sec !== undefined ? this._config.bg_anim_duration_sec : 30}
+                    .configValue=${'bg_anim_duration_sec'}
+                    .label=${this._localize('editor.bg_anim_duration')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 0.3, step: 0.01, mode: "slider" } }}
+                    .value=${this._config.bg_anim_intensity !== undefined ? this._config.bg_anim_intensity : 0.1}
+                    .configValue=${'bg_anim_intensity'}
+                    .label=${this._localize('editor.bg_anim_intensity')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0.5, max: 1.5, step: 0.05, mode: "slider" } }}
+                    .value=${this._config.bg_anim_saturate !== undefined ? this._config.bg_anim_saturate : 1}
+                    .configValue=${'bg_anim_saturate'}
+                    .label=${this._localize('editor.bg_anim_saturate')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 12px;">
+                ${this._localize('editor.bg_anim_colors')}
+            </div>
+            ${this._renderColorPicker('bg_color_1', this._localize('editor.bg_color_1'), '#ffdd00')}
+            ${this._renderColorPicker('bg_color_2', this._localize('editor.bg_color_2'), '#ff0040')}
+            ${this._renderColorPicker('bg_color_3', this._localize('editor.bg_color_3'), '#e100ff')}
+            ${this._renderColorPicker('bg_color_4', this._localize('editor.bg_color_4'), '#8d07d5')}
+        </div>
+
         <!-- Group: Debug & test -->
         <div class="option-group">
             <div class="group-title">
