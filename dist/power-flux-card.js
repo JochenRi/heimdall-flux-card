@@ -73,10 +73,10 @@ const lang_de = {
     "editor.grid_donut_import_sensor": "Sensor Netzbezug heute (kWh)",
     "editor.grid_donut_export_sensor": "Sensor Netzeinspeisung heute (kWh)",
     "editor.pv_donut_section": "🍩 PV-Donut (Rest-Forecast)",
-    "editor.pv_donut_hint": "Zeigt wie viel vom Tages-Forecast noch zu erwarten ist (wie ein Tank-Anzeige). Gelber Anteil = noch erwartet, grauer Anteil = bereits erzeugt. Morgens 100% gelb, abends 0% gelb.",
+    "editor.pv_donut_hint": "Zeigt wie viel vom Tages-Forecast noch zu erwarten ist (wie eine Tank-Anzeige). Gelber Anteil = noch erwartet, grauer Anteil = bereits erzeugt. Sensor liefert den Rest-Forecast (z.B. evcc 'today.energy' — der schrumpft im Tagesverlauf).",
     "editor.pv_donut_enabled": "Forecast-Donut aktivieren",
     "editor.pv_donut_produced_sensor": "Sensor heute erzeugt (kWh)",
-    "editor.pv_donut_forecast_sensor": "Sensor Tages-Prognose (kWh)",
+    "editor.pv_donut_forecast_sensor": "Sensor Rest-Forecast heute (kWh)",
     "editor.neon_glow": "Neon Glow",
     "editor.donut_chart": "Donut Chart (Grid/Haus)",
     "editor.comet_tail": "Comet Tail Effect",
@@ -208,10 +208,10 @@ const lang_en = {
     "editor.grid_donut_import_sensor": "Daily grid import sensor (kWh)",
     "editor.grid_donut_export_sensor": "Daily grid export sensor (kWh)",
     "editor.pv_donut_section": "🍩 PV donut (forecast remaining)",
-    "editor.pv_donut_hint": "Shows how much of today's forecast is still expected (like a fuel gauge). Yellow segment = still to come, grey segment = already produced. Morning: 100% yellow. Evening: 0% yellow.",
+    "editor.pv_donut_hint": "Shows how much of today's forecast is still expected (like a fuel gauge). Yellow segment = still to come, grey segment = already produced. Sensor should deliver the REMAINING forecast (e.g. evcc 'today.energy' which shrinks during the day).",
     "editor.pv_donut_enabled": "Enable forecast donut",
     "editor.pv_donut_produced_sensor": "Today's production sensor (kWh)",
-    "editor.pv_donut_forecast_sensor": "Today's forecast sensor (kWh)",
+    "editor.pv_donut_forecast_sensor": "Remaining forecast today (kWh)",
     "editor.neon_glow": "Neon Glow",
     "editor.donut_chart": "Donut Chart (Grid/House)",
     "editor.comet_tail": "Comet Tail Effect",
@@ -4177,62 +4177,53 @@ console.log(
           return isNaN(v) || v < 0 ? 0 : v;
         };
         const produced = safeRead(pvProducedEnt);
-        const forecast = safeRead(pvForecastEnt);
+        const remaining = safeRead(pvForecastEnt);
+        const total = produced + remaining;
         
-        // Phase 5.29: donut shows REMAINING forecast, like a fuel gauge.
-        //   Yellow segment = forecast still to come (what's expected today minus
-        //                    what already arrived)
-        //   Grey segment   = forecast already consumed (production has caught up)
+        // Phase 5.30: forecast sensor is interpreted as "remaining forecast for
+        // today" (what's still expected), not as "total expected for today".
+        // This matches the semantics of evcc's `today.energy` field, which is
+        // continuously refined throughout the day to mean "remaining from now
+        // until end-of-day" -- i.e. it shrinks as production happens.
         //
-        // Morning, 0 kWh produced of 60 kWh forecast: 100% yellow ("lots of sun
-        // still coming")
-        // Midday, 30 kWh of 60 kWh produced: 50% yellow / 50% grey ("halfway,
-        // half still expected")
-        // Evening, 60 kWh of 60 kWh produced: 100% grey ("forecast fulfilled,
-        // nothing more expected")
+        // Donut shows: yellow = remaining, grey = already harvested.
+        //   remaining_pct = remaining / (produced + remaining)
+        //   harvested_pct = produced  / (produced + remaining)
         //
-        // This inverts phase 5.23's progress-bar semantics in favour of a more
-        // intuitive "remaining" reading -- the user sees at a glance how much
-        // sun is still coming without subtracting in their head.
+        // Morning:  produced=0, remaining=60 -> 100% yellow ("60 kWh ahead")
+        // Midday:   produced=30, remaining=30 -> 50% yellow ("30 still to come")
+        // Evening:  produced=60, remaining=0.5 -> ~1% yellow ("nearly done")
+        // Done:     produced=60, remaining=0 -> donut off (see below)
         //
-        // Display threshold: when the day is essentially done (produced near or
-        // above forecast), the ring would be ~100% grey AND we'd lose the
-        // yellow border. We disable the donut in that case too, falling back
-        // to the bubble's normal yellow border. The ring is also disabled for
-        // tiny daily counter values (< PRODUCED_MIN_KWH) right after midnight.
+        // This formulation is self-stabilizing: if evcc revises its forecast
+        // downward when the day turns out worse than expected, the visualization
+        // adjusts smoothly because we always compare against the LIVE total.
         const PRODUCED_MIN_KWH = 0.1;
-        const DAY_DONE_THRESHOLD = 0.98; // ring disabled when produced/forecast >= 98%
+        const REMAINING_MIN_KWH = 0.05;
         
-        if (forecast > 0) {
-          const ratio = produced / forecast;
-          
-          if (produced < PRODUCED_MIN_KWH) {
-            // Pre-sunrise / midnight reset: show 100% yellow ring
-            // (= "the whole day's forecast is still ahead of us")
-            solarGradientVal = 'var(--pipe-solar-color)';
-            solarDonutActive = true;
-          } else if (ratio < DAY_DONE_THRESHOLD) {
-            // Normal daytime case
-            const remainingPct = Math.max(0, Math.min(100, (1 - ratio) * 100));
-            const consumedPct = 100 - remainingPct;
+        if (total >= PRODUCED_MIN_KWH) {
+          if (remaining < REMAINING_MIN_KWH) {
+            // Day is essentially done -- nothing meaningful left to forecast.
+            // Disable donut, fall back to plain yellow border.
+            // (No conic-gradient needed.)
+          } else {
+            const remainingPct = (remaining / total) * 100;
+            const harvestedPct = 100 - remainingPct;
             
             let stops = [];
             let current = 0;
             if (remainingPct > 0) { stops.push(`var(--pipe-solar-color) ${current}% ${current + remainingPct}%`); current += remainingPct; }
-            if (consumedPct > 0) { stops.push(`var(--solar-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+            if (harvestedPct > 0) { stops.push(`var(--solar-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
             solarGradientVal = `conic-gradient(from 330deg, ${stops.join(', ')})`;
             solarDonutActive = true;
           }
-          // else: ratio >= 0.98 -> day essentially done, donut off, bubble keeps
-          // its normal yellow border (semantically: "today is in the books")
-        } else if (produced >= PRODUCED_MIN_KWH) {
-          // Forecast sensor is 0/broken but production is happening: show full
-          // grey (we have no forecast to compare against, so we can't say
-          // "what's still coming"). Better than full yellow which would lie.
-          solarGradientVal = 'var(--solar-donut-rest-color, rgba(160, 160, 160, 0.7))';
+        } else if (remaining >= REMAINING_MIN_KWH) {
+          // Pre-sunrise / midnight reset: produced ~0, but a remaining forecast
+          // exists. Show 100% yellow ring (whole day's forecast still ahead).
+          solarGradientVal = 'var(--pipe-solar-color)';
           solarDonutActive = true;
         }
-        // else: nothing meaningful to show -> donut off, normal yellow border.
+        // else: both essentially zero -> donut off, normal yellow border.
       }
 
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
