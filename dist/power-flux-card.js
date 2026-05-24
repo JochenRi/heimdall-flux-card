@@ -4408,13 +4408,23 @@ console.log(
       // moves up -> padding goes above. Positive offset_y -> content moves down ->
       // padding goes below. The bubble overflow is symmetric (bubbles grow in all
       // directions from their centre) so it splits evenly above and below.
+      //
+      // Phase 5.39: same logic now applied horizontally. card_offset_x and the bubble
+      // overflow on the left/right edges previously had no compensation, so the
+      // background visibly cut off the leftmost/rightmost bubbles when zoom > 1 or
+      // when card_offset_x was set.
       const cardOffsetY = this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0;
+      const cardOffsetX = this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0;
       const bubbleSize = this.config.bubble_size || 90;
       const bubbleOverflowPerSide = Math.max(0, (bubbleSize - 90) / 2) * scale;
       const offsetPadTop = cardOffsetY < 0 ? Math.abs(cardOffsetY) : 0;
       const offsetPadBottom = cardOffsetY > 0 ? cardOffsetY : 0;
+      const offsetPadLeft = cardOffsetX < 0 ? Math.abs(cardOffsetX) : 0;
+      const offsetPadRight = cardOffsetX > 0 ? cardOffsetX : 0;
       const padTop = bubbleOverflowPerSide + offsetPadTop;
       const padBottom = bubbleOverflowPerSide + offsetPadBottom;
+      const padLeft = bubbleOverflowPerSide + offsetPadLeft;
+      const padRight = bubbleOverflowPerSide + offsetPadRight;
       const finalCardBackgroundHeightPx = finalCardHeightPx + padTop + padBottom;
 
       let houseGradientVal = '';
@@ -4968,9 +4978,9 @@ console.log(
       const strokeWidthVal = showDashedLine ? 4 : 8;
 
       return html`
-      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardBackgroundHeightPx}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; box-sizing: border-box; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;">
+      <ha-card class="${this.config.transparent_background ? 'transparent-bg' : ''}" style="height: ${finalCardBackgroundHeightPx}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;">
         
-        <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-left: ${centerMarginLeft}px; margin-top: ${-padTop}px;">
+        <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-left: ${centerMarginLeft - padLeft}px; margin-top: ${-padTop}px;">
             
             <div class="absolute-container" style="height: ${baseHeight}px; top: -${topShift}px;">
                 <svg height="${baseHeight}" viewBox="0 0 800 ${baseHeight}" preserveAspectRatio="xMidYMid meet">
