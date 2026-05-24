@@ -14,6 +14,10 @@ const lang_de = {
     "editor.venus_section": "Venus (2. Batterie)",
     "editor.consumers_section": "Zusätzliche Verbraucher",
     "editor.options_section": "Darstellung & Optionen",
+    "editor.group_sizing": "Größen & Position",
+    "editor.group_appearance": "Erscheinungsbild",
+    "editor.group_display": "Anzeige-Verhalten",
+    "editor.group_debug": "Debug & Test",
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
     "editor.bubble_size": "Bubble-Größe (px)",
@@ -150,6 +154,10 @@ const lang_en = {
     "editor.venus_section": "Venus (2nd Battery)",
     "editor.consumers_section": "Additional Consumers",
     "editor.options_section": "Appearance & Options",
+    "editor.group_sizing": "Size & Position",
+    "editor.group_appearance": "Visual Effects",
+    "editor.group_display": "Display Behavior",
+    "editor.group_debug": "Debug & Test",
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
     "editor.bubble_size": "Bubble size (px)",
@@ -573,6 +581,30 @@ class PowerFluxCardEditor extends LitElement {
         margin-bottom: 15px;
         padding-bottom: 4px;
         border-bottom: 1px solid var(--divider-color);
+      }
+      /* Phase 5.33: editor section groups -- visual breathing room and
+       * a subtle left-accent to make logical groups obvious without
+       * being heavy-handed. */
+      .option-group {
+        margin-bottom: 18px;
+        padding: 4px 0 4px 8px;
+        border-left: 2px solid var(--divider-color);
+      }
+      .option-group .group-title {
+        font-size: 0.95em;
+        font-weight: 600;
+        color: var(--primary-text-color);
+        margin-bottom: 8px;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        opacity: 0.85;
+      }
+      .option-group .group-title ha-icon {
+        --mdc-icon-size: 18px;
+        color: var(--primary-color);
+        opacity: 0.7;
       }
       ha-selector {
         width: 100%;
@@ -2279,199 +2311,231 @@ class PowerFluxCardEditor extends LitElement {
         </div>
 
         <div class="section-title">${this._localize('editor.options_section')}</div>
-        
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.5, max: 2.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.zoom !== undefined ? this._config.zoom : 0.9}
-                .configValue=${'zoom'}
-                .label=${this._localize('editor.zoom_label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+
+        <!-- Group: Sizing & position -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:resize"></ha-icon>
+                ${this._localize('editor.group_sizing')}
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0.5, max: 2.0, step: 0.05, mode: "slider" } }}
+                    .value=${this._config.zoom !== undefined ? this._config.zoom : 0.9}
+                    .configValue=${'zoom'}
+                    .label=${this._localize('editor.zoom_label')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 70, max: 130, step: 2, mode: "slider" } }}
+                    .value=${this._config.bubble_size !== undefined ? this._config.bubble_size : 90}
+                    .configValue=${'bubble_size'}
+                    .label=${this._localize('editor.bubble_size')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 8, max: 20, step: 1, mode: "slider" } }}
+                    .value=${this._config.pipe_label_size !== undefined ? this._config.pipe_label_size : 10}
+                    .configValue=${'pipe_label_size'}
+                    .label=${this._localize('editor.pipe_label_size')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                    .value=${this._config.card_offset_x !== undefined ? this._config.card_offset_x : 0}
+                    .configValue=${'card_offset_x'}
+                    .label=${this._localize('editor.card_offset_x')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                    .value=${this._config.card_offset_y !== undefined ? this._config.card_offset_y : 0}
+                    .configValue=${'card_offset_y'}
+                    .label=${this._localize('editor.card_offset_y')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
         </div>
 
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 8, max: 20, step: 1, mode: "slider" } }}
-                .value=${this._config.pipe_label_size !== undefined ? this._config.pipe_label_size : 10}
-                .configValue=${'pipe_label_size'}
-                .label=${this._localize('editor.pipe_label_size')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+        <!-- Group: Appearance / visual effects -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:palette"></ha-icon>
+                ${this._localize('editor.group_appearance')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_neon_glow !== false}
+                    .configValue=${'show_neon_glow'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.neon_glow')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_donut_border === true}
+                    .configValue=${'show_donut_border'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.donut_chart')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_comet_tail === true}
+                    .configValue=${'show_comet_tail'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.comet_tail')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_dashed_line === true}
+                    .configValue=${'show_dashed_line'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.dashed_line')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_tinted_background === true}
+                    .configValue=${'show_tinted_background'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.tinted_background')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.use_colored_values === true}
+                    .configValue=${'use_colored_values'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.colored_values')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.always_color_bubbles === true}
+                    .configValue=${'always_color_bubbles'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.always_color_bubbles')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.transparent_background === true}
+                    .configValue=${'transparent_background'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.transparent_background')}</div>
+            </div>
         </div>
 
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 70, max: 130, step: 2, mode: "slider" } }}
-                .value=${this._config.bubble_size !== undefined ? this._config.bubble_size : 90}
-                .configValue=${'bubble_size'}
-                .label=${this._localize('editor.bubble_size')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+        <!-- Group: Display behavior -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:eye"></ha-icon>
+                ${this._localize('editor.group_display')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.hide_consumer_icons === true}
+                    .configValue=${'hide_consumer_icons'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.hide_consumer_icons')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.hide_inactive_flows !== false}
+                    .configValue=${'hide_inactive_flows'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.hide_inactive')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_consumer_always === true}
+                    .configValue=${'show_consumer_always'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.show_consumer_always')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.compact_view === true}
+                    .configValue=${'compact_view'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.compact_view')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.compact_details === true}
+                    .configValue=${'compact_details'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.compact_details')}</div>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 2, max: 60, step: 1, mode: "slider" } }}
+                    .value=${this._config.rotation_interval_sec !== undefined ? this._config.rotation_interval_sec : 10}
+                    .configValue=${'rotation_interval_sec'}
+                    .label=${this._localize('editor.rotation_interval_sec')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
         </div>
 
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.transparent_background === true}
-                .configValue=${'transparent_background'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.transparent_background')}</div>
+        <!-- Group: Debug & test -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:bug-outline"></ha-icon>
+                ${this._localize('editor.group_debug')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.demo_mode === true}
+                    .configValue=${'demo_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.demo_mode')}</div>
+            </div>
         </div>
 
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.always_color_bubbles === true}
-                .configValue=${'always_color_bubbles'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.always_color_bubbles')}</div>
-        </div>
-
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 2, max: 60, step: 1, mode: "slider" } }}
-                .value=${this._config.rotation_interval_sec !== undefined ? this._config.rotation_interval_sec : 10}
-                .configValue=${'rotation_interval_sec'}
-                .label=${this._localize('editor.rotation_interval_sec')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_neon_glow !== false} 
-                .configValue=${'show_neon_glow'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.neon_glow')}</div>
-        </div>
-        
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_donut_border === true}
-                .configValue=${'show_donut_border'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.donut_chart')}</div>
-        </div>
-        
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_comet_tail === true}
-                .configValue=${'show_comet_tail'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.comet_tail')}</div>
-        </div>
-        
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_dashed_line === true}
-                .configValue=${'show_dashed_line'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.dashed_line')}</div>
-        </div>
-        
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_tinted_background === true}
-                .configValue=${'show_tinted_background'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.tinted_background')}</div>
-        </div>
-        
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.use_colored_values === true}
-                .configValue=${'use_colored_values'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.colored_values')}</div>
-        </div>
-        
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.hide_consumer_icons === true}
-                .configValue=${'hide_consumer_icons'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.hide_consumer_icons')}</div>
-        </div>
-        
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.hide_inactive_flows !== false}
-                .configValue=${'hide_inactive_flows'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.hide_inactive')}</div>
-        </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.demo_mode === true}
-                .configValue=${'demo_mode'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.demo_mode')}</div>
-        </div>
-
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.card_offset_x !== undefined ? this._config.card_offset_x : 0}
-                .configValue=${'card_offset_x'}
-                .label=${this._localize('editor.card_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
-
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.card_offset_y !== undefined ? this._config.card_offset_y : 0}
-                .configValue=${'card_offset_y'}
-                .label=${this._localize('editor.card_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.show_consumer_always === true}
-                .configValue=${'show_consumer_always'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.show_consumer_always')}</div>
-        </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.compact_view === true} 
-                .configValue=${'compact_view'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.compact_view')}</div>
-        </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.compact_details === true} 
-                .configValue=${'compact_details'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.compact_details')}</div>
-        </div>
-		
       </div>
     `;
     }
