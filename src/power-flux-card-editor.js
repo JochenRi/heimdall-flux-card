@@ -2570,8 +2570,7 @@ class PowerFluxCardEditor extends LitElement {
                     .selector=${{ select: { mode: "dropdown", options: [
                         { value: "off", label: this._localize('editor.bg_anim_off') },
                         { value: "aurora", label: this._localize('editor.bg_anim_aurora') },
-                        { value: "flow", label: this._localize('editor.bg_anim_flow') },
-                        { value: "pulse", label: this._localize('editor.bg_anim_pulse') }
+                        { value: "flow", label: this._localize('editor.bg_anim_flow') }
                     ] } }}
                     .value=${this._config.bg_anim_style || 'off'}
                     .configValue=${'bg_anim_style'}

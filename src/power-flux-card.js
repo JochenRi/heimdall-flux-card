@@ -418,14 +418,12 @@ console.log(
        *   --bg-color-1..4    : the four user-picked colours
        */
       ha-card.bg-anim-aurora,
-      ha-card.bg-anim-flow,
-      ha-card.bg-anim-pulse {
+      ha-card.bg-anim-flow {
         overflow: hidden;
         position: relative;
       }
       ha-card.bg-anim-aurora::before,
-      ha-card.bg-anim-flow::before,
-      ha-card.bg-anim-pulse::before {
+      ha-card.bg-anim-flow::before {
         content: "";
         position: absolute;
         inset: 0;
@@ -471,36 +469,12 @@ console.log(
         100% { background-position: 0% 50%; }
       }
       
-      /* Pulse style: rotating conic gradient with subtle brightness pulse */
-      ha-card.bg-anim-pulse::before {
-        background: conic-gradient(
-          from 0deg,
-          var(--bg-color-1, #ffdd00),
-          var(--bg-color-2, #ff0040),
-          var(--bg-color-3, #e100ff),
-          var(--bg-color-4, #8d07d5),
-          var(--bg-color-1, #ffdd00)
-        );
-        animation:
-          hflux-pulse-rotate var(--bg-anim-duration, 30s) linear infinite,
-          hflux-pulse-breathe calc(var(--bg-anim-duration, 30s) / 3) ease-in-out infinite;
-      }
-      @keyframes hflux-pulse-rotate {
-        from { transform: rotate(0deg); }
-        to   { transform: rotate(360deg); }
-      }
-      @keyframes hflux-pulse-breathe {
-        0%, 100% { opacity: var(--bg-anim-opacity, 0.1); }
-        50%      { opacity: calc(var(--bg-anim-opacity, 0.1) * 1.5); }
-      }
-      
       /* Respect user's motion-reduction preference: disable all keyframe
        * animations on the background layer. The colour layer itself stays
        * visible as a static blend, which is still better than blank. */
       @media (prefers-reduced-motion: reduce) {
         ha-card.bg-anim-aurora::before,
-        ha-card.bg-anim-flow::before,
-        ha-card.bg-anim-pulse::before {
+        ha-card.bg-anim-flow::before {
           animation: none !important;
         }
       }
@@ -508,8 +482,7 @@ console.log(
       /* Make sure the actual card content sits above the animation layer.
        * scale-wrapper is the immediate child holding the SVG flow diagram. */
       ha-card.bg-anim-aurora > .scale-wrapper,
-      ha-card.bg-anim-flow > .scale-wrapper,
-      ha-card.bg-anim-pulse > .scale-wrapper {
+      ha-card.bg-anim-flow > .scale-wrapper {
         position: relative;
         z-index: 1;
       }
@@ -2224,7 +2197,14 @@ console.log(
       //   bg_color_1..4: four colour stops
       // All effects are CSS-only (no JS animation loop) and GPU-accelerated.
       // prefers-reduced-motion handled in CSS.
-      const bgAnimStyle = this.config.bg_anim_style || 'off';
+      // Phase 5.43: Pulse style removed. Map legacy 'pulse' configs to 'off'
+      // (the conic-gradient rotation didn't pan out aesthetically; only aurora
+      // and flow remain). Existing configs that saved 'pulse' will silently
+      // render as off until the user picks aurora or flow.
+      let bgAnimStyle = this.config.bg_anim_style || 'off';
+      if (bgAnimStyle !== 'off' && bgAnimStyle !== 'aurora' && bgAnimStyle !== 'flow') {
+        bgAnimStyle = 'off';
+      }
       const bgAnimEnabled = bgAnimStyle !== 'off' && !this.config.transparent_background;
       const bgAnimClass = bgAnimEnabled ? `bg-anim-${bgAnimStyle}` : '';
       const bgAnimDuration = this.config.bg_anim_duration_sec !== undefined ? this.config.bg_anim_duration_sec : 30;

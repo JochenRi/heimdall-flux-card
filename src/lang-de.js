@@ -24,7 +24,6 @@ export default {
     "editor.bg_anim_off": "Aus",
     "editor.bg_anim_aurora": "Aurora (treibende Farb-Blobs)",
     "editor.bg_anim_flow": "Slow Flow (sanfter Farbverlauf)",
-    "editor.bg_anim_pulse": "Pulse (rotierender Farbring)",
     "editor.bg_anim_duration": "Geschwindigkeit (Sekunden pro Zyklus)",
     "editor.bg_anim_intensity": "Intensität (Deckkraft, 0-30%)",
     "editor.bg_anim_saturate": "Sättigung (0.5 = blass, 1.5 = kräftig)",

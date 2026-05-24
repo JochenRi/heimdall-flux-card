@@ -24,7 +24,6 @@ export default {
     "editor.bg_anim_off": "Off",
     "editor.bg_anim_aurora": "Aurora (drifting colour blobs)",
     "editor.bg_anim_flow": "Slow Flow (gradient slide)",
-    "editor.bg_anim_pulse": "Pulse (rotating colour ring)",
     "editor.bg_anim_duration": "Speed (seconds per cycle)",
     "editor.bg_anim_intensity": "Intensity (opacity, 0-30%)",
     "editor.bg_anim_saturate": "Saturation (0.5 = pale, 1.5 = vivid)",
