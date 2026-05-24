@@ -44,6 +44,7 @@ console.log(
         hass: {},
         config: {},
         _cardWidth: { state: true },
+        _rotationTick: { state: true },
       };
     }
 
@@ -160,7 +161,13 @@ console.log(
         config = migrated;
       }
 
+      const prevInterval = this.config?.rotation_interval_sec;
       this.config = config;
+      // Phase 5.19: if rotation interval changed, restart the shared timer.
+      // Only restart if we already have a timer (i.e. firstUpdated has run).
+      if (this._rotationTimer && prevInterval !== config.rotation_interval_sec) {
+        this._startRotationTimer();
+      }
     }
 
     firstUpdated() {
@@ -172,6 +179,34 @@ console.log(
         }
       });
       this._resizeObserver.observe(this);
+      
+      // Phase 5.19: bubble value rotation -- a single shared timer ticks
+      // forward; each rotating bubble uses (tick % activeSlots) to pick its
+      // current slot. The interval is rebuilt on config change.
+      this._rotationTick = 0;
+      this._startRotationTimer();
+    }
+    
+    _startRotationTimer() {
+      if (this._rotationTimer) {
+        clearInterval(this._rotationTimer);
+        this._rotationTimer = null;
+      }
+      const intervalSec = Math.max(1, this.config?.rotation_interval_sec || 10);
+      this._rotationTimer = setInterval(() => {
+        this._rotationTick = (this._rotationTick || 0) + 1;
+      }, intervalSec * 1000);
+    }
+    
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      if (this._rotationTimer) {
+        clearInterval(this._rotationTimer);
+        this._rotationTimer = null;
+      }
+      if (this._resizeObserver) {
+        this._resizeObserver.disconnect();
+      }
     }
 
     updated(changedProps) {
@@ -706,6 +741,52 @@ console.log(
         return (val / 1000).toFixed(1) + " kW";
       }
       return Math.round(val) + " W";
+    }
+    
+    // Phase 5.19: Rotating bubble display.
+    // Given a bubble prefix (e.g. "grid"), returns the current display
+    // {text, color} based on enabled slots and the global rotation tick.
+    // Slots: live (current power), daily1, daily2, daily3 (each can be on/off).
+    // If only one slot is enabled, no rotation -- always show that one.
+    // If zero slots enabled, falls back to live.
+    _getBubbleRotationDisplay(prefix, liveText, liveColor) {
+      const cfg = this.config;
+      const ent = cfg.entities || {};
+      
+      // Collect enabled slots in order: live, daily1, daily2, daily3.
+      // Each slot is {kind, text, color}. A daily slot is only counted if its
+      // sensor is configured and resolves to a number.
+      const slots = [];
+      
+      if (cfg[`${prefix}_rotate_show_live`] !== false) {
+        // live is the default "always on" slot -- explicit false disables it.
+        slots.push({ kind: 'live', text: liveText, color: liveColor });
+      }
+      
+      for (const slotNum of [1, 2, 3]) {
+        if (cfg[`${prefix}_rotate_show_daily_${slotNum}`] === true) {
+          const sensorKey = `${prefix}_rotate_daily_${slotNum}`;
+          const sensorEnt = ent[sensorKey];
+          if (sensorEnt && this.hass && this.hass.states[sensorEnt]) {
+            const rawVal = this.hass.states[sensorEnt].state;
+            const numVal = parseFloat(rawVal);
+            if (!isNaN(numVal)) {
+              const unit = this.hass.states[sensorEnt].attributes?.unit_of_measurement || 'kWh';
+              const text = numVal.toFixed(1) + ' ' + unit;
+              const color = cfg[`${prefix}_rotate_color_daily_${slotNum}`] || liveColor;
+              slots.push({ kind: 'daily', text, color });
+            }
+          }
+        }
+      }
+      
+      if (slots.length === 0) {
+        // Fallback: nothing configured -> show live as before
+        return { kind: 'live', text: liveText, color: liveColor };
+      }
+      
+      const idx = (this._rotationTick || 0) % slots.length;
+      return slots[idx];
     }
 
     _getConsumerColor(index) {
@@ -1857,17 +1938,22 @@ console.log(
                     <div class="value" style="${isSolarActive ? (this.config.color_text_solar ? 'color: var(--text-solar-color);' : getColorStyle('--neon-yellow')) : `color: ${solarColor};`}">${this._formatPower(solarVal)}</div>
                 </div>` : ''}
                 
-                ${hasGrid ? html`
-                <div class="bubble ${isGridActive ? (isGridExporting ? 'grid exporting' : 'grid') : 'inactive'} node-grid ${showDonut && isGridActive ? 'donut' : ''} ${tintClass} ${isGridActive ? glowClass : ''}"
-                    style="${showDonut && isGridActive ? `--grid-gradient: ${gridGradientVal};` : ''}"
-                    @click=${() => this._handleClick(entities.grid_combined || entities.grid)}>
-                    ${renderMainIcon('grid', isGridExporting ? gridExport : gridImport, iconGrid, gridIconColor)}
-                    ${renderSecondaryOrLabel(labelGridText, showLabelGrid, entities.secondary_grid, hasSecondaryGrid, 'secondary_grid')}
-                    <div class="value" style="color: ${gridTextColor};">
-                        ${isGridExporting ? html`<span class="direction-arrow">&#9650;</span>` : (isGridActive ? html`<span class="direction-arrow">&#9660;</span>` : '')}
-                        ${this._formatPower(isGridExporting ? gridExport : gridImport)}
-                    </div>
-                </div>` : ''}
+                ${hasGrid ? (() => {
+                  const liveText = this._formatPower(isGridExporting ? gridExport : gridImport);
+                  const rot = this._getBubbleRotationDisplay('grid', liveText, gridTextColor);
+                  const showArrow = rot.kind === 'live';
+                  return html`
+                  <div class="bubble ${isGridActive ? (isGridExporting ? 'grid exporting' : 'grid') : 'inactive'} node-grid ${showDonut && isGridActive ? 'donut' : ''} ${tintClass} ${isGridActive ? glowClass : ''}"
+                      style="${showDonut && isGridActive ? `--grid-gradient: ${gridGradientVal};` : ''}"
+                      @click=${() => this._handleClick(entities.grid_combined || entities.grid)}>
+                      ${renderMainIcon('grid', isGridExporting ? gridExport : gridImport, iconGrid, gridIconColor)}
+                      ${renderSecondaryOrLabel(labelGridText, showLabelGrid, entities.secondary_grid, hasSecondaryGrid, 'secondary_grid')}
+                      <div class="value rotating-value" style="color: ${rot.color};">
+                          ${showArrow ? (isGridExporting ? html`<span class="direction-arrow">&#9650;</span>` : (isGridActive ? html`<span class="direction-arrow">&#9660;</span>` : '')) : ''}
+                          ${rot.text}
+                      </div>
+                  </div>`;
+                })() : ''}
                 
                 ${hasBattery ? html`
                 <div class="bubble battery node-battery ${tintClass} ${glowClass}"

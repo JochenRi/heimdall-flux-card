@@ -53,6 +53,19 @@ const lang_de = {
     "editor.consumer_3_title": "🏊 Rechts (Türkis)",
     "editor.zoom_label": "🔍 Zoom (Standard View)",
     "editor.transparent_background": "Karten-Hintergrund ausblenden",
+    "editor.rotation_section": "🔄 Wert-Rotation in Bubble",
+    "editor.rotation_hint": "Zusätzliche Tageszähler in der Bubble anzeigen die abwechselnd mit dem Live-Wert eingeblendet werden.",
+    "editor.rotation_show_live": "Live-Wert anzeigen (z.B. aktuelle Leistung)",
+    "editor.rotation_interval_sec": "Wechsel-Intervall (Sekunden)",
+    "editor.rotation_show_slot_1": "Tageszähler 1 anzeigen",
+    "editor.rotation_show_slot_2": "Tageszähler 2 anzeigen",
+    "editor.rotation_show_slot_3": "Tageszähler 3 anzeigen",
+    "editor.rotation_slot_1_sensor": "Sensor Tageszähler 1",
+    "editor.rotation_slot_2_sensor": "Sensor Tageszähler 2",
+    "editor.rotation_slot_3_sensor": "Sensor Tageszähler 3",
+    "editor.rotation_slot_1_color": "Farbe Tageszähler 1",
+    "editor.rotation_slot_2_color": "Farbe Tageszähler 2",
+    "editor.rotation_slot_3_color": "Farbe Tageszähler 3",
     "editor.neon_glow": "Neon Glow",
     "editor.donut_chart": "Donut Chart (Grid/Haus)",
     "editor.comet_tail": "Comet Tail Effect",
@@ -164,6 +177,19 @@ const lang_en = {
     "editor.consumer_3_title": "🏊 Right (Cyan)",
     "editor.zoom_label": "🔍 Zoom (Standard View)",
     "editor.transparent_background": "Hide card background",
+    "editor.rotation_section": "🔄 Value rotation in bubble",
+    "editor.rotation_hint": "Show extra daily counters in the bubble that alternate with the live value.",
+    "editor.rotation_show_live": "Show live value (e.g. current power)",
+    "editor.rotation_interval_sec": "Rotation interval (seconds)",
+    "editor.rotation_show_slot_1": "Show daily counter 1",
+    "editor.rotation_show_slot_2": "Show daily counter 2",
+    "editor.rotation_show_slot_3": "Show daily counter 3",
+    "editor.rotation_slot_1_sensor": "Daily counter 1 sensor",
+    "editor.rotation_slot_2_sensor": "Daily counter 2 sensor",
+    "editor.rotation_slot_3_sensor": "Daily counter 3 sensor",
+    "editor.rotation_slot_1_color": "Daily counter 1 color",
+    "editor.rotation_slot_2_color": "Daily counter 2 color",
+    "editor.rotation_slot_3_color": "Daily counter 3 color",
     "editor.neon_glow": "Neon Glow",
     "editor.donut_chart": "Donut Chart (Grid/House)",
     "editor.comet_tail": "Comet Tail Effect",
@@ -313,7 +339,8 @@ class PowerFluxCardEditor extends LitElement {
                 'secondary_consumer_4', 'secondary_consumer_5',
                 'secondary_consumer_6', 'secondary_consumer_7',
                 'secondary_house',
-                'donut_today_solar', 'donut_today_battery', 'donut_today_venus', 'donut_today_grid'
+                'donut_today_solar', 'donut_today_battery', 'donut_today_venus', 'donut_today_grid',
+                'grid_rotate_daily_1', 'grid_rotate_daily_2', 'grid_rotate_daily_3'
             ];
 
             let newConfig = { ...this._config };
@@ -823,6 +850,69 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
         </div>
+
+        <div class="separator"></div>
+        <div class="section-title">${this._localize('editor.rotation_section')}</div>
+        
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.rotation_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.grid_rotate_show_live !== false}
+                .configValue=${'grid_rotate_show_live'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 2, max: 60, step: 1, mode: "slider" } }}
+                .value=${this._config.rotation_interval_sec !== undefined ? this._config.rotation_interval_sec : 10}
+                .configValue=${'rotation_interval_sec'}
+                .label=${this._localize('editor.rotation_interval_sec')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.grid_rotate_show_daily_1 === true}
+                .configValue=${'grid_rotate_show_daily_1'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_1 || "", 'grid_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
+        ${this._renderColorPicker('grid_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.grid_rotate_show_daily_2 === true}
+                .configValue=${'grid_rotate_show_daily_2'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_2 || "", 'grid_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
+        ${this._renderColorPicker('grid_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.grid_rotate_show_daily_3 === true}
+                .configValue=${'grid_rotate_show_daily_3'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_3 || "", 'grid_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
+        ${this._renderColorPicker('grid_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
       `;
     }
 
@@ -2299,6 +2389,7 @@ console.log(
         hass: {},
         config: {},
         _cardWidth: { state: true },
+        _rotationTick: { state: true },
       };
     }
 
@@ -2415,7 +2506,13 @@ console.log(
         config = migrated;
       }
 
+      const prevInterval = this.config?.rotation_interval_sec;
       this.config = config;
+      // Phase 5.19: if rotation interval changed, restart the shared timer.
+      // Only restart if we already have a timer (i.e. firstUpdated has run).
+      if (this._rotationTimer && prevInterval !== config.rotation_interval_sec) {
+        this._startRotationTimer();
+      }
     }
 
     firstUpdated() {
@@ -2427,6 +2524,34 @@ console.log(
         }
       });
       this._resizeObserver.observe(this);
+      
+      // Phase 5.19: bubble value rotation -- a single shared timer ticks
+      // forward; each rotating bubble uses (tick % activeSlots) to pick its
+      // current slot. The interval is rebuilt on config change.
+      this._rotationTick = 0;
+      this._startRotationTimer();
+    }
+    
+    _startRotationTimer() {
+      if (this._rotationTimer) {
+        clearInterval(this._rotationTimer);
+        this._rotationTimer = null;
+      }
+      const intervalSec = Math.max(1, this.config?.rotation_interval_sec || 10);
+      this._rotationTimer = setInterval(() => {
+        this._rotationTick = (this._rotationTick || 0) + 1;
+      }, intervalSec * 1000);
+    }
+    
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      if (this._rotationTimer) {
+        clearInterval(this._rotationTimer);
+        this._rotationTimer = null;
+      }
+      if (this._resizeObserver) {
+        this._resizeObserver.disconnect();
+      }
     }
 
     updated(changedProps) {
@@ -2961,6 +3086,52 @@ console.log(
         return (val / 1000).toFixed(1) + " kW";
       }
       return Math.round(val) + " W";
+    }
+    
+    // Phase 5.19: Rotating bubble display.
+    // Given a bubble prefix (e.g. "grid"), returns the current display
+    // {text, color} based on enabled slots and the global rotation tick.
+    // Slots: live (current power), daily1, daily2, daily3 (each can be on/off).
+    // If only one slot is enabled, no rotation -- always show that one.
+    // If zero slots enabled, falls back to live.
+    _getBubbleRotationDisplay(prefix, liveText, liveColor) {
+      const cfg = this.config;
+      const ent = cfg.entities || {};
+      
+      // Collect enabled slots in order: live, daily1, daily2, daily3.
+      // Each slot is {kind, text, color}. A daily slot is only counted if its
+      // sensor is configured and resolves to a number.
+      const slots = [];
+      
+      if (cfg[`${prefix}_rotate_show_live`] !== false) {
+        // live is the default "always on" slot -- explicit false disables it.
+        slots.push({ kind: 'live', text: liveText, color: liveColor });
+      }
+      
+      for (const slotNum of [1, 2, 3]) {
+        if (cfg[`${prefix}_rotate_show_daily_${slotNum}`] === true) {
+          const sensorKey = `${prefix}_rotate_daily_${slotNum}`;
+          const sensorEnt = ent[sensorKey];
+          if (sensorEnt && this.hass && this.hass.states[sensorEnt]) {
+            const rawVal = this.hass.states[sensorEnt].state;
+            const numVal = parseFloat(rawVal);
+            if (!isNaN(numVal)) {
+              const unit = this.hass.states[sensorEnt].attributes?.unit_of_measurement || 'kWh';
+              const text = numVal.toFixed(1) + ' ' + unit;
+              const color = cfg[`${prefix}_rotate_color_daily_${slotNum}`] || liveColor;
+              slots.push({ kind: 'daily', text, color });
+            }
+          }
+        }
+      }
+      
+      if (slots.length === 0) {
+        // Fallback: nothing configured -> show live as before
+        return { kind: 'live', text: liveText, color: liveColor };
+      }
+      
+      const idx = (this._rotationTick || 0) % slots.length;
+      return slots[idx];
     }
 
     _getConsumerColor(index) {
@@ -4112,17 +4283,22 @@ console.log(
                     <div class="value" style="${isSolarActive ? (this.config.color_text_solar ? 'color: var(--text-solar-color);' : getColorStyle('--neon-yellow')) : `color: ${solarColor};`}">${this._formatPower(solarVal)}</div>
                 </div>` : ''}
                 
-                ${hasGrid ? html`
-                <div class="bubble ${isGridActive ? (isGridExporting ? 'grid exporting' : 'grid') : 'inactive'} node-grid ${showDonut && isGridActive ? 'donut' : ''} ${tintClass} ${isGridActive ? glowClass : ''}"
-                    style="${showDonut && isGridActive ? `--grid-gradient: ${gridGradientVal};` : ''}"
-                    @click=${() => this._handleClick(entities.grid_combined || entities.grid)}>
-                    ${renderMainIcon('grid', isGridExporting ? gridExport : gridImport, iconGrid, gridIconColor)}
-                    ${renderSecondaryOrLabel(labelGridText, showLabelGrid, entities.secondary_grid, hasSecondaryGrid, 'secondary_grid')}
-                    <div class="value" style="color: ${gridTextColor};">
-                        ${isGridExporting ? html`<span class="direction-arrow">&#9650;</span>` : (isGridActive ? html`<span class="direction-arrow">&#9660;</span>` : '')}
-                        ${this._formatPower(isGridExporting ? gridExport : gridImport)}
-                    </div>
-                </div>` : ''}
+                ${hasGrid ? (() => {
+                  const liveText = this._formatPower(isGridExporting ? gridExport : gridImport);
+                  const rot = this._getBubbleRotationDisplay('grid', liveText, gridTextColor);
+                  const showArrow = rot.kind === 'live';
+                  return html`
+                  <div class="bubble ${isGridActive ? (isGridExporting ? 'grid exporting' : 'grid') : 'inactive'} node-grid ${showDonut && isGridActive ? 'donut' : ''} ${tintClass} ${isGridActive ? glowClass : ''}"
+                      style="${showDonut && isGridActive ? `--grid-gradient: ${gridGradientVal};` : ''}"
+                      @click=${() => this._handleClick(entities.grid_combined || entities.grid)}>
+                      ${renderMainIcon('grid', isGridExporting ? gridExport : gridImport, iconGrid, gridIconColor)}
+                      ${renderSecondaryOrLabel(labelGridText, showLabelGrid, entities.secondary_grid, hasSecondaryGrid, 'secondary_grid')}
+                      <div class="value rotating-value" style="color: ${rot.color};">
+                          ${showArrow ? (isGridExporting ? html`<span class="direction-arrow">&#9650;</span>` : (isGridActive ? html`<span class="direction-arrow">&#9660;</span>` : '')) : ''}
+                          ${rot.text}
+                      </div>
+                  </div>`;
+                })() : ''}
                 
                 ${hasBattery ? html`
                 <div class="bubble battery node-battery ${tintClass} ${glowClass}"

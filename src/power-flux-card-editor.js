@@ -79,7 +79,8 @@ class PowerFluxCardEditor extends LitElement {
                 'secondary_consumer_4', 'secondary_consumer_5',
                 'secondary_consumer_6', 'secondary_consumer_7',
                 'secondary_house',
-                'donut_today_solar', 'donut_today_battery', 'donut_today_venus', 'donut_today_grid'
+                'donut_today_solar', 'donut_today_battery', 'donut_today_venus', 'donut_today_grid',
+                'grid_rotate_daily_1', 'grid_rotate_daily_2', 'grid_rotate_daily_3'
             ];
 
             let newConfig = { ...this._config };
@@ -589,6 +590,69 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
         </div>
+
+        <div class="separator"></div>
+        <div class="section-title">${this._localize('editor.rotation_section')}</div>
+        
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.rotation_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.grid_rotate_show_live !== false}
+                .configValue=${'grid_rotate_show_live'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 2, max: 60, step: 1, mode: "slider" } }}
+                .value=${this._config.rotation_interval_sec !== undefined ? this._config.rotation_interval_sec : 10}
+                .configValue=${'rotation_interval_sec'}
+                .label=${this._localize('editor.rotation_interval_sec')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.grid_rotate_show_daily_1 === true}
+                .configValue=${'grid_rotate_show_daily_1'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_1 || "", 'grid_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
+        ${this._renderColorPicker('grid_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.grid_rotate_show_daily_2 === true}
+                .configValue=${'grid_rotate_show_daily_2'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_2 || "", 'grid_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
+        ${this._renderColorPicker('grid_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+
+        <div class="separator"></div>
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.grid_rotate_show_daily_3 === true}
+                .configValue=${'grid_rotate_show_daily_3'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_3 || "", 'grid_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
+        ${this._renderColorPicker('grid_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
       `;
     }
 
