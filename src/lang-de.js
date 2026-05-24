@@ -7,6 +7,7 @@ export default {
     "editor.grid_section": "Netz Import/Export",
     "editor.battery_section": "Batterie",
     "editor.venus_section": "Venus (2. Batterie)",
+    "editor.consumer_1_section": "Tesla",
     "editor.consumers_section": "Zusätzliche Verbraucher",
     "editor.options_section": "Darstellung & Optionen",
     "editor.group_sizing": "Größen & Position",

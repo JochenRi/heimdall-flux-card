@@ -12,6 +12,7 @@ const lang_de = {
     "editor.grid_section": "Netz Import/Export",
     "editor.battery_section": "Batterie",
     "editor.venus_section": "Venus (2. Batterie)",
+    "editor.consumer_1_section": "Tesla",
     "editor.consumers_section": "Zusätzliche Verbraucher",
     "editor.options_section": "Darstellung & Optionen",
     "editor.group_sizing": "Größen & Position",
@@ -185,6 +186,7 @@ const lang_en = {
     "editor.grid_section": "Grid Connection",
     "editor.battery_section": "Battery",
     "editor.venus_section": "Venus (2nd Battery)",
+    "editor.consumer_1_section": "Tesla",
     "editor.consumers_section": "Additional Consumers",
     "editor.options_section": "Appearance & Options",
     "editor.group_sizing": "Size & Position",
@@ -1747,42 +1749,17 @@ class PowerFluxCardEditor extends LitElement {
       `;
     }
 
-    _renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+    // Phase 5.45: dedicated sub-view for Tesla (Consumer 1) -- pulled out of
+    // the consumers collective view so each major bubble has its own top-
+    // level slot in the editor (Solar / Grid / Battery / Venus / Tesla / ...).
+    // Future phases will give Tesla the SoC donut + charge-mix ring features.
+    _renderConsumer1View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
                 <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
             </div>
-            <h2>${this._localize('editor.consumers_section')}</h2>
-        </div>
-
-        <div class="consumer-group">
-            <div class="consumer-title">${this._localize('editor.house_total_title')}</div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.house || "", 'house', this._localize('editor.house_sensor_label'))}
-             <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
-                ${this._localize('editor.house_sensor_hint')}
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.house_label}
-                .configValue=${'house_label'}
-                .label=${this._localize('editor.label') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.house_icon}
-                .configValue=${'house_icon'}
-                .label=${this._localize('editor.icon') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_house || "", 'secondary_house', this._localize('editor.secondary_sensor'))}
-            ${this._renderColorPickerQuint('color_house', null, 'color_text_house', 'color_icon_house', 'color_secondary_house', '#ff0080')}
+            <h2>${this._localize('editor.consumer_1_section')}</h2>
         </div>
 
         <div class="consumer-group">
@@ -1957,6 +1934,46 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_rotate_daily_3 || "", 'consumer_1_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
             ${this._renderColorPicker('consumer_1_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+        </div>
+        `;
+    }
+
+    _renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._localize('editor.consumers_section')}</h2>
+        </div>
+
+        <div class="consumer-group">
+            <div class="consumer-title">${this._localize('editor.house_total_title')}</div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.house || "", 'house', this._localize('editor.house_sensor_label'))}
+             <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                ${this._localize('editor.house_sensor_hint')}
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${textSelectorSchema}
+                .value=${this._config.house_label}
+                .configValue=${'house_label'}
+                .label=${this._localize('editor.label') + " (Optional)"}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${iconSelectorSchema}
+                .value=${this._config.house_icon}
+                .configValue=${'house_icon'}
+                .label=${this._localize('editor.icon') + " (Optional)"}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_house || "", 'secondary_house', this._localize('editor.secondary_sensor'))}
+            ${this._renderColorPickerQuint('color_house', null, 'color_text_house', 'color_icon_house', 'color_secondary_house', '#ff0080')}
         </div>
 
         <div class="consumer-group">
@@ -2673,6 +2690,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'grid') return this._renderGridView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'battery') return this._renderBatteryView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'venus') return this._renderVenusView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'consumer_1') return this._renderConsumer1View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'donut') return this._renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
 
@@ -2700,6 +2718,11 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="menu-item" @click=${() => this._goSubView('venus')}>
             <div class="menu-icon"><ha-icon icon="mdi:battery-charging-high"></ha-icon> ${this._localize('editor.venus_section')}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+        
+        <div class="menu-item" @click=${() => this._goSubView('consumer_1')}>
+            <div class="menu-icon"><ha-icon icon="${this._config.consumer_1_icon || 'mdi:car-electric'}"></ha-icon> ${this._localize('editor.consumer_1_section')}</div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
         </div>
         

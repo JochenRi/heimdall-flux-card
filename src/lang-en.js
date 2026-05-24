@@ -7,6 +7,7 @@ export default {
     "editor.grid_section": "Grid Connection",
     "editor.battery_section": "Battery",
     "editor.venus_section": "Venus (2nd Battery)",
+    "editor.consumer_1_section": "Tesla",
     "editor.consumers_section": "Additional Consumers",
     "editor.options_section": "Appearance & Options",
     "editor.group_sizing": "Size & Position",
