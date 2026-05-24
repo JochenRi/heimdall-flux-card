@@ -1853,7 +1853,7 @@ class PowerFluxCardEditor extends LitElement {
         <div>
             <ha-selector
                 .hass=${this.hass}
-                .selector=${{ number: { min: 0.5, max: 1.0, step: 0.05, mode: "slider" } }}
+                .selector=${{ number: { min: 0.5, max: 2.0, step: 0.05, mode: "slider" } }}
                 .value=${this._config.zoom !== undefined ? this._config.zoom : 0.9}
                 .configValue=${'zoom'}
                 .label=${this._localize('editor.zoom_label')}
