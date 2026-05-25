@@ -729,6 +729,19 @@ console.log(
           z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.49: BWWP (Consumer 5) SoC/temperature donut ring.
+         Same masking trick as battery/venus/c1 -- transparent body, donut renders
+         in ::before. Uses --c5-gradient (conic) computed from
+         secondary_consumer_5 / consumer_5_soc_max. */
+      .bubble.c5.donut { border: none !important; background: transparent; }
+      .bubble.c5.donut.tinted { background: color-mix(in srgb, var(--pipe-consumer-5-color, var(--consumer-5-color)), transparent 85%); }
+      .bubble.c5.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--c5-gradient, var(--pipe-consumer-5-color, var(--consumer-5-color)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -2055,6 +2068,31 @@ console.log(
         }
       }
 
+      // --- BWWP / Consumer 5 SoC Donut Gradient (Phase 5.49) ---
+      // Same pattern as Tesla SoC donut, but with default max=65 °C suitable
+      // for a typical boiler. User can override consumer_5_soc_max for other
+      // sensor ranges. Reads entities.secondary_consumer_5 (the temperature
+      // sensor already used as the visible BWWP value).
+      let c5GradientVal = '';
+      let c5DonutActive = false;
+      
+      if (this.config.consumer_5_soc_donut_mode === true && entities.secondary_consumer_5) {
+        const rawVal = parseFloat(getVal(entities.secondary_consumer_5));
+        const socMax = parseFloat(this.config.consumer_5_soc_max);
+        const maxVal = (!isNaN(socMax) && socMax > 0) ? socMax : 65;
+        if (!isNaN(rawVal) && rawVal >= 0) {
+          const pct = Math.max(0, Math.min(100, (rawVal / maxVal) * 100));
+          const restPct = 100 - pct;
+          
+          let stops = [];
+          let current = 0;
+          if (pct > 0) { stops.push(`var(--pipe-consumer-5-color) ${current}% ${current + pct}%`); current += pct; }
+          if (restPct > 0) { stops.push(`var(--c5-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          c5GradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c5DonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -2287,13 +2325,18 @@ console.log(
         const c1MixThickness = (this.config.consumer_1_mix_ring_thickness !== undefined)
           ? parseInt(this.config.consumer_1_mix_ring_thickness, 10) : 4;
         
+        // Phase 5.49: SoC donut for BWWP (Consumer 5). Same shape as c1Donut,
+        // just for cssClass === 'c5' and --c5-gradient. Independent of c1.
+        const c5Donut = (cssClass === 'c5' && c5DonutActive);
+        
         const bubbleStyle = [
           c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
           c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
+          c5Donut ? `--c5-gradient: ${c5GradientVal};` : '',
         ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}

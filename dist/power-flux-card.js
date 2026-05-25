@@ -19,6 +19,10 @@ const lang_de = {
     "editor.consumer_1_donut_hint": "Zeigt den Wert des Zweitsensors als gefüllten Ring um die Bubble. Das Maximum legt fest, was 100% bedeutet (z.B. 100 für SoC %, 65 für Kessel-Temperatur in °C, 200 für Wasserstand in cm).",
     "editor.consumer_1_soc_donut_enable": "SoC-Donut aktivieren",
     "editor.consumer_1_soc_max": "Maximum (= 100% Füllung)",
+    "editor.consumer_5_donut_section": "Temperatur-Donut (innerer Ring)",
+    "editor.consumer_5_donut_hint": "Zeigt den Wert des Zweitsensors (z.B. Kesseltemperatur) als gefüllten Ring um die Bubble. Das Maximum legt fest, was 100% bedeutet -- typisch 65 °C für einen Brauchwasserkessel.",
+    "editor.consumer_5_soc_donut_enable": "Temperatur-Donut aktivieren",
+    "editor.consumer_5_soc_max": "Maximum °C (= 100% Füllung)",
     "editor.consumer_1_mix_section": "Lade-Mix-Ring (äußerer Ring)",
     "editor.consumer_1_mix_hint": "Zeigt einen zweiten Ring außen um die Bubble. Der Ring teilt sich in vier Segmente auf (PV gelb / Batterie 1 lila / Batterie 2 violett / Netz rot) gewichtet nach dem Energie-Mix im gewählten Zeitraum. Sensoren bitte als Tages-/Monats-/Jahres-kWh-Werte in HEIMDALL anlegen.",
     "editor.consumer_1_mix_enable": "Lade-Mix-Ring aktivieren",
@@ -219,6 +223,10 @@ const lang_en = {
     "editor.consumer_1_donut_hint": "Renders the secondary sensor value as a filled ring around the bubble. Maximum defines what 100% means (e.g. 100 for SoC %, 65 for boiler temperature °C, 200 for water level cm).",
     "editor.consumer_1_soc_donut_enable": "Enable SoC donut",
     "editor.consumer_1_soc_max": "Maximum (= 100% fill)",
+    "editor.consumer_5_donut_section": "Temperature donut (inner ring)",
+    "editor.consumer_5_donut_hint": "Renders the secondary sensor value (e.g. boiler temperature) as a filled ring around the bubble. Maximum defines what 100% means — typically 65 °C for a hot-water boiler.",
+    "editor.consumer_5_soc_donut_enable": "Enable temperature donut",
+    "editor.consumer_5_soc_max": "Maximum °C (= 100% fill)",
     "editor.consumer_1_mix_section": "Charge-mix ring (outer ring)",
     "editor.consumer_1_mix_hint": "Renders a second ring outside the bubble. Split into four segments (PV yellow / Battery 1 purple / Battery 2 violet / Grid red) weighted by the energy mix in the chosen period. Provide daily/monthly/yearly kWh sensors via HEIMDALL.",
     "editor.consumer_1_mix_enable": "Enable charge-mix ring",
@@ -1965,6 +1973,171 @@ class PowerFluxCardEditor extends LitElement {
         `;
     }
 
+    // Phase 5.49: dedicated sub-view for BWWP (Consumer 5) -- pattern copied
+    // from Tesla (Consumer 1), starting with the SoC donut feature. Rotation
+    // and charge-mix ring will follow in phases 5.50 / 5.51. The donut uses
+    // consumer_5_soc_max (default 65) to support a temperature-as-percentage
+    // semantic for boiler-style sensors (22°C / 65°C = 33.8% filled).
+    _renderConsumer5View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._consumerMenuLabel(5)}</h2>
+        </div>
+
+        <div class="consumer-group">
+            <div class="consumer-title" style="color: #6366f1;">${this._localize('editor.consumer_5_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_5_enabled !== false}
+                    .configValue=${'consumer_5_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5, 'consumer_5', this._localize('editor.entity'))}
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${textSelectorSchema}
+                .value=${this._config.consumer_5_label}
+                .configValue=${'consumer_5_label'}
+                .label=${this._localize('editor.label')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${iconSelectorSchema}
+                .value=${this._config.consumer_5_icon}
+                .configValue=${'consumer_5_icon'}
+                .label=${this._localize('editor.icon')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.invert_consumer')}</span>
+                <ha-switch
+                    .checked=${this._config.invert_consumer_5 === true}
+                    .configValue=${'invert_consumer_5'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.consumer_hide_pipe')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_5_hide_pipe === true}
+                    .configValue=${'consumer_5_hide_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            ${this._config.consumer_5_hide_pipe === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
+                .value=${this._config.consumer_5_pipe_threshold !== undefined ? this._config.consumer_5_pipe_threshold : 0}
+                .configValue=${'consumer_5_pipe_threshold'}
+                .label=${this._localize('editor.consumer_pipe_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_unit_kw')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_5_unit_kw === true}
+                    .configValue=${'consumer_5_unit_kw'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_power')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_5_show_power !== false}
+                    .configValue=${'consumer_5_show_power'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_consumer_5 === true}
+                    .configValue=${'show_flow_rate_consumer_5'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_5_label_offset_x !== undefined ? this._config.consumer_5_label_offset_x : 0}
+                .configValue=${'consumer_5_label_offset_x'}
+                .label=${this._localize('editor.consumer_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_5_label_offset_y !== undefined ? this._config.consumer_5_label_offset_y : -25}
+                .configValue=${'consumer_5_label_offset_y'}
+                .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_5_animation_threshold !== undefined ? this._config.consumer_5_animation_threshold : 0}
+                .configValue=${'consumer_5_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_5 || "", 'secondary_consumer_5', this._localize('editor.secondary_sensor'))}
+
+            ${this._renderColorPickerQuint('color_consumer_5', 'color_pipe_consumer_5', 'color_text_consumer_5', 'color_icon_consumer_5', 'color_secondary_consumer_5', '#6366f1')}
+
+            <!-- Phase 5.49: SoC/temperature donut ring for BWWP bubble.
+                 Default soc_max = 65 (typical boiler ceiling in °C). User can
+                 change it if their boiler runs hotter or for a non-boiler use. -->
+            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
+                <ha-icon icon="mdi:donut-small" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
+                ${this._localize('editor.consumer_5_donut_section')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_5_donut_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_5_soc_donut_mode === true}
+                    .configValue=${'consumer_5_soc_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_5_soc_donut_enable')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
+                .value=${this._config.consumer_5_soc_max !== undefined ? this._config.consumer_5_soc_max : 65}
+                .configValue=${'consumer_5_soc_max'}
+                .label=${this._localize('editor.consumer_5_soc_max')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+        `;
+    }
+
     // Phase 5.45: dedicated sub-view for Tesla (Consumer 1) -- pulled out of
     // the consumers collective view so each major bubble has its own top-
     // level slot in the editor (Solar / Grid / Battery / Venus / Tesla / ...).
@@ -2321,7 +2494,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'consumer_2') return this._renderConsumerNView(2, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_3') return this._renderConsumerNView(3, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_4') return this._renderConsumerNView(4, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
-        if (this._subView === 'consumer_5') return this._renderConsumerNView(5, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'consumer_5') return this._renderConsumer5View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_6') return this._renderConsumerNView(6, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_7') return this._renderConsumerNView(7, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
@@ -3474,6 +3647,19 @@ console.log(
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;
           z-index: -1; pointer-events: none;
+      }
+      
+      /* Phase 5.49: BWWP (Consumer 5) SoC/temperature donut ring.
+         Same masking trick as battery/venus/c1 -- transparent body, donut renders
+         in ::before. Uses --c5-gradient (conic) computed from
+         secondary_consumer_5 / consumer_5_soc_max. */
+      .bubble.c5.donut { border: none !important; background: transparent; }
+      .bubble.c5.donut.tinted { background: color-mix(in srgb, var(--pipe-consumer-5-color, var(--consumer-5-color)), transparent 85%); }
+      .bubble.c5.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--c5-gradient, var(--pipe-consumer-5-color, var(--consumer-5-color)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
       .icon-svg, .icon-custom {
@@ -4802,6 +4988,31 @@ console.log(
         }
       }
 
+      // --- BWWP / Consumer 5 SoC Donut Gradient (Phase 5.49) ---
+      // Same pattern as Tesla SoC donut, but with default max=65 °C suitable
+      // for a typical boiler. User can override consumer_5_soc_max for other
+      // sensor ranges. Reads entities.secondary_consumer_5 (the temperature
+      // sensor already used as the visible BWWP value).
+      let c5GradientVal = '';
+      let c5DonutActive = false;
+      
+      if (this.config.consumer_5_soc_donut_mode === true && entities.secondary_consumer_5) {
+        const rawVal = parseFloat(getVal(entities.secondary_consumer_5));
+        const socMax = parseFloat(this.config.consumer_5_soc_max);
+        const maxVal = (!isNaN(socMax) && socMax > 0) ? socMax : 65;
+        if (!isNaN(rawVal) && rawVal >= 0) {
+          const pct = Math.max(0, Math.min(100, (rawVal / maxVal) * 100));
+          const restPct = 100 - pct;
+          
+          let stops = [];
+          let current = 0;
+          if (pct > 0) { stops.push(`var(--pipe-consumer-5-color) ${current}% ${current + pct}%`); current += pct; }
+          if (restPct > 0) { stops.push(`var(--c5-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          c5GradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c5DonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -5034,13 +5245,18 @@ console.log(
         const c1MixThickness = (this.config.consumer_1_mix_ring_thickness !== undefined)
           ? parseInt(this.config.consumer_1_mix_ring_thickness, 10) : 4;
         
+        // Phase 5.49: SoC donut for BWWP (Consumer 5). Same shape as c1Donut,
+        // just for cssClass === 'c5' and --c5-gradient. Independent of c1.
+        const c5Donut = (cssClass === 'c5' && c5DonutActive);
+        
         const bubbleStyle = [
           c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
           c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
+          c5Donut ? `--c5-gradient: ${c5GradientVal};` : '',
         ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
