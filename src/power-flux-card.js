@@ -784,6 +784,18 @@ console.log(
           z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.55: Waschen (Consumer 2) configurable donut ring.
+         Generic ratio donut: secondary_consumer_2 / consumer_2_soc_max
+         (default 5, suited to a daily energy budget in kWh). */
+      .bubble.c2.donut { border: none !important; background: transparent; }
+      .bubble.c2.donut.tinted { background: color-mix(in srgb, var(--pipe-consumer-2-color, var(--consumer-2-color)), transparent 85%); }
+      .bubble.c2.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--c2-gradient, var(--pipe-consumer-2-color, var(--consumer-2-color)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -2238,6 +2250,30 @@ console.log(
         }
       }
 
+      // --- Waschen / Consumer 2 Configurable Donut Gradient (Phase 5.55) ---
+      // Generic ratio donut, same shape as Tesla/BWWP/Pumpe donuts. Default
+      // max=5 suits a daily energy budget in kWh (typical washing machine);
+      // user can override consumer_2_soc_max for other ranges.
+      let c2GradientVal = '';
+      let c2DonutActive = false;
+      
+      if (this.config.consumer_2_soc_donut_mode === true && entities.secondary_consumer_2) {
+        const rawVal = parseFloat(getVal(entities.secondary_consumer_2));
+        const socMax = parseFloat(this.config.consumer_2_soc_max);
+        const maxVal = (!isNaN(socMax) && socMax > 0) ? socMax : 5;
+        if (!isNaN(rawVal) && rawVal >= 0) {
+          const pct = Math.max(0, Math.min(100, (rawVal / maxVal) * 100));
+          const restPct = 100 - pct;
+          
+          let stops = [];
+          let current = 0;
+          if (pct > 0) { stops.push(`var(--pipe-consumer-2-color) ${current}% ${current + pct}%`); current += pct; }
+          if (restPct > 0) { stops.push(`var(--c2-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          c2GradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c2DonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -2494,6 +2530,10 @@ console.log(
         const c7MixThickness = (this.config.consumer_7_mix_ring_thickness !== undefined)
           ? parseInt(this.config.consumer_7_mix_ring_thickness, 10) : 4;
         
+        // Phase 5.55: Configurable donut for Waschen (Consumer 2). Same
+        // shape as c1Donut / c5Donut / c7Donut, for cssClass === 'c2'.
+        const c2Donut = (cssClass === 'c2' && c2DonutActive);
+        
         const bubbleStyle = [
           c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
           c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
@@ -2501,10 +2541,11 @@ console.log(
           c5MixRing ? `--c5-mix-gradient: ${c5MixGradientVal}; --c5-mix-gap: ${c5MixGap}px; --c5-mix-thickness: ${c5MixThickness}px;` : '',
           c7Donut ? `--c7-gradient: ${c7GradientVal};` : '',
           c7MixRing ? `--c7-mix-gradient: ${c7MixGradientVal}; --c7-mix-gap: ${c7MixGap}px; --c7-mix-thickness: ${c7MixThickness}px;` : '',
+          c2Donut ? `--c2-gradient: ${c2GradientVal};` : '',
         ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
