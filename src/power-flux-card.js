@@ -757,6 +757,18 @@ console.log(
           z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.52: Pumpe (Consumer 7) water-level donut ring.
+         Mirror of BWWP donut. Uses --c7-gradient (conic) computed from
+         secondary_consumer_7 / consumer_7_soc_max (default 165 cm). */
+      .bubble.c7.donut { border: none !important; background: transparent; }
+      .bubble.c7.donut.tinted { background: color-mix(in srgb, var(--pipe-consumer-7-color, var(--consumer-7-color)), transparent 85%); }
+      .bubble.c7.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--c7-gradient, var(--pipe-consumer-7-color, var(--consumer-7-color)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -2147,6 +2159,31 @@ console.log(
         }
       }
 
+      // --- Pumpe / Consumer 7 Water-Level Donut Gradient (Phase 5.52) ---
+      // Same shape as the BWWP donut (phase 5.49), with default max=165 cm
+      // suitable for a Regenschacht. User can override consumer_7_soc_max for
+      // deeper/shallower cisterns or other use cases. Reads
+      // entities.secondary_consumer_7 (typically a water level sensor).
+      let c7GradientVal = '';
+      let c7DonutActive = false;
+      
+      if (this.config.consumer_7_soc_donut_mode === true && entities.secondary_consumer_7) {
+        const rawVal = parseFloat(getVal(entities.secondary_consumer_7));
+        const socMax = parseFloat(this.config.consumer_7_soc_max);
+        const maxVal = (!isNaN(socMax) && socMax > 0) ? socMax : 165;
+        if (!isNaN(rawVal) && rawVal >= 0) {
+          const pct = Math.max(0, Math.min(100, (rawVal / maxVal) * 100));
+          const restPct = 100 - pct;
+          
+          let stops = [];
+          let current = 0;
+          if (pct > 0) { stops.push(`var(--pipe-consumer-7-color) ${current}% ${current + pct}%`); current += pct; }
+          if (restPct > 0) { stops.push(`var(--c7-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          c7GradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c7DonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -2391,15 +2428,20 @@ console.log(
         const c5MixThickness = (this.config.consumer_5_mix_ring_thickness !== undefined)
           ? parseInt(this.config.consumer_5_mix_ring_thickness, 10) : 4;
         
+        // Phase 5.52: Water-level donut for Pumpe (Consumer 7). Same shape as
+        // c1Donut / c5Donut, just for cssClass === 'c7' and --c7-gradient.
+        const c7Donut = (cssClass === 'c7' && c7DonutActive);
+        
         const bubbleStyle = [
           c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
           c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
           c5Donut ? `--c5-gradient: ${c5GradientVal};` : '',
           c5MixRing ? `--c5-mix-gradient: ${c5MixGradientVal}; --c5-mix-gap: ${c5MixGap}px; --c5-mix-thickness: ${c5MixThickness}px;` : '',
+          c7Donut ? `--c7-gradient: ${c7GradientVal};` : '',
         ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
