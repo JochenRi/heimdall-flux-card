@@ -23,6 +23,21 @@ const lang_de = {
     "editor.consumer_5_donut_hint": "Zeigt den Wert des Zweitsensors (z.B. Kesseltemperatur) als gefüllten Ring um die Bubble. Das Maximum legt fest, was 100% bedeutet -- typisch 65 °C für einen Brauchwasserkessel.",
     "editor.consumer_5_soc_donut_enable": "Temperatur-Donut aktivieren",
     "editor.consumer_5_soc_max": "Maximum °C (= 100% Füllung)",
+    "editor.consumer_5_mix_section": "Lade-Mix-Ring (äußerer Ring)",
+    "editor.consumer_5_mix_hint": "Zeigt einen zweiten Ring außen um die BWWP-Bubble. Vier Segmente (PV gelb / Batterie 1 lila / Batterie 2 violett / Netz rot) gewichtet nach dem Energie-Mix im gewählten Zeitraum. Sensoren als Tages-/Monats-/Jahres-kWh-Werte in HEIMDALL anlegen.",
+    "editor.consumer_5_mix_enable": "Lade-Mix-Ring aktivieren",
+    "editor.consumer_5_mix_pv_day": "PV-Anteil heute (kWh)",
+    "editor.consumer_5_mix_lg_day": "Batterie 1-Anteil heute (kWh)",
+    "editor.consumer_5_mix_venus_day": "Batterie 2-Anteil heute (kWh)",
+    "editor.consumer_5_mix_grid_day": "Netz-Anteil heute (kWh)",
+    "editor.consumer_5_mix_pv_month": "PV-Anteil Monat (kWh)",
+    "editor.consumer_5_mix_lg_month": "Batterie 1-Anteil Monat (kWh)",
+    "editor.consumer_5_mix_venus_month": "Batterie 2-Anteil Monat (kWh)",
+    "editor.consumer_5_mix_grid_month": "Netz-Anteil Monat (kWh)",
+    "editor.consumer_5_mix_pv_year": "PV-Anteil Jahr (kWh)",
+    "editor.consumer_5_mix_lg_year": "Batterie 1-Anteil Jahr (kWh)",
+    "editor.consumer_5_mix_venus_year": "Batterie 2-Anteil Jahr (kWh)",
+    "editor.consumer_5_mix_grid_year": "Netz-Anteil Jahr (kWh)",
     "editor.consumer_1_mix_section": "Lade-Mix-Ring (äußerer Ring)",
     "editor.consumer_1_mix_hint": "Zeigt einen zweiten Ring außen um die Bubble. Der Ring teilt sich in vier Segmente auf (PV gelb / Batterie 1 lila / Batterie 2 violett / Netz rot) gewichtet nach dem Energie-Mix im gewählten Zeitraum. Sensoren bitte als Tages-/Monats-/Jahres-kWh-Werte in HEIMDALL anlegen.",
     "editor.consumer_1_mix_enable": "Lade-Mix-Ring aktivieren",
@@ -227,6 +242,21 @@ const lang_en = {
     "editor.consumer_5_donut_hint": "Renders the secondary sensor value (e.g. boiler temperature) as a filled ring around the bubble. Maximum defines what 100% means — typically 65 °C for a hot-water boiler.",
     "editor.consumer_5_soc_donut_enable": "Enable temperature donut",
     "editor.consumer_5_soc_max": "Maximum °C (= 100% fill)",
+    "editor.consumer_5_mix_section": "Charge-mix ring (outer ring)",
+    "editor.consumer_5_mix_hint": "Renders a second ring outside the BWWP bubble. Four segments (PV yellow / Battery 1 purple / Battery 2 violet / Grid red) weighted by the energy mix in the chosen period. Provide daily/monthly/yearly kWh sensors via HEIMDALL.",
+    "editor.consumer_5_mix_enable": "Enable charge-mix ring",
+    "editor.consumer_5_mix_pv_day": "PV share today (kWh)",
+    "editor.consumer_5_mix_lg_day": "Battery 1 share today (kWh)",
+    "editor.consumer_5_mix_venus_day": "Battery 2 share today (kWh)",
+    "editor.consumer_5_mix_grid_day": "Grid share today (kWh)",
+    "editor.consumer_5_mix_pv_month": "PV share month (kWh)",
+    "editor.consumer_5_mix_lg_month": "Battery 1 share month (kWh)",
+    "editor.consumer_5_mix_venus_month": "Battery 2 share month (kWh)",
+    "editor.consumer_5_mix_grid_month": "Grid share month (kWh)",
+    "editor.consumer_5_mix_pv_year": "PV share year (kWh)",
+    "editor.consumer_5_mix_lg_year": "Battery 1 share year (kWh)",
+    "editor.consumer_5_mix_venus_year": "Battery 2 share year (kWh)",
+    "editor.consumer_5_mix_grid_year": "Grid share year (kWh)",
     "editor.consumer_1_mix_section": "Charge-mix ring (outer ring)",
     "editor.consumer_1_mix_hint": "Renders a second ring outside the bubble. Split into four segments (PV yellow / Battery 1 purple / Battery 2 violet / Grid red) weighted by the energy mix in the chosen period. Provide daily/monthly/yearly kWh sensors via HEIMDALL.",
     "editor.consumer_1_mix_enable": "Enable charge-mix ring",
@@ -508,6 +538,10 @@ class PowerFluxCardEditor extends LitElement {
                 'venus_rotate_daily_1', 'venus_rotate_daily_2', 'venus_rotate_daily_3',
                 'consumer_1_rotate_daily_1', 'consumer_1_rotate_daily_2', 'consumer_1_rotate_daily_3',
                 'consumer_5_rotate_daily_1', 'consumer_5_rotate_daily_2', 'consumer_5_rotate_daily_3',
+                'consumer_5_mix_pv_day', 'consumer_5_mix_pv_month', 'consumer_5_mix_pv_year',
+                'consumer_5_mix_lg_day', 'consumer_5_mix_lg_month', 'consumer_5_mix_lg_year',
+                'consumer_5_mix_venus_day', 'consumer_5_mix_venus_month', 'consumer_5_mix_venus_year',
+                'consumer_5_mix_grid_day', 'consumer_5_mix_grid_month', 'consumer_5_mix_grid_year',
                 'consumer_1_mix_pv_day', 'consumer_1_mix_pv_month', 'consumer_1_mix_pv_year',
                 'consumer_1_mix_lg_day', 'consumer_1_mix_lg_month', 'consumer_1_mix_lg_year',
                 'consumer_1_mix_venus_day', 'consumer_1_mix_venus_month', 'consumer_1_mix_venus_year',
@@ -2136,6 +2170,83 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
+            <!-- Phase 5.51: Charge-mix outer ring for BWWP. Shows where the
+                 bubble's energy came from over the chosen period. -->
+            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
+                <ha-icon icon="mdi:circle-multiple-outline" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
+                ${this._localize('editor.consumer_5_mix_section')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_5_mix_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_5_mix_donut_mode === true}
+                    .configValue=${'consumer_5_mix_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_5_mix_enable')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
+                    { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
+                    { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
+                ] } }}
+                .value=${this._config.consumer_5_mix_period || 'day'}
+                .configValue=${'consumer_5_mix_period'}
+                .label=${this._localize('editor.consumer_1_mix_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_5_mix_ring_gap !== undefined ? this._config.consumer_5_mix_ring_gap : 8}
+                .configValue=${'consumer_5_mix_ring_gap'}
+                .label=${this._localize('editor.consumer_1_mix_ring_gap')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_5_mix_ring_thickness !== undefined ? this._config.consumer_5_mix_ring_thickness : 4}
+                .configValue=${'consumer_5_mix_ring_thickness'}
+                .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <!-- Tag -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_period_day')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_pv_day || "", 'consumer_5_mix_pv_day', this._localize('editor.consumer_5_mix_pv_day'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_lg_day || "", 'consumer_5_mix_lg_day', this._localize('editor.consumer_5_mix_lg_day'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_venus_day || "", 'consumer_5_mix_venus_day', this._localize('editor.consumer_5_mix_venus_day'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_grid_day || "", 'consumer_5_mix_grid_day', this._localize('editor.consumer_5_mix_grid_day'))}
+
+            <!-- Monat -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_period_month')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_pv_month || "", 'consumer_5_mix_pv_month', this._localize('editor.consumer_5_mix_pv_month'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_lg_month || "", 'consumer_5_mix_lg_month', this._localize('editor.consumer_5_mix_lg_month'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_venus_month || "", 'consumer_5_mix_venus_month', this._localize('editor.consumer_5_mix_venus_month'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_grid_month || "", 'consumer_5_mix_grid_month', this._localize('editor.consumer_5_mix_grid_month'))}
+
+            <!-- Jahr -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_period_year')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_pv_year || "", 'consumer_5_mix_pv_year', this._localize('editor.consumer_5_mix_pv_year'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_lg_year || "", 'consumer_5_mix_lg_year', this._localize('editor.consumer_5_mix_lg_year'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_venus_year || "", 'consumer_5_mix_venus_year', this._localize('editor.consumer_5_mix_venus_year'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_grid_year || "", 'consumer_5_mix_grid_year', this._localize('editor.consumer_5_mix_grid_year'))}
+
             <!-- Phase 5.50: rotation for BWWP bubble (analog Tesla/Battery/Venus) -->
             <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
                 <ha-icon icon="mdi:rotate-3d-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
@@ -3717,6 +3828,21 @@ console.log(
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.51: BWWP charge-mix ring -- a SECOND outer ring around the temp donut.
+         Uses --c5-mix-gradient (conic, 4 segments PV/LG/Venus/Grid weighted by user-
+         chosen period). Mirror of Tesla mix-ring (phase 5.48). */
+      .bubble.c5.mix-ring { overflow: visible; }
+      .bubble.c5.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--c5-mix-gap, 8px) + var(--c5-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--c5-mix-thickness, 4px);
+          background: var(--c5-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -5068,6 +5194,45 @@ console.log(
         }
       }
 
+      // --- BWWP / Consumer 5 Charge-Mix Ring (Phase 5.51) ---
+      // Same shape as Tesla mix-ring -- 4-segment conic from per-period kWh
+      // sensors (PV / LG / Venus / Grid). Period selectable: day / month / year.
+      // Renders only when total > 0. Mirror of phase 5.48.
+      let c5MixGradientVal = '';
+      let c5MixActive = false;
+      
+      if (this.config.consumer_5_mix_donut_mode === true) {
+        const period = (this.config.consumer_5_mix_period === 'month' || this.config.consumer_5_mix_period === 'year')
+          ? this.config.consumer_5_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const pv    = readVal(`consumer_5_mix_pv_${period}`);
+        const lg    = readVal(`consumer_5_mix_lg_${period}`);
+        const venus = readVal(`consumer_5_mix_venus_${period}`);
+        const grid  = readVal(`consumer_5_mix_grid_${period}`);
+        const total = pv + lg + venus + grid;
+        if (total > 0) {
+          const pctPv    = (pv    / total) * 100;
+          const pctLg    = (lg    / total) * 100;
+          const pctVenus = (venus / total) * 100;
+          const pctGrid  = (grid  / total) * 100;
+          
+          let stops = [];
+          let cursor = 0;
+          if (pctPv > 0)    { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`);    cursor += pctPv; }
+          if (pctLg > 0)    { stops.push(`var(--pipe-battery-color) ${cursor}% ${cursor + pctLg}%`);   cursor += pctLg; }
+          if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
+          if (pctGrid > 0)  { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          c5MixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c5MixActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -5304,14 +5469,23 @@ console.log(
         // just for cssClass === 'c5' and --c5-gradient. Independent of c1.
         const c5Donut = (cssClass === 'c5' && c5DonutActive);
         
+        // Phase 5.51: Charge-mix outer ring for BWWP. Mirror of phase 5.48
+        // Tesla mix-ring. Independent of all other rings.
+        const c5MixRing = (cssClass === 'c5' && c5MixActive);
+        const c5MixGap = (this.config.consumer_5_mix_ring_gap !== undefined)
+          ? parseInt(this.config.consumer_5_mix_ring_gap, 10) : 8;
+        const c5MixThickness = (this.config.consumer_5_mix_ring_thickness !== undefined)
+          ? parseInt(this.config.consumer_5_mix_ring_thickness, 10) : 4;
+        
         const bubbleStyle = [
           c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
           c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
           c5Donut ? `--c5-gradient: ${c5GradientVal};` : '',
+          c5MixRing ? `--c5-mix-gradient: ${c5MixGradientVal}; --c5-mix-gap: ${c5MixGap}px; --c5-mix-thickness: ${c5MixThickness}px;` : '',
         ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
