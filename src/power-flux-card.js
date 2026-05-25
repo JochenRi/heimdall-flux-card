@@ -392,12 +392,21 @@ console.log(
         transition: height 0.3s ease;
       }
       
-      /* Phase 5.18: optional transparent card background -- removes the grey
-         ha-card frame so the flow diagram floats on the dashboard background. */
+      /* Phase 5.18 / 5.49: optional transparent card background -- removes
+         the grey ha-card frame so the flow diagram floats on the dashboard
+         background. Phase 5.49 also forces padding/width reset and kills
+         the animation pseudo-element, in case both 'transparent_background'
+         and a stale bg_anim_style class are simultaneously present. */
       ha-card.transparent-bg {
         background: transparent !important;
         box-shadow: none !important;
         border: none !important;
+        padding: 0 !important;
+        width: auto !important;
+      }
+      ha-card.transparent-bg::before,
+      ha-card.transparent-bg::after {
+        display: none !important;
       }
       
       /* Phase 5.41: animated background effects.
@@ -2383,8 +2392,19 @@ console.log(
         bgAnimClass,
       ].filter(Boolean).join(' ');
 
+      // Phase 5.49: when the card background is transparent, the explicit
+      // width/padding/box-sizing scaffolding from phase 5.40-fix is not just
+      // unnecessary — it can cause a faint visible frame in some HA themes
+      // because the ha-card element still occupies a sized box in the
+      // dashboard grid. Skipping all those inline properties keeps the card
+      // a pure passthrough, identical to the upstream behaviour.
+      const isTransparent = this.config.transparent_background === true;
+      const cardSizingStyle = isTransparent
+        ? `height: auto;`
+        : `height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto;`;
+
       return html`
-      <ha-card class="${haCardClasses}" style="height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;${bgAnimVars}">
+      <ha-card class="${haCardClasses}" style="${cardSizingStyle} --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;${bgAnimVars}">
         
         <div class="scale-wrapper" style="transform: translate(${this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0}px, ${this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0}px) scale(${scale}); margin-top: ${-padTop}px;">
             
