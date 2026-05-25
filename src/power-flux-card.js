@@ -2404,7 +2404,14 @@ console.log(
       // -bg CSS class only kills the *visual* properties (background, border,
       // shadow), not the geometry. Phase 5.49's height-auto approach was
       // too aggressive.
-      const cardSizingStyle = `height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto;`;
+      // Phase 5.50: explicit width/height/padding so the section grid reserves
+      // the correct slot for the card and bubbles don't leak past their edges.
+      // Phase 5.51: + max-width: 100% so the card shrinks elastically when the
+      // dashboard column gets narrower (e.g. editor panel opens). Without the
+      // max-width cap, the explicit width would push the card past the column
+      // and the card would overlap neighbouring UI. The width: ${...}px stays
+      // as the *preferred* size; max-width: 100% is the safety net.
+      const cardSizingStyle = `height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; max-width: 100%; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto;`;
 
       return html`
       <ha-card class="${haCardClasses}" style="${cardSizingStyle} --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;${bgAnimVars}">
