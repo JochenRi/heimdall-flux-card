@@ -86,7 +86,11 @@ class PowerFluxCardEditor extends LitElement {
                 'pv_donut_produced_today', 'pv_donut_forecast_today',
                 'battery_rotate_daily_1', 'battery_rotate_daily_2', 'battery_rotate_daily_3',
                 'venus_rotate_daily_1', 'venus_rotate_daily_2', 'venus_rotate_daily_3',
-                'consumer_1_rotate_daily_1', 'consumer_1_rotate_daily_2', 'consumer_1_rotate_daily_3'
+                'consumer_1_rotate_daily_1', 'consumer_1_rotate_daily_2', 'consumer_1_rotate_daily_3',
+                'consumer_1_mix_pv_day', 'consumer_1_mix_pv_month', 'consumer_1_mix_pv_year',
+                'consumer_1_mix_lg_day', 'consumer_1_mix_lg_month', 'consumer_1_mix_lg_year',
+                'consumer_1_mix_venus_day', 'consumer_1_mix_venus_month', 'consumer_1_mix_venus_year',
+                'consumer_1_mix_grid_day', 'consumer_1_mix_grid_month', 'consumer_1_mix_grid_year'
             ];
 
             let newConfig = { ...this._config };
@@ -1709,6 +1713,83 @@ class PowerFluxCardEditor extends LitElement {
                 .label=${this._localize('editor.consumer_1_soc_max')}
                 @value-changed=${this._valueChanged}
             ></ha-selector>
+
+            <!-- Phase 5.48: Charge-mix outer ring for Tesla. Shows where the
+                 bubble's energy came from over the chosen period. -->
+            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
+                <ha-icon icon="mdi:circle-multiple-outline" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
+                ${this._localize('editor.consumer_1_mix_section')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_1_mix_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_1_mix_donut_mode === true}
+                    .configValue=${'consumer_1_mix_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_1_mix_enable')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
+                    { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
+                    { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
+                ] } }}
+                .value=${this._config.consumer_1_mix_period || 'day'}
+                .configValue=${'consumer_1_mix_period'}
+                .label=${this._localize('editor.consumer_1_mix_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_1_mix_ring_gap !== undefined ? this._config.consumer_1_mix_ring_gap : 8}
+                .configValue=${'consumer_1_mix_ring_gap'}
+                .label=${this._localize('editor.consumer_1_mix_ring_gap')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_1_mix_ring_thickness !== undefined ? this._config.consumer_1_mix_ring_thickness : 4}
+                .configValue=${'consumer_1_mix_ring_thickness'}
+                .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <!-- Tag -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_period_day')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_pv_day || "", 'consumer_1_mix_pv_day', this._localize('editor.consumer_1_mix_pv_day'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_lg_day || "", 'consumer_1_mix_lg_day', this._localize('editor.consumer_1_mix_lg_day'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_venus_day || "", 'consumer_1_mix_venus_day', this._localize('editor.consumer_1_mix_venus_day'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_grid_day || "", 'consumer_1_mix_grid_day', this._localize('editor.consumer_1_mix_grid_day'))}
+
+            <!-- Monat -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_period_month')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_pv_month || "", 'consumer_1_mix_pv_month', this._localize('editor.consumer_1_mix_pv_month'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_lg_month || "", 'consumer_1_mix_lg_month', this._localize('editor.consumer_1_mix_lg_month'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_venus_month || "", 'consumer_1_mix_venus_month', this._localize('editor.consumer_1_mix_venus_month'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_grid_month || "", 'consumer_1_mix_grid_month', this._localize('editor.consumer_1_mix_grid_month'))}
+
+            <!-- Jahr -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_period_year')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_pv_year || "", 'consumer_1_mix_pv_year', this._localize('editor.consumer_1_mix_pv_year'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_lg_year || "", 'consumer_1_mix_lg_year', this._localize('editor.consumer_1_mix_lg_year'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_venus_year || "", 'consumer_1_mix_venus_year', this._localize('editor.consumer_1_mix_venus_year'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_grid_year || "", 'consumer_1_mix_grid_year', this._localize('editor.consumer_1_mix_grid_year'))}
 
             <!-- Phase 5.44: rotation for Tesla bubble (analog Battery/Venus) -->
             <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">

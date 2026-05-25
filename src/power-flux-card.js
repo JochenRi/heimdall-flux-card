@@ -711,6 +711,24 @@ console.log(
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.48: Tesla charge-mix ring -- a SECOND outer ring around the SoC donut.
+         Uses --c1-mix-gradient (conic, 4 segments PV/LG/Venus/Grid weighted by user-
+         chosen period). Sits outside the SoC ring by a configurable gap, with its own
+         configurable thickness. Implemented as a pseudo via .bubble.c1.mix-ring::after
+         so it can coexist with the SoC donut on ::before. inset is negative so the
+         ring extends past the bubble's edge into the surrounding card area. */
+      .bubble.c1.mix-ring { overflow: visible; }
+      .bubble.c1.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--c1-mix-gap, 8px) + var(--c1-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--c1-mix-thickness, 4px);
+          background: var(--c1-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -1987,6 +2005,56 @@ console.log(
         }
       }
 
+      // --- Tesla / Consumer 1 Charge-Mix Ring (Phase 5.48) ---
+      // A SECOND ring sitting OUTSIDE the SoC donut, showing where this bubble's
+      // energy came from over a user-chosen period (day / month / year). Reads
+      // four daily-energy sensors per period (PV / LG / Venus / Grid), weights
+      // them proportionally, and builds a 4-segment conic-gradient using the
+      // matching pipe colours. The user provides the sensors -- HEIMDALL needs
+      // to expose them as utility_meter-style daily/monthly/yearly statistics.
+      //
+      // Activated by:
+      //   consumer_1_mix_donut_mode (editor toggle, off by default)
+      //   consumer_1_mix_period ('day' | 'month' | 'year', default 'day')
+      // Reads:
+      //   consumer_1_mix_{pv,lg,venus,grid}_{day,month,year}
+      // Renders only if at least one source has a positive value for the chosen
+      // period; otherwise stays inert (nothing to weight on a zero base).
+      let c1MixGradientVal = '';
+      let c1MixActive = false;
+      
+      if (this.config.consumer_1_mix_donut_mode === true) {
+        const period = (this.config.consumer_1_mix_period === 'month' || this.config.consumer_1_mix_period === 'year')
+          ? this.config.consumer_1_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const pv    = readVal(`consumer_1_mix_pv_${period}`);
+        const lg    = readVal(`consumer_1_mix_lg_${period}`);
+        const venus = readVal(`consumer_1_mix_venus_${period}`);
+        const grid  = readVal(`consumer_1_mix_grid_${period}`);
+        const total = pv + lg + venus + grid;
+        if (total > 0) {
+          const pctPv    = (pv    / total) * 100;
+          const pctLg    = (lg    / total) * 100;
+          const pctVenus = (venus / total) * 100;
+          const pctGrid  = (grid  / total) * 100;
+          
+          let stops = [];
+          let cursor = 0;
+          if (pctPv > 0)    { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`);    cursor += pctPv; }
+          if (pctLg > 0)    { stops.push(`var(--pipe-battery-color) ${cursor}% ${cursor + pctLg}%`);   cursor += pctLg; }
+          if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
+          if (pctGrid > 0)  { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          c1MixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c1MixActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -2206,11 +2274,27 @@ console.log(
         // CSS ::before mask (see .bubble.c1.donut::before), and --c1-gradient
         // carries the conic-gradient computed earlier.
         const c1Donut = (cssClass === 'c1' && c1DonutActive);
-        const donutStyle = c1Donut ? ` --c1-gradient: ${c1GradientVal};` : '';
+        
+        // Phase 5.48: Charge-mix outer ring for Tesla. The .mix-ring class
+        // triggers .bubble.c1.mix-ring::after which sits outside the SoC ring.
+        // --c1-mix-gradient carries the 4-segment conic, --c1-mix-gap controls
+        // how far outside the bubble border the ring sits, --c1-mix-thickness
+        // controls how thick the ring is. Independent of the SoC donut --
+        // either can be on without the other.
+        const c1MixRing = (cssClass === 'c1' && c1MixActive);
+        const c1MixGap = (this.config.consumer_1_mix_ring_gap !== undefined)
+          ? parseInt(this.config.consumer_1_mix_ring_gap, 10) : 8;
+        const c1MixThickness = (this.config.consumer_1_mix_ring_thickness !== undefined)
+          ? parseInt(this.config.consumer_1_mix_ring_thickness, 10) : 4;
+        
+        const bubbleStyle = [
+          c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
+          c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
+        ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
-                style="${donutStyle}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+                style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
                 ${subLine}

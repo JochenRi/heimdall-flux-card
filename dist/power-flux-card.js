@@ -19,6 +19,27 @@ const lang_de = {
     "editor.consumer_1_donut_hint": "Zeigt den Wert des Zweitsensors als gefüllten Ring um die Bubble. Das Maximum legt fest, was 100% bedeutet (z.B. 100 für SoC %, 65 für Kessel-Temperatur in °C, 200 für Wasserstand in cm).",
     "editor.consumer_1_soc_donut_enable": "SoC-Donut aktivieren",
     "editor.consumer_1_soc_max": "Maximum (= 100% Füllung)",
+    "editor.consumer_1_mix_section": "Lade-Mix-Ring (äußerer Ring)",
+    "editor.consumer_1_mix_hint": "Zeigt einen zweiten Ring außen um die Bubble. Der Ring teilt sich in vier Segmente auf (PV gelb / Batterie 1 lila / Batterie 2 violett / Netz rot) gewichtet nach dem Energie-Mix im gewählten Zeitraum. Sensoren bitte als Tages-/Monats-/Jahres-kWh-Werte in HEIMDALL anlegen.",
+    "editor.consumer_1_mix_enable": "Lade-Mix-Ring aktivieren",
+    "editor.consumer_1_mix_period": "Zeitraum",
+    "editor.consumer_1_mix_period_day": "Tag",
+    "editor.consumer_1_mix_period_month": "Monat",
+    "editor.consumer_1_mix_period_year": "Jahr",
+    "editor.consumer_1_mix_ring_gap": "Abstand zum SoC-Ring (px)",
+    "editor.consumer_1_mix_ring_thickness": "Dicke des Mix-Rings (px)",
+    "editor.consumer_1_mix_pv_day": "PV-Anteil heute (kWh)",
+    "editor.consumer_1_mix_lg_day": "Batterie 1-Anteil heute (kWh)",
+    "editor.consumer_1_mix_venus_day": "Batterie 2-Anteil heute (kWh)",
+    "editor.consumer_1_mix_grid_day": "Netz-Anteil heute (kWh)",
+    "editor.consumer_1_mix_pv_month": "PV-Anteil Monat (kWh)",
+    "editor.consumer_1_mix_lg_month": "Batterie 1-Anteil Monat (kWh)",
+    "editor.consumer_1_mix_venus_month": "Batterie 2-Anteil Monat (kWh)",
+    "editor.consumer_1_mix_grid_month": "Netz-Anteil Monat (kWh)",
+    "editor.consumer_1_mix_pv_year": "PV-Anteil Jahr (kWh)",
+    "editor.consumer_1_mix_lg_year": "Batterie 1-Anteil Jahr (kWh)",
+    "editor.consumer_1_mix_venus_year": "Batterie 2-Anteil Jahr (kWh)",
+    "editor.consumer_1_mix_grid_year": "Netz-Anteil Jahr (kWh)",
     "editor.options_section": "Darstellung & Optionen",
     "editor.group_sizing": "Größen & Position",
     "editor.background_padding_section": "Hintergrund-Padding (manuell)",
@@ -198,6 +219,27 @@ const lang_en = {
     "editor.consumer_1_donut_hint": "Renders the secondary sensor value as a filled ring around the bubble. Maximum defines what 100% means (e.g. 100 for SoC %, 65 for boiler temperature °C, 200 for water level cm).",
     "editor.consumer_1_soc_donut_enable": "Enable SoC donut",
     "editor.consumer_1_soc_max": "Maximum (= 100% fill)",
+    "editor.consumer_1_mix_section": "Charge-mix ring (outer ring)",
+    "editor.consumer_1_mix_hint": "Renders a second ring outside the bubble. Split into four segments (PV yellow / Battery 1 purple / Battery 2 violet / Grid red) weighted by the energy mix in the chosen period. Provide daily/monthly/yearly kWh sensors via HEIMDALL.",
+    "editor.consumer_1_mix_enable": "Enable charge-mix ring",
+    "editor.consumer_1_mix_period": "Period",
+    "editor.consumer_1_mix_period_day": "Day",
+    "editor.consumer_1_mix_period_month": "Month",
+    "editor.consumer_1_mix_period_year": "Year",
+    "editor.consumer_1_mix_ring_gap": "Gap to SoC ring (px)",
+    "editor.consumer_1_mix_ring_thickness": "Mix-ring thickness (px)",
+    "editor.consumer_1_mix_pv_day": "PV share today (kWh)",
+    "editor.consumer_1_mix_lg_day": "Battery 1 share today (kWh)",
+    "editor.consumer_1_mix_venus_day": "Battery 2 share today (kWh)",
+    "editor.consumer_1_mix_grid_day": "Grid share today (kWh)",
+    "editor.consumer_1_mix_pv_month": "PV share month (kWh)",
+    "editor.consumer_1_mix_lg_month": "Battery 1 share month (kWh)",
+    "editor.consumer_1_mix_venus_month": "Battery 2 share month (kWh)",
+    "editor.consumer_1_mix_grid_month": "Grid share month (kWh)",
+    "editor.consumer_1_mix_pv_year": "PV share year (kWh)",
+    "editor.consumer_1_mix_lg_year": "Battery 1 share year (kWh)",
+    "editor.consumer_1_mix_venus_year": "Battery 2 share year (kWh)",
+    "editor.consumer_1_mix_grid_year": "Grid share year (kWh)",
     "editor.options_section": "Appearance & Options",
     "editor.group_sizing": "Size & Position",
     "editor.background_padding_section": "Background padding (manual)",
@@ -456,7 +498,11 @@ class PowerFluxCardEditor extends LitElement {
                 'pv_donut_produced_today', 'pv_donut_forecast_today',
                 'battery_rotate_daily_1', 'battery_rotate_daily_2', 'battery_rotate_daily_3',
                 'venus_rotate_daily_1', 'venus_rotate_daily_2', 'venus_rotate_daily_3',
-                'consumer_1_rotate_daily_1', 'consumer_1_rotate_daily_2', 'consumer_1_rotate_daily_3'
+                'consumer_1_rotate_daily_1', 'consumer_1_rotate_daily_2', 'consumer_1_rotate_daily_3',
+                'consumer_1_mix_pv_day', 'consumer_1_mix_pv_month', 'consumer_1_mix_pv_year',
+                'consumer_1_mix_lg_day', 'consumer_1_mix_lg_month', 'consumer_1_mix_lg_year',
+                'consumer_1_mix_venus_day', 'consumer_1_mix_venus_month', 'consumer_1_mix_venus_year',
+                'consumer_1_mix_grid_day', 'consumer_1_mix_grid_month', 'consumer_1_mix_grid_year'
             ];
 
             let newConfig = { ...this._config };
@@ -2080,6 +2126,83 @@ class PowerFluxCardEditor extends LitElement {
                 @value-changed=${this._valueChanged}
             ></ha-selector>
 
+            <!-- Phase 5.48: Charge-mix outer ring for Tesla. Shows where the
+                 bubble's energy came from over the chosen period. -->
+            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
+                <ha-icon icon="mdi:circle-multiple-outline" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
+                ${this._localize('editor.consumer_1_mix_section')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_1_mix_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_1_mix_donut_mode === true}
+                    .configValue=${'consumer_1_mix_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_1_mix_enable')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
+                    { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
+                    { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
+                ] } }}
+                .value=${this._config.consumer_1_mix_period || 'day'}
+                .configValue=${'consumer_1_mix_period'}
+                .label=${this._localize('editor.consumer_1_mix_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_1_mix_ring_gap !== undefined ? this._config.consumer_1_mix_ring_gap : 8}
+                .configValue=${'consumer_1_mix_ring_gap'}
+                .label=${this._localize('editor.consumer_1_mix_ring_gap')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_1_mix_ring_thickness !== undefined ? this._config.consumer_1_mix_ring_thickness : 4}
+                .configValue=${'consumer_1_mix_ring_thickness'}
+                .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <!-- Tag -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_period_day')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_pv_day || "", 'consumer_1_mix_pv_day', this._localize('editor.consumer_1_mix_pv_day'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_lg_day || "", 'consumer_1_mix_lg_day', this._localize('editor.consumer_1_mix_lg_day'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_venus_day || "", 'consumer_1_mix_venus_day', this._localize('editor.consumer_1_mix_venus_day'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_grid_day || "", 'consumer_1_mix_grid_day', this._localize('editor.consumer_1_mix_grid_day'))}
+
+            <!-- Monat -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_period_month')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_pv_month || "", 'consumer_1_mix_pv_month', this._localize('editor.consumer_1_mix_pv_month'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_lg_month || "", 'consumer_1_mix_lg_month', this._localize('editor.consumer_1_mix_lg_month'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_venus_month || "", 'consumer_1_mix_venus_month', this._localize('editor.consumer_1_mix_venus_month'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_grid_month || "", 'consumer_1_mix_grid_month', this._localize('editor.consumer_1_mix_grid_month'))}
+
+            <!-- Jahr -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_period_year')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_pv_year || "", 'consumer_1_mix_pv_year', this._localize('editor.consumer_1_mix_pv_year'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_lg_year || "", 'consumer_1_mix_lg_year', this._localize('editor.consumer_1_mix_lg_year'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_venus_year || "", 'consumer_1_mix_venus_year', this._localize('editor.consumer_1_mix_venus_year'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_grid_year || "", 'consumer_1_mix_grid_year', this._localize('editor.consumer_1_mix_grid_year'))}
+
             <!-- Phase 5.44: rotation for Tesla bubble (analog Battery/Venus) -->
             <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
                 <ha-icon icon="mdi:rotate-3d-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
@@ -3333,6 +3456,24 @@ console.log(
           background: var(--c1-gradient, var(--pipe-consumer-1-color, var(--consumer-1-color)));
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
+      /* Phase 5.48: Tesla charge-mix ring -- a SECOND outer ring around the SoC donut.
+         Uses --c1-mix-gradient (conic, 4 segments PV/LG/Venus/Grid weighted by user-
+         chosen period). Sits outside the SoC ring by a configurable gap, with its own
+         configurable thickness. Implemented as a pseudo via .bubble.c1.mix-ring::after
+         so it can coexist with the SoC donut on ::before. inset is negative so the
+         ring extends past the bubble's edge into the surrounding card area. */
+      .bubble.c1.mix-ring { overflow: visible; }
+      .bubble.c1.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--c1-mix-gap, 8px) + var(--c1-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--c1-mix-thickness, 4px);
+          background: var(--c1-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
       }
       
       .icon-svg, .icon-custom {
@@ -4611,6 +4752,56 @@ console.log(
         }
       }
 
+      // --- Tesla / Consumer 1 Charge-Mix Ring (Phase 5.48) ---
+      // A SECOND ring sitting OUTSIDE the SoC donut, showing where this bubble's
+      // energy came from over a user-chosen period (day / month / year). Reads
+      // four daily-energy sensors per period (PV / LG / Venus / Grid), weights
+      // them proportionally, and builds a 4-segment conic-gradient using the
+      // matching pipe colours. The user provides the sensors -- HEIMDALL needs
+      // to expose them as utility_meter-style daily/monthly/yearly statistics.
+      //
+      // Activated by:
+      //   consumer_1_mix_donut_mode (editor toggle, off by default)
+      //   consumer_1_mix_period ('day' | 'month' | 'year', default 'day')
+      // Reads:
+      //   consumer_1_mix_{pv,lg,venus,grid}_{day,month,year}
+      // Renders only if at least one source has a positive value for the chosen
+      // period; otherwise stays inert (nothing to weight on a zero base).
+      let c1MixGradientVal = '';
+      let c1MixActive = false;
+      
+      if (this.config.consumer_1_mix_donut_mode === true) {
+        const period = (this.config.consumer_1_mix_period === 'month' || this.config.consumer_1_mix_period === 'year')
+          ? this.config.consumer_1_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const pv    = readVal(`consumer_1_mix_pv_${period}`);
+        const lg    = readVal(`consumer_1_mix_lg_${period}`);
+        const venus = readVal(`consumer_1_mix_venus_${period}`);
+        const grid  = readVal(`consumer_1_mix_grid_${period}`);
+        const total = pv + lg + venus + grid;
+        if (total > 0) {
+          const pctPv    = (pv    / total) * 100;
+          const pctLg    = (lg    / total) * 100;
+          const pctVenus = (venus / total) * 100;
+          const pctGrid  = (grid  / total) * 100;
+          
+          let stops = [];
+          let cursor = 0;
+          if (pctPv > 0)    { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`);    cursor += pctPv; }
+          if (pctLg > 0)    { stops.push(`var(--pipe-battery-color) ${cursor}% ${cursor + pctLg}%`);   cursor += pctLg; }
+          if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
+          if (pctGrid > 0)  { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          c1MixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c1MixActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -4830,11 +5021,27 @@ console.log(
         // CSS ::before mask (see .bubble.c1.donut::before), and --c1-gradient
         // carries the conic-gradient computed earlier.
         const c1Donut = (cssClass === 'c1' && c1DonutActive);
-        const donutStyle = c1Donut ? ` --c1-gradient: ${c1GradientVal};` : '';
+        
+        // Phase 5.48: Charge-mix outer ring for Tesla. The .mix-ring class
+        // triggers .bubble.c1.mix-ring::after which sits outside the SoC ring.
+        // --c1-mix-gradient carries the 4-segment conic, --c1-mix-gap controls
+        // how far outside the bubble border the ring sits, --c1-mix-thickness
+        // controls how thick the ring is. Independent of the SoC donut --
+        // either can be on without the other.
+        const c1MixRing = (cssClass === 'c1' && c1MixActive);
+        const c1MixGap = (this.config.consumer_1_mix_ring_gap !== undefined)
+          ? parseInt(this.config.consumer_1_mix_ring_gap, 10) : 8;
+        const c1MixThickness = (this.config.consumer_1_mix_ring_thickness !== undefined)
+          ? parseInt(this.config.consumer_1_mix_ring_thickness, 10) : 4;
+        
+        const bubbleStyle = [
+          c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
+          c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
+        ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
-                style="${donutStyle}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+                style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
                 ${subLine}
