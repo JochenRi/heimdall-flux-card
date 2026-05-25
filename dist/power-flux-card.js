@@ -3139,17 +3139,21 @@ console.log(
         transition: height 0.3s ease;
       }
       
-      /* Phase 5.18 / 5.49: optional transparent card background -- removes
-         the grey ha-card frame so the flow diagram floats on the dashboard
-         background. Phase 5.49 also forces padding/width reset and kills
-         the animation pseudo-element, in case both 'transparent_background'
-         and a stale bg_anim_style class are simultaneously present. */
+      /* Phase 5.18 / 5.50: optional transparent card background -- removes
+         the visible card frame so the flow diagram appears to float on the
+         dashboard background. ONLY visual properties (background, border,
+         box-shadow) are zeroed; the inline width/height/padding from the
+         render code stays intact so the card still reserves its proper
+         footprint in the dashboard grid.
+         
+         Pseudo-elements (::before/::after used by bg-anim) are suppressed
+         here as a belt-and-braces defence -- the render code already drops
+         the bg-anim class when transparent_background is true, but the
+         defensive CSS guards against any stale state. */
       ha-card.transparent-bg {
         background: transparent !important;
         box-shadow: none !important;
         border: none !important;
-        padding: 0 !important;
-        width: auto !important;
       }
       ha-card.transparent-bg::before,
       ha-card.transparent-bg::after {
@@ -5139,16 +5143,15 @@ console.log(
         bgAnimClass,
       ].filter(Boolean).join(' ');
 
-      // Phase 5.49: when the card background is transparent, the explicit
-      // width/padding/box-sizing scaffolding from phase 5.40-fix is not just
-      // unnecessary — it can cause a faint visible frame in some HA themes
-      // because the ha-card element still occupies a sized box in the
-      // dashboard grid. Skipping all those inline properties keeps the card
-      // a pure passthrough, identical to the upstream behaviour.
-      const isTransparent = this.config.transparent_background === true;
-      const cardSizingStyle = isTransparent
-        ? `height: auto;`
-        : `height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto;`;
+      // Phase 5.50: regardless of transparent_background, the ha-card needs
+      // to reserve the same physical footprint in the dashboard grid -- the
+      // surrounding section/grid has no idea how big the content actually
+      // is, and without an explicit size the bubbles overflow into the
+      // editor panel (or get clipped by neighbouring cards). The transparent
+      // -bg CSS class only kills the *visual* properties (background, border,
+      // shadow), not the geometry. Phase 5.49's height-auto approach was
+      // too aggressive.
+      const cardSizingStyle = `height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto;`;
 
       return html`
       <ha-card class="${haCardClasses}" style="${cardSizingStyle} --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;${bgAnimVars}">
@@ -5357,5 +5360,4 @@ window.customCards.push({
   name: "Power Flux Card",
   description: "Advanced Animated Energy Flow Card",
 });
-
 
