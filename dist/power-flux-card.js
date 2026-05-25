@@ -5158,7 +5158,12 @@ console.log(
       // max-width cap, the explicit width would push the card past the column
       // and the card would overlap neighbouring UI. The width: ${...}px stays
       // as the *preferred* size; max-width: 100% is the safety net.
-      const cardSizingStyle = `height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; max-width: 100%; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto;`;
+      // Phase 5.52: + overflow: hidden so the absolutely-positioned bubbles
+      // inside the scale-wrapper get clipped at the card's edge when the
+      // dashboard column shrinks below the preferred width. Without this,
+      // bubbles like Klima (positioned via absolute coords inside the SVG
+      // viewBox) leak past max-width and re-overlap the editor panel.
+      const cardSizingStyle = `height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; max-width: 100%; overflow: hidden; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto;`;
 
       return html`
       <ha-card class="${haCardClasses}" style="${cardSizingStyle} --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;${bgAnimVars}">
