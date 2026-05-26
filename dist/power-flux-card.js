@@ -802,9 +802,11 @@ class PowerFluxCardEditor extends LitElement {
                 // 5.67   = Consumer 3 (Trockner)
                 // 5.67.7 = Consumer 1 (Tesla)
                 // 5.67.8 = Consumer 2 (Waschen)
+                // 5.67.9 = Consumer 4 (Spüler)
                 'consumer_1_sparkline_entity',
                 'consumer_2_sparkline_entity',
-                'consumer_3_sparkline_entity'
+                'consumer_3_sparkline_entity',
+                'consumer_4_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -2849,6 +2851,101 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_rotate_daily_3 || "", 'consumer_4_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
             ${this._renderColorPicker('consumer_4_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+
+            <!-- Phase 5.67.9: Sparkline / history graph for Spüler.
+                 Default colour #eab308 (yellow, matches the bubble's
+                 default consumer-4 colour). Same control set as
+                 Tesla / Waschen / Trockner. -->
+            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
+                <ha-icon icon="mdi:chart-line-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
+                ${this._localize('editor.sparkline_title')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_4_sparkline === true}
+                    .configValue=${'consumer_4_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_sparkline_entity || "", 'consumer_4_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h",  label: "1h"  },
+                    { value: "6h",  label: "6h"  },
+                    { value: "12h", label: "12h" },
+                    { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.consumer_4_sparkline_period || '24h'}
+                .configValue=${'consumer_4_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
+                ] } }}
+                .value=${this._config.consumer_4_sparkline_layer || 'back'}
+                .configValue=${'consumer_4_sparkline_layer'}
+                .label=${this._localize('editor.sparkline_layer')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.consumer_4_sparkline_style || 'area-line'}
+                .configValue=${'consumer_4_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.consumer_4_sparkline_opacity !== undefined ? this._config.consumer_4_sparkline_opacity : 0.35}
+                .configValue=${'consumer_4_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderColorPicker('consumer_4_sparkline_color', this._localize('editor.sparkline_color'), '#eab308')}
+
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.consumer_4_sparkline_debug === true}
+                    .configValue=${'consumer_4_sparkline_debug'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
+            </div>
+
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.consumer_4_sparkline_test_mode === true}
+                    .configValue=${'consumer_4_sparkline_test_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+            </div>
         </div>
         `;
     }
@@ -5353,10 +5450,10 @@ console.log(
 
     _fetchAllSparklines() {
       if (!this.hass || !this.config) return;
-      // Phase 5.67.8: Waschen (c2) added. Roll-out order so far: 3, 1, 2.
+      // Phase 5.67.9: Spüler (c4) added. Roll-out order: 3, 1, 2, 4.
       // Each bubble is opt-in via its own consumer_X_sparkline toggle so
       // disabled bubbles cost nothing.
-      for (const idx of [1, 2, 3]) {
+      for (const idx of [1, 2, 3, 4]) {
         if (this.config[`consumer_${idx}_sparkline`] !== true) continue;
         // Phase 5.67.1: explicit per-sparkline entity override, falls back
         // to the bubble's main entity. Empty string counts as unset.
