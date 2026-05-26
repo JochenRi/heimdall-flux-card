@@ -1294,28 +1294,45 @@ console.log(
       const renderColor = testMode ? '#00ff00' : color;
       const renderFill = testMode ? '#ff00ff' : `url(#${gradId})`;
 
-      return html`
-        <div class="sparkline-wrap"
-             style="position:absolute; left:0; top:0; width:${W}px; height:${H}px;
-                    clip-path: circle(50%); -webkit-clip-path: circle(50%);
-                    z-index:${zIndex}; pointer-events:none; opacity:${opacity};
-                    overflow:hidden; border-radius:50%; ${diagnosticBorder}
-                    ${testMode ? 'background: rgba(255,255,0,0.25);' : ''}">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               width="${W}" height="${H}"
-               viewBox="0 0 ${W} ${H}"
-               style="display:block;">
-            <defs>
-              <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="${color}" stop-opacity="0.85" />
-                <stop offset="100%" stop-color="${color}" stop-opacity="0" />
-              </linearGradient>
-            </defs>
-            ${showArea ? html`<path d="${areaPath}" fill="${renderFill}" stroke="none" />` : ''}
-            ${showLine ? html`<path d="${linePath}" fill="none" stroke="${renderColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />` : ''}
-          </svg>
-        </div>
-      `;
+      // Phase 5.67.5: rewrite SVG block in the EXACT pattern used by the
+      // working _renderIcon() helpers throughout this card (e.g. solar
+      // icon at line ~1316). Three critical points:
+      //
+      // 1. NO xmlns attribute on <svg>. The working icons don't set it
+      //    and they render perfectly. HA's lit-html handles SVG namespace
+      //    automatically when the <svg> opens inside an html`` template.
+      //
+      // 2. NO nested html`` sub-templates inside <svg>. The previous
+      //    Phase 5.67.3 used ${showArea ? html`<path .../>` : ''} which
+      //    creates inner TemplateResults that fail to mount as SVG-namespace
+      //    nodes inside the outer SVG context. The yellow background
+      //    appearing without any path in 5.67.4 was the direct proof of
+      //    this failure mode -- the wrapper div rendered, the SVG tag
+      //    opened, but the inner <path> elements went into HTML namespace.
+      //
+      // 3. The entire <svg>...</svg> block is one flat inline expression
+      //    in the html`` template -- same shape as the working icons.
+      //    Conditionals are not needed in test_mode (both fill and line
+      //    are forced visible), so we always render both paths.
+
+      const wrapperStyle = [
+        `position:absolute`,
+        `left:0`,
+        `top:0`,
+        `width:${W}px`,
+        `height:${H}px`,
+        `clip-path:circle(50%)`,
+        `-webkit-clip-path:circle(50%)`,
+        `z-index:${zIndex}`,
+        `pointer-events:none`,
+        `opacity:${opacity}`,
+        `overflow:hidden`,
+        `border-radius:50%`,
+        testMode ? `background:rgba(255,255,0,0.25)` : '',
+        diagnosticBorder,
+      ].filter(Boolean).join(';');
+
+      return html`<div class="sparkline-wrap" style="${wrapperStyle}"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.85"></stop><stop offset="100%" stop-color="${color}" stop-opacity="0"></stop></linearGradient></defs><path d="${areaPath}" fill="${renderFill}" stroke="none"></path><path d="${linePath}" fill="none" stroke="${renderColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path></svg></div>`;
     }
 
     // --- SVG ICON RENDERER ---
