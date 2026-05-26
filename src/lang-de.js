@@ -324,5 +324,8 @@ export default {
     "editor.sparkline_style_arealine": "Fläche + Linie",
     "editor.sparkline_opacity": "Transparenz",
     "editor.sparkline_color": "Farbe",
+    "editor.sparkline_entity_label": "Sensor (optional)",
+    "editor.sparkline_entity_hint": "Wenn leer, wird der Hauptsensor der Bubble verwendet. Wähle einen anderen Sensor (z.B. Temperatur, Tagesverbrauch), wenn Du etwas anderes als Leistung im Verlauf sehen möchtest.",
+    "editor.sparkline_debug": "Debug-Konsolen-Ausgabe (DevTools)",
   }
 };

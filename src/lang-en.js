@@ -324,5 +324,8 @@ export default {
     "editor.sparkline_style_arealine": "Area + line",
     "editor.sparkline_opacity": "Opacity",
     "editor.sparkline_color": "Color",
+    "editor.sparkline_entity_label": "Sensor (optional)",
+    "editor.sparkline_entity_hint": "Leave empty to use the bubble's main entity. Pick a different sensor (e.g. temperature, daily total) if you want to chart something other than power.",
+    "editor.sparkline_debug": "Debug console output (DevTools)",
   }
 };

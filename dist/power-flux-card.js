@@ -329,6 +329,9 @@ const lang_de = {
     "editor.sparkline_style_arealine": "Fläche + Linie",
     "editor.sparkline_opacity": "Transparenz",
     "editor.sparkline_color": "Farbe",
+    "editor.sparkline_entity_label": "Sensor (optional)",
+    "editor.sparkline_entity_hint": "Wenn leer, wird der Hauptsensor der Bubble verwendet. Wähle einen anderen Sensor (z.B. Temperatur, Tagesverbrauch), wenn Du etwas anderes als Leistung im Verlauf sehen möchtest.",
+    "editor.sparkline_debug": "Debug-Konsolen-Ausgabe (DevTools)",
   }
 };
 const lang_en = {
@@ -657,6 +660,9 @@ const lang_en = {
     "editor.sparkline_style_arealine": "Area + line",
     "editor.sparkline_opacity": "Opacity",
     "editor.sparkline_color": "Color",
+    "editor.sparkline_entity_label": "Sensor (optional)",
+    "editor.sparkline_entity_hint": "Leave empty to use the bubble's main entity. Pick a different sensor (e.g. temperature, daily total) if you want to chart something other than power.",
+    "editor.sparkline_debug": "Debug console output (DevTools)",
   }
 };
 
@@ -788,7 +794,11 @@ class PowerFluxCardEditor extends LitElement {
                 'consumer_1_mix_pv_day', 'consumer_1_mix_pv_month', 'consumer_1_mix_pv_year',
                 'consumer_1_mix_lg_day', 'consumer_1_mix_lg_month', 'consumer_1_mix_lg_year',
                 'consumer_1_mix_venus_day', 'consumer_1_mix_venus_month', 'consumer_1_mix_venus_year',
-                'consumer_1_mix_grid_day', 'consumer_1_mix_grid_month', 'consumer_1_mix_grid_year'
+                'consumer_1_mix_grid_day', 'consumer_1_mix_grid_month', 'consumer_1_mix_grid_year',
+                // Phase 5.67.1: optional per-bubble sparkline source entity.
+                // Prototype on Consumer 3; extends to others when sparkline
+                // feature is rolled out.
+                'consumer_3_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -3150,6 +3160,15 @@ class PowerFluxCardEditor extends LitElement {
                 <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
             </div>
 
+            <!-- Phase 5.67.1: optional sensor override. Empty value =
+                 fall back to consumer_3 main entity. Allows showing any
+                 entity (e.g. temperature, total energy, status) in the
+                 background even when the main sensor is power. -->
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_sparkline_entity || "", 'consumer_3_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
+
             <ha-selector
                 .hass=${this.hass}
                 .selector=${{ select: { mode: "dropdown", options: [
@@ -3200,6 +3219,20 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-selector>
 
             ${this._renderColorPicker('consumer_3_sparkline_color', this._localize('editor.sparkline_color'), '#06b6d4')}
+
+            <!-- Phase 5.67.1: developer debug toggle. When on, the fetch
+                 helper logs URL, raw response, parsed series length and
+                 first/last point to the browser DevTools console. Use to
+                 diagnose why no chart appears (wrong sensor? empty
+                 history? auth failure?). -->
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.consumer_3_sparkline_debug === true}
+                    .configValue=${'consumer_3_sparkline_debug'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
+            </div>
         </div>
         `;
     }
@@ -5097,39 +5130,82 @@ console.log(
       // so this stays cheap until users actually enable it.
       for (const idx of [3]) {
         if (this.config[`consumer_${idx}_sparkline`] !== true) continue;
-        const entityId = this.config?.entities?.[`consumer_${idx}`];
+        // Phase 5.67.1: explicit per-sparkline entity override, falls back
+        // to the bubble's main entity. Empty string counts as unset.
+        const overrideEntity = this.config[`consumer_${idx}_sparkline_entity`];
+        const fallbackEntity = this.config?.entities?.[`consumer_${idx}`];
+        const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : fallbackEntity;
         if (!entityId) continue;
         const period = this.config[`consumer_${idx}_sparkline_period`] || '24h';
-        this._fetchSparklineHistory(entityId, period);
+        this._fetchSparklineHistory(entityId, period, idx);
       }
     }
 
-    async _fetchSparklineHistory(entityId, period) {
+    async _fetchSparklineHistory(entityId, period, idx) {
       const hoursMap = { '1h': 1, '6h': 6, '12h': 12, '24h': 24 };
       const hours = hoursMap[period] || 24;
       const end = new Date();
       const start = new Date(end.getTime() - hours * 3600 * 1000);
+      // Phase 5.67.1: debug toggle. Enable per-bubble via the editor to
+      // dump fetch results to the browser console for troubleshooting.
+      const debug = !!(idx && this.config?.[`consumer_${idx}_sparkline_debug`] === true);
       try {
+        // Phase 5.67.1: dropped &minimal_response. With minimal_response,
+        // HA omits last_changed/last_updated on most points which made
+        // every datapoint timestamp NaN and the series got filtered to
+        // nothing. Full response is larger (~tens of KB for 24h at 1-min
+        // resolution) but reliably contains timestamps on every point.
         const url = `history/period/${start.toISOString()}`
           + `?filter_entity_id=${encodeURIComponent(entityId)}`
-          + `&minimal_response`
           + `&end_time=${encodeURIComponent(end.toISOString())}`;
+        if (debug) {
+          // eslint-disable-next-line no-console
+          console.log(`[HEIMDALL Sparkline c${idx}] fetching ${entityId} period=${period} url=${url}`);
+        }
         const result = await this.hass.callApi('GET', url);
         if (!this.isConnected) return; // bail if component was removed mid-fetch
-        if (!Array.isArray(result) || !result[0]) return;
-        const series = result[0]
-          .map(p => ({
-            t: new Date(p.last_changed || p.last_updated).getTime(),
-            v: parseFloat(p.state)
-          }))
+        if (debug) {
+          // eslint-disable-next-line no-console
+          console.log(`[HEIMDALL Sparkline c${idx}] raw response:`, result);
+        }
+        if (!Array.isArray(result) || !result[0]) {
+          if (debug) console.warn(`[HEIMDALL Sparkline c${idx}] empty result for ${entityId}`);
+          return;
+        }
+        const raw = result[0];
+        const series = raw
+          .map(p => {
+            // Use whichever timestamp field is present. Recorder usually
+            // populates last_changed; some HA versions populate last_updated
+            // or last_reported instead.
+            const ts = p.last_changed || p.last_updated || p.last_reported;
+            return {
+              t: ts ? new Date(ts).getTime() : NaN,
+              v: parseFloat(p.state)
+            };
+          })
           .filter(p => !isNaN(p.v) && !isNaN(p.t));
-        if (series.length < 2) return;
+        if (debug) {
+          // eslint-disable-next-line no-console
+          console.log(
+            `[HEIMDALL Sparkline c${idx}] parsed ${series.length} points from ${raw.length} raw entries`,
+            series.length ? { first: series[0], last: series[series.length - 1] } : null
+          );
+        }
+        if (series.length < 2) {
+          if (debug) console.warn(`[HEIMDALL Sparkline c${idx}] series too short (${series.length}), need at least 2 points`);
+          return;
+        }
         this._sparklineData[entityId] = series;
         this.requestUpdate();
       } catch (e) {
-        // Silent fail: sparkline simply won't update this cycle.
-        // History API can intermittently 503 under load; next 60s tick
-        // will retry. Logging only in debug builds.
+        if (debug) {
+          // eslint-disable-next-line no-console
+          console.error(`[HEIMDALL Sparkline c${idx}] fetch failed for ${entityId}:`, e);
+        }
+        // Silent fail outside debug: sparkline simply won't update this
+        // cycle. History API can intermittently 503 under load; next 60s
+        // tick will retry.
       }
     }
 
@@ -5983,7 +6059,10 @@ console.log(
     _renderSparkline(idx) {
       if (!this.config) return html``;
       if (this.config[`consumer_${idx}_sparkline`] !== true) return html``;
-      const entityId = this.config?.entities?.[`consumer_${idx}`];
+      // Phase 5.67.1: same override/fallback logic as in _fetchAllSparklines.
+      const overrideEntity = this.config[`consumer_${idx}_sparkline_entity`];
+      const fallbackEntity = this.config?.entities?.[`consumer_${idx}`];
+      const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : fallbackEntity;
       if (!entityId) return html``;
       const data = this._sparklineData?.[entityId];
       if (!Array.isArray(data) || data.length < 2) return html``;

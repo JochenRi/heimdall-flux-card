@@ -120,7 +120,11 @@ class PowerFluxCardEditor extends LitElement {
                 'consumer_1_mix_pv_day', 'consumer_1_mix_pv_month', 'consumer_1_mix_pv_year',
                 'consumer_1_mix_lg_day', 'consumer_1_mix_lg_month', 'consumer_1_mix_lg_year',
                 'consumer_1_mix_venus_day', 'consumer_1_mix_venus_month', 'consumer_1_mix_venus_year',
-                'consumer_1_mix_grid_day', 'consumer_1_mix_grid_month', 'consumer_1_mix_grid_year'
+                'consumer_1_mix_grid_day', 'consumer_1_mix_grid_month', 'consumer_1_mix_grid_year',
+                // Phase 5.67.1: optional per-bubble sparkline source entity.
+                // Prototype on Consumer 3; extends to others when sparkline
+                // feature is rolled out.
+                'consumer_3_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -2482,6 +2486,15 @@ class PowerFluxCardEditor extends LitElement {
                 <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
             </div>
 
+            <!-- Phase 5.67.1: optional sensor override. Empty value =
+                 fall back to consumer_3 main entity. Allows showing any
+                 entity (e.g. temperature, total energy, status) in the
+                 background even when the main sensor is power. -->
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_sparkline_entity || "", 'consumer_3_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
+
             <ha-selector
                 .hass=${this.hass}
                 .selector=${{ select: { mode: "dropdown", options: [
@@ -2532,6 +2545,20 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-selector>
 
             ${this._renderColorPicker('consumer_3_sparkline_color', this._localize('editor.sparkline_color'), '#06b6d4')}
+
+            <!-- Phase 5.67.1: developer debug toggle. When on, the fetch
+                 helper logs URL, raw response, parsed series length and
+                 first/last point to the browser DevTools console. Use to
+                 diagnose why no chart appears (wrong sensor? empty
+                 history? auth failure?). -->
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.consumer_3_sparkline_debug === true}
+                    .configValue=${'consumer_3_sparkline_debug'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
+            </div>
         </div>
         `;
     }
