@@ -863,6 +863,18 @@ console.log(
           z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.64: Klima (Consumer 6) configurable donut ring.
+         Generic ratio donut: secondary_consumer_6 / consumer_6_soc_max
+         (default 30, suited to indoor temperature in °C). */
+      .bubble.c6.donut { border: none !important; background: transparent; }
+      .bubble.c6.donut.tinted { background: color-mix(in srgb, var(--pipe-consumer-6-color, var(--consumer-6-color)), transparent 85%); }
+      .bubble.c6.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--c6-gradient, var(--pipe-consumer-6-color, var(--consumer-6-color)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -2498,6 +2510,29 @@ console.log(
         }
       }
 
+      // --- Klima / Consumer 6 Configurable Donut Gradient (Phase 5.64) ---
+      // Generic ratio donut, default max=30 for indoor temperature in °C.
+      // User can override consumer_6_soc_max for humidity (100), CO2 (2000), etc.
+      let c6GradientVal = '';
+      let c6DonutActive = false;
+      
+      if (this.config.consumer_6_soc_donut_mode === true && entities.secondary_consumer_6) {
+        const rawVal = parseFloat(getVal(entities.secondary_consumer_6));
+        const socMax = parseFloat(this.config.consumer_6_soc_max);
+        const maxVal = (!isNaN(socMax) && socMax > 0) ? socMax : 30;
+        if (!isNaN(rawVal) && rawVal >= 0) {
+          const pct = Math.max(0, Math.min(100, (rawVal / maxVal) * 100));
+          const restPct = 100 - pct;
+          
+          let stops = [];
+          let current = 0;
+          if (pct > 0) { stops.push(`var(--pipe-consumer-6-color) ${current}% ${current + pct}%`); current += pct; }
+          if (restPct > 0) { stops.push(`var(--c6-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          c6GradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c6DonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -2787,6 +2822,9 @@ console.log(
         const c4MixThickness = (this.config.consumer_4_mix_ring_thickness !== undefined)
           ? parseInt(this.config.consumer_4_mix_ring_thickness, 10) : 4;
         
+        // Phase 5.64: Configurable donut for Klima (Consumer 6).
+        const c6Donut = (cssClass === 'c6' && c6DonutActive);
+        
         const bubbleStyle = [
           c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
           c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
@@ -2800,10 +2838,11 @@ console.log(
           c3MixRing ? `--c3-mix-gradient: ${c3MixGradientVal}; --c3-mix-gap: ${c3MixGap}px; --c3-mix-thickness: ${c3MixThickness}px;` : '',
           c4Donut ? `--c4-gradient: ${c4GradientVal};` : '',
           c4MixRing ? `--c4-mix-gradient: ${c4MixGradientVal}; --c4-mix-gap: ${c4MixGap}px; --c4-mix-thickness: ${c4MixThickness}px;` : '',
+          c6Donut ? `--c6-gradient: ${c6GradientVal};` : '',
         ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${c3Donut ? 'donut' : ''} ${c3MixRing ? 'mix-ring' : ''} ${c4Donut ? 'donut' : ''} ${c4MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${c3Donut ? 'donut' : ''} ${c3MixRing ? 'mix-ring' : ''} ${c4Donut ? 'donut' : ''} ${c4MixRing ? 'mix-ring' : ''} ${c6Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}

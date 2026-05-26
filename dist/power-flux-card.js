@@ -114,6 +114,10 @@ const lang_de = {
     "editor.consumer_4_mix_lg_year": "Batterie 1-Anteil Jahr (kWh)",
     "editor.consumer_4_mix_venus_year": "Batterie 2-Anteil Jahr (kWh)",
     "editor.consumer_4_mix_grid_year": "Netz-Anteil Jahr (kWh)",
+    "editor.consumer_6_donut_section": "Konfigurierbarer Donut (innerer Ring)",
+    "editor.consumer_6_donut_hint": "Zeigt den Wert des Zweitsensors als gefüllten Ring um die Bubble. Frei einsetzbar -- z.B. Innentemperatur (Max 30 °C), Luftfeuchtigkeit (Max 100 %), CO2 (Max 2000 ppm) oder anderes Fortschrittsmaß. Das Maximum legt fest, was 100% bedeutet.",
+    "editor.consumer_6_soc_donut_enable": "Donut aktivieren",
+    "editor.consumer_6_soc_max": "Maximum (= 100% Füllung)",
     "editor.consumer_1_mix_section": "Lade-Mix-Ring (äußerer Ring)",
     "editor.consumer_1_mix_hint": "Zeigt einen zweiten Ring außen um die Bubble. Der Ring teilt sich in vier Segmente auf (PV gelb / Batterie 1 lila / Batterie 2 violett / Netz rot) gewichtet nach dem Energie-Mix im gewählten Zeitraum. Sensoren bitte als Tages-/Monats-/Jahres-kWh-Werte in HEIMDALL anlegen.",
     "editor.consumer_1_mix_enable": "Lade-Mix-Ring aktivieren",
@@ -409,6 +413,10 @@ const lang_en = {
     "editor.consumer_4_mix_lg_year": "Battery 1 share year (kWh)",
     "editor.consumer_4_mix_venus_year": "Battery 2 share year (kWh)",
     "editor.consumer_4_mix_grid_year": "Grid share year (kWh)",
+    "editor.consumer_6_donut_section": "Configurable donut (inner ring)",
+    "editor.consumer_6_donut_hint": "Renders the secondary sensor value as a filled ring around the bubble. Generic use — e.g. indoor temperature (max 30 °C), humidity (max 100 %), CO2 (max 2000 ppm) or other progress indicator. Maximum defines what 100% means.",
+    "editor.consumer_6_soc_donut_enable": "Enable donut",
+    "editor.consumer_6_soc_max": "Maximum (= 100% fill)",
     "editor.consumer_1_mix_section": "Charge-mix ring (outer ring)",
     "editor.consumer_1_mix_hint": "Renders a second ring outside the bubble. Split into four segments (PV yellow / Battery 1 purple / Battery 2 violet / Grid red) weighted by the energy mix in the chosen period. Provide daily/monthly/yearly kWh sensors via HEIMDALL.",
     "editor.consumer_1_mix_enable": "Enable charge-mix ring",
@@ -2176,6 +2184,169 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities[`secondary_consumer_${idx}`] || "", `secondary_consumer_${idx}`, this._localize('editor.secondary_sensor'))}
 
             ${this._renderColorPickerQuint(`color_consumer_${idx}`, `color_pipe_consumer_${idx}`, `color_text_consumer_${idx}`, `color_icon_consumer_${idx}`, `color_secondary_consumer_${idx}`, defaultColor)}
+        </div>
+        `;
+    }
+
+    // Phase 5.64: dedicated sub-view for Klima (Consumer 6) -- seventh and
+    // final bubble with full feature parity. Default donut max = 30 (°C)
+    // suitable for indoor temperature. User can override consumer_6_soc_max
+    // for humidity (max=100), CO2 (max=2000), or any other ratio metric.
+    // Rotation (phase 5.65) and charge-mix ring (phase 5.66) follow.
+    _renderConsumer6View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._consumerMenuLabel(6)}</h2>
+        </div>
+
+        <div class="consumer-group">
+            <div class="consumer-title" style="color: #14b8a6;">${this._localize('editor.consumer_6_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_6_enabled !== false}
+                    .configValue=${'consumer_6_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6, 'consumer_6', this._localize('editor.entity'))}
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${textSelectorSchema}
+                .value=${this._config.consumer_6_label}
+                .configValue=${'consumer_6_label'}
+                .label=${this._localize('editor.label')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${iconSelectorSchema}
+                .value=${this._config.consumer_6_icon}
+                .configValue=${'consumer_6_icon'}
+                .label=${this._localize('editor.icon')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.invert_consumer')}</span>
+                <ha-switch
+                    .checked=${this._config.invert_consumer_6 === true}
+                    .configValue=${'invert_consumer_6'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.consumer_hide_pipe')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_6_hide_pipe === true}
+                    .configValue=${'consumer_6_hide_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            ${this._config.consumer_6_hide_pipe === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
+                .value=${this._config.consumer_6_pipe_threshold !== undefined ? this._config.consumer_6_pipe_threshold : 0}
+                .configValue=${'consumer_6_pipe_threshold'}
+                .label=${this._localize('editor.consumer_pipe_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_unit_kw')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_6_unit_kw === true}
+                    .configValue=${'consumer_6_unit_kw'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_power')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_6_show_power !== false}
+                    .configValue=${'consumer_6_show_power'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_consumer_6 === true}
+                    .configValue=${'show_flow_rate_consumer_6'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_6_label_offset_x !== undefined ? this._config.consumer_6_label_offset_x : 0}
+                .configValue=${'consumer_6_label_offset_x'}
+                .label=${this._localize('editor.consumer_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_6_label_offset_y !== undefined ? this._config.consumer_6_label_offset_y : -25}
+                .configValue=${'consumer_6_label_offset_y'}
+                .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_6_animation_threshold !== undefined ? this._config.consumer_6_animation_threshold : 0}
+                .configValue=${'consumer_6_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_6 || "", 'secondary_consumer_6', this._localize('editor.secondary_sensor'))}
+
+            ${this._renderColorPickerQuint('color_consumer_6', 'color_pipe_consumer_6', 'color_text_consumer_6', 'color_icon_consumer_6', 'color_secondary_consumer_6', '#14b8a6')}
+
+            <!-- Phase 5.64: configurable donut for Klima -->
+            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
+                <ha-icon icon="mdi:donut-small" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
+                ${this._localize('editor.consumer_6_donut_section')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_6_donut_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_6_soc_donut_mode === true}
+                    .configValue=${'consumer_6_soc_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_6_soc_donut_enable')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
+                .value=${this._config.consumer_6_soc_max !== undefined ? this._config.consumer_6_soc_max : 30}
+                .configValue=${'consumer_6_soc_max'}
+                .label=${this._localize('editor.consumer_6_soc_max')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
         </div>
         `;
     }
@@ -4017,7 +4188,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'consumer_3') return this._renderConsumer3View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_4') return this._renderConsumer4View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_5') return this._renderConsumer5View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
-        if (this._subView === 'consumer_6') return this._renderConsumerNView(6, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'consumer_6') return this._renderConsumer6View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_7') return this._renderConsumer7View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'donut') return this._renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
@@ -5303,6 +5474,18 @@ console.log(
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;
           z-index: -1; pointer-events: none;
+      }
+      
+      /* Phase 5.64: Klima (Consumer 6) configurable donut ring.
+         Generic ratio donut: secondary_consumer_6 / consumer_6_soc_max
+         (default 30, suited to indoor temperature in °C). */
+      .bubble.c6.donut { border: none !important; background: transparent; }
+      .bubble.c6.donut.tinted { background: color-mix(in srgb, var(--pipe-consumer-6-color, var(--consumer-6-color)), transparent 85%); }
+      .bubble.c6.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--c6-gradient, var(--pipe-consumer-6-color, var(--consumer-6-color)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
       .icon-svg, .icon-custom {
@@ -6940,6 +7123,29 @@ console.log(
         }
       }
 
+      // --- Klima / Consumer 6 Configurable Donut Gradient (Phase 5.64) ---
+      // Generic ratio donut, default max=30 for indoor temperature in °C.
+      // User can override consumer_6_soc_max for humidity (100), CO2 (2000), etc.
+      let c6GradientVal = '';
+      let c6DonutActive = false;
+      
+      if (this.config.consumer_6_soc_donut_mode === true && entities.secondary_consumer_6) {
+        const rawVal = parseFloat(getVal(entities.secondary_consumer_6));
+        const socMax = parseFloat(this.config.consumer_6_soc_max);
+        const maxVal = (!isNaN(socMax) && socMax > 0) ? socMax : 30;
+        if (!isNaN(rawVal) && rawVal >= 0) {
+          const pct = Math.max(0, Math.min(100, (rawVal / maxVal) * 100));
+          const restPct = 100 - pct;
+          
+          let stops = [];
+          let current = 0;
+          if (pct > 0) { stops.push(`var(--pipe-consumer-6-color) ${current}% ${current + pct}%`); current += pct; }
+          if (restPct > 0) { stops.push(`var(--c6-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          c6GradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c6DonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -7229,6 +7435,9 @@ console.log(
         const c4MixThickness = (this.config.consumer_4_mix_ring_thickness !== undefined)
           ? parseInt(this.config.consumer_4_mix_ring_thickness, 10) : 4;
         
+        // Phase 5.64: Configurable donut for Klima (Consumer 6).
+        const c6Donut = (cssClass === 'c6' && c6DonutActive);
+        
         const bubbleStyle = [
           c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
           c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
@@ -7242,10 +7451,11 @@ console.log(
           c3MixRing ? `--c3-mix-gradient: ${c3MixGradientVal}; --c3-mix-gap: ${c3MixGap}px; --c3-mix-thickness: ${c3MixThickness}px;` : '',
           c4Donut ? `--c4-gradient: ${c4GradientVal};` : '',
           c4MixRing ? `--c4-mix-gradient: ${c4MixGradientVal}; --c4-mix-gap: ${c4MixGap}px; --c4-mix-thickness: ${c4MixThickness}px;` : '',
+          c6Donut ? `--c6-gradient: ${c6GradientVal};` : '',
         ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${c3Donut ? 'donut' : ''} ${c3MixRing ? 'mix-ring' : ''} ${c4Donut ? 'donut' : ''} ${c4MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${c3Donut ? 'donut' : ''} ${c3MixRing ? 'mix-ring' : ''} ${c4Donut ? 'donut' : ''} ${c4MixRing ? 'mix-ring' : ''} ${c6Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
