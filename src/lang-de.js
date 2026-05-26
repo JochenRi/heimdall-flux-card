@@ -327,5 +327,6 @@ export default {
     "editor.sparkline_entity_label": "Sensor (optional)",
     "editor.sparkline_entity_hint": "Wenn leer, wird der Hauptsensor der Bubble verwendet. Wähle einen anderen Sensor (z.B. Temperatur, Tagesverbrauch), wenn Du etwas anderes als Leistung im Verlauf sehen möchtest.",
     "editor.sparkline_debug": "Debug-Konsolen-Ausgabe (DevTools)",
+    "editor.sparkline_test_mode": "Test-Modus (synthetische Sinus-Daten)",
   }
 };

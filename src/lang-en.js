@@ -327,5 +327,6 @@ export default {
     "editor.sparkline_entity_label": "Sensor (optional)",
     "editor.sparkline_entity_hint": "Leave empty to use the bubble's main entity. Pick a different sensor (e.g. temperature, daily total) if you want to chart something other than power.",
     "editor.sparkline_debug": "Debug console output (DevTools)",
+    "editor.sparkline_test_mode": "Test mode (synthetic sine data)",
   }
 };

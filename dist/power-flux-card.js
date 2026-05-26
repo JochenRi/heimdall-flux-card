@@ -332,6 +332,7 @@ const lang_de = {
     "editor.sparkline_entity_label": "Sensor (optional)",
     "editor.sparkline_entity_hint": "Wenn leer, wird der Hauptsensor der Bubble verwendet. Wähle einen anderen Sensor (z.B. Temperatur, Tagesverbrauch), wenn Du etwas anderes als Leistung im Verlauf sehen möchtest.",
     "editor.sparkline_debug": "Debug-Konsolen-Ausgabe (DevTools)",
+    "editor.sparkline_test_mode": "Test-Modus (synthetische Sinus-Daten)",
   }
 };
 const lang_en = {
@@ -663,6 +664,7 @@ const lang_en = {
     "editor.sparkline_entity_label": "Sensor (optional)",
     "editor.sparkline_entity_hint": "Leave empty to use the bubble's main entity. Pick a different sensor (e.g. temperature, daily total) if you want to chart something other than power.",
     "editor.sparkline_debug": "Debug console output (DevTools)",
+    "editor.sparkline_test_mode": "Test mode (synthetic sine data)",
   }
 };
 
@@ -3233,6 +3235,20 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
             </div>
+
+            <!-- Phase 5.67.2: test-mode toggle. Replaces the live history
+                 fetch with a synthetic sine wave so the render pipeline can
+                 be verified in isolation. If you enable this and see a
+                 smooth curve in the bubble, the rendering works -- any
+                 real-mode failure is then about data fetching, not display. -->
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.consumer_3_sparkline_test_mode === true}
+                    .configValue=${'consumer_3_sparkline_test_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+            </div>
         </div>
         `;
     }
@@ -5078,13 +5094,17 @@ console.log(
       if (this._rotationTimer && prevInterval !== config.rotation_interval_sec) {
         this._startRotationTimer();
       }
-      // Phase 5.67: when sparkline config changes (toggle on, period change,
+      // Phase 5.67.2: when sparkline config changes (toggle on, period change,
       // entity change) trigger an immediate fetch so the user sees the
-      // result without waiting up to 60s. Only meaningful once firstUpdated
-      // has run; setConfig before firstUpdated is handled by the initial
-      // fetch inside _startSparklineTimer().
+      // result without waiting up to 60s. If the timer is already running,
+      // just refetch. If hass arrived during setConfig (rare but possible),
+      // _ensureSparklineInit() will handle the first-time init from updated().
       if (this._sparklineTimer) {
         this._fetchAllSparklines();
+      } else if (this.hass && !this._sparklineInitDone) {
+        // Edge case: setConfig called after hass was set but before
+        // updated() got a chance to run -- start the timer here too.
+        this._ensureSparklineInit();
       }
     }
 
@@ -5104,12 +5124,27 @@ console.log(
       this._rotationTick = 0;
       this._startRotationTimer();
 
-      // Phase 5.67: per-bubble sparkline history. _sparklineData holds the
-      // raw {t,v} time series per entity. We refresh every 60s in the
-      // background; render reads whatever is currently in the cache. First
-      // call is fired immediately so the chart appears as soon as data
-      // arrives.
+      // Phase 5.67.2: sparkline initialisation moved to updated() so it
+      // only kicks off after hass is reliably populated. firstUpdated()
+      // can fire before hass arrives, which previously caused the first
+      // fetch to be silently dropped (the guard `if (!this.hass) return;`
+      // bailed out and the next attempt was 60s later). This is the same
+      // race condition that mini-graph-card hit in HA 0.110+ -- see
+      // kalkih/mini-graph-card#358. Their fix uses a `set hass()` setter
+      // with a 1000ms setTimeout. We can't easily add a setter because
+      // `hass` is a Lit reactive property in this card (changing that
+      // would impact all 66 prior phases), so we use the equivalent Lit
+      // lifecycle hook: `updated(changedProperties)`. See _ensureSparklineInit().
       this._sparklineData = {};
+    }
+
+    _ensureSparklineInit() {
+      // Phase 5.67.2: idempotent initialiser. Called from updated() every
+      // time hass changes; the latch flag _sparklineInitDone makes sure we
+      // only set up the 60s interval and fire the first fetch once.
+      if (this._sparklineInitDone) return;
+      if (!this.hass) return; // updated() called with no hass yet
+      this._sparklineInitDone = true;
       this._startSparklineTimer();
     }
 
@@ -5136,9 +5171,41 @@ console.log(
         const fallbackEntity = this.config?.entities?.[`consumer_${idx}`];
         const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : fallbackEntity;
         if (!entityId) continue;
+        // Phase 5.67.2: test_mode synthesises a sine-wave time series
+        // WITHOUT calling the HA history API. This isolates the render
+        // pipeline from the fetch pipeline -- if the graph shows up in
+        // test_mode but not in live mode, the bug is in fetching; if it
+        // doesn't show even in test_mode, the bug is in rendering/CSS.
+        if (this.config[`consumer_${idx}_sparkline_test_mode`] === true) {
+          this._generateTestSparkline(entityId, idx);
+          continue;
+        }
         const period = this.config[`consumer_${idx}_sparkline_period`] || '24h';
         this._fetchSparklineHistory(entityId, period, idx);
       }
+    }
+
+    _generateTestSparkline(entityId, idx) {
+      // Phase 5.67.2: deterministic synthetic data. 60 points spanning the
+      // configured period, sine-wave between 100 and 900 W. This is purely
+      // a diagnostic helper -- when the user enables test_mode they should
+      // see a smooth sine curve immediately. If they do, the render path
+      // works and any subsequent rendering failure in live mode is data-related.
+      const hoursMap = { '1h': 1, '6h': 6, '12h': 12, '24h': 24 };
+      const period = this.config[`consumer_${idx}_sparkline_period`] || '24h';
+      const hours = hoursMap[period] || 24;
+      const end = Date.now();
+      const start = end - hours * 3600 * 1000;
+      const N = 60;
+      const series = [];
+      for (let i = 0; i < N; i++) {
+        const t = start + (i / (N - 1)) * (end - start);
+        const phase = (i / N) * Math.PI * 4; // two full cycles
+        const v = 500 + 400 * Math.sin(phase); // 100..900 W
+        series.push({ t, v });
+      }
+      this._sparklineData[entityId] = series;
+      this.requestUpdate();
     }
 
     async _fetchSparklineHistory(entityId, period, idx) {
@@ -5258,6 +5325,12 @@ console.log(
         } else {
           this.setAttribute('data-theme-light', '');
         }
+        // Phase 5.67.2: kick off the sparkline timer once we have hass.
+        // This is the bulletproof trigger -- updated() with changedProps.has('hass')
+        // is guaranteed to fire whenever hass becomes available, regardless of
+        // whether that happens before or after firstUpdated(). Latched so the
+        // 60s interval is only set up once. Reference: lit.dev/docs/components/lifecycle.
+        this._ensureSparklineInit();
       }
       // Apply custom colors from config
       if (this.config) {

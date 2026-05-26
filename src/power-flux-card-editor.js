@@ -2559,6 +2559,20 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
             </div>
+
+            <!-- Phase 5.67.2: test-mode toggle. Replaces the live history
+                 fetch with a synthetic sine wave so the render pipeline can
+                 be verified in isolation. If you enable this and see a
+                 smooth curve in the bubble, the rendering works -- any
+                 real-mode failure is then about data fetching, not display. -->
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.consumer_3_sparkline_test_mode === true}
+                    .configValue=${'consumer_3_sparkline_test_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+            </div>
         </div>
         `;
     }
