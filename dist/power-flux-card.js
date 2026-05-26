@@ -315,6 +315,20 @@ const lang_de = {
     "card.label_pool": "Pool",
     "card.label_consumer_4": "Verbr. 4",
     "card.label_consumer_5": "Verbr. 5",
+    "editor.sparkline_title": "Sparkline (Verlauf im Hintergrund)",
+    "editor.sparkline_hint": "Zeigt den historischen Leistungsverlauf als Mini-Diagramm im Hintergrund der Bubble. Daten kommen aus der HA-History (Refresh alle 60 Sek.).",
+    "editor.sparkline_enabled": "Sparkline aktivieren",
+    "editor.sparkline_period": "Zeitraum",
+    "editor.sparkline_layer": "Ebene (Z-Order)",
+    "editor.sparkline_layer_back": "Ganz hinten (hinter Donut)",
+    "editor.sparkline_layer_mid": "Mittlere Ebene",
+    "editor.sparkline_layer_front": "Ganz vorne (über Text)",
+    "editor.sparkline_style": "Darstellung",
+    "editor.sparkline_style_area": "Nur Fläche",
+    "editor.sparkline_style_line": "Nur Linie",
+    "editor.sparkline_style_arealine": "Fläche + Linie",
+    "editor.sparkline_opacity": "Transparenz",
+    "editor.sparkline_color": "Farbe",
   }
 };
 const lang_en = {
@@ -629,6 +643,20 @@ const lang_en = {
     "card.label_pool": "Pool",
     "card.label_consumer_4": "Cons. 4",
     "card.label_consumer_5": "Cons. 5",
+    "editor.sparkline_title": "Sparkline (Background history graph)",
+    "editor.sparkline_hint": "Shows the historical power trace as a mini chart in the bubble background. Data is pulled from HA history (refresh every 60 s).",
+    "editor.sparkline_enabled": "Enable sparkline",
+    "editor.sparkline_period": "Time window",
+    "editor.sparkline_layer": "Layer (z-order)",
+    "editor.sparkline_layer_back": "Back (behind donut)",
+    "editor.sparkline_layer_mid": "Middle",
+    "editor.sparkline_layer_front": "Front (above text)",
+    "editor.sparkline_style": "Style",
+    "editor.sparkline_style_area": "Area only",
+    "editor.sparkline_style_line": "Line only",
+    "editor.sparkline_style_arealine": "Area + line",
+    "editor.sparkline_opacity": "Opacity",
+    "editor.sparkline_color": "Color",
   }
 };
 
@@ -3101,6 +3129,77 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_rotate_daily_3 || "", 'consumer_3_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
             ${this._renderColorPicker('consumer_3_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+
+            <!-- Phase 5.67: Sparkline / history graph in bubble background.
+                 Prototype on Trockner first; if visually convincing,
+                 replicate to all 7 consumer bubbles in follow-up phases. -->
+            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
+                <ha-icon icon="mdi:chart-line-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
+                ${this._localize('editor.sparkline_title')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_3_sparkline === true}
+                    .configValue=${'consumer_3_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h",  label: "1h"  },
+                    { value: "6h",  label: "6h"  },
+                    { value: "12h", label: "12h" },
+                    { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.consumer_3_sparkline_period || '24h'}
+                .configValue=${'consumer_3_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
+                ] } }}
+                .value=${this._config.consumer_3_sparkline_layer || 'back'}
+                .configValue=${'consumer_3_sparkline_layer'}
+                .label=${this._localize('editor.sparkline_layer')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.consumer_3_sparkline_style || 'area-line'}
+                .configValue=${'consumer_3_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.consumer_3_sparkline_opacity !== undefined ? this._config.consumer_3_sparkline_opacity : 0.35}
+                .configValue=${'consumer_3_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderColorPicker('consumer_3_sparkline_color', this._localize('editor.sparkline_color'), '#06b6d4')}
         </div>
         `;
     }
@@ -4946,6 +5045,14 @@ console.log(
       if (this._rotationTimer && prevInterval !== config.rotation_interval_sec) {
         this._startRotationTimer();
       }
+      // Phase 5.67: when sparkline config changes (toggle on, period change,
+      // entity change) trigger an immediate fetch so the user sees the
+      // result without waiting up to 60s. Only meaningful once firstUpdated
+      // has run; setConfig before firstUpdated is handled by the initial
+      // fetch inside _startSparklineTimer().
+      if (this._sparklineTimer) {
+        this._fetchAllSparklines();
+      }
     }
 
     firstUpdated() {
@@ -4963,6 +5070,78 @@ console.log(
       // current slot. The interval is rebuilt on config change.
       this._rotationTick = 0;
       this._startRotationTimer();
+
+      // Phase 5.67: per-bubble sparkline history. _sparklineData holds the
+      // raw {t,v} time series per entity. We refresh every 60s in the
+      // background; render reads whatever is currently in the cache. First
+      // call is fired immediately so the chart appears as soon as data
+      // arrives.
+      this._sparklineData = {};
+      this._startSparklineTimer();
+    }
+
+    _startSparklineTimer() {
+      if (this._sparklineTimer) {
+        clearInterval(this._sparklineTimer);
+        this._sparklineTimer = null;
+      }
+      this._fetchAllSparklines();
+      this._sparklineTimer = setInterval(() => this._fetchAllSparklines(), 60000);
+    }
+
+    _fetchAllSparklines() {
+      if (!this.hass || !this.config) return;
+      // Phase 5.67 prototype: only Trockner (Consumer 3). When this proves
+      // out visually, the loop will be extended to all 7 consumer bubbles
+      // and the 4 source bubbles. Each one is opt-in via its own toggle
+      // so this stays cheap until users actually enable it.
+      for (const idx of [3]) {
+        if (this.config[`consumer_${idx}_sparkline`] !== true) continue;
+        const entityId = this.config?.entities?.[`consumer_${idx}`];
+        if (!entityId) continue;
+        const period = this.config[`consumer_${idx}_sparkline_period`] || '24h';
+        this._fetchSparklineHistory(entityId, period);
+      }
+    }
+
+    async _fetchSparklineHistory(entityId, period) {
+      const hoursMap = { '1h': 1, '6h': 6, '12h': 12, '24h': 24 };
+      const hours = hoursMap[period] || 24;
+      const end = new Date();
+      const start = new Date(end.getTime() - hours * 3600 * 1000);
+      try {
+        const url = `history/period/${start.toISOString()}`
+          + `?filter_entity_id=${encodeURIComponent(entityId)}`
+          + `&minimal_response`
+          + `&end_time=${encodeURIComponent(end.toISOString())}`;
+        const result = await this.hass.callApi('GET', url);
+        if (!this.isConnected) return; // bail if component was removed mid-fetch
+        if (!Array.isArray(result) || !result[0]) return;
+        const series = result[0]
+          .map(p => ({
+            t: new Date(p.last_changed || p.last_updated).getTime(),
+            v: parseFloat(p.state)
+          }))
+          .filter(p => !isNaN(p.v) && !isNaN(p.t));
+        if (series.length < 2) return;
+        this._sparklineData[entityId] = series;
+        this.requestUpdate();
+      } catch (e) {
+        // Silent fail: sparkline simply won't update this cycle.
+        // History API can intermittently 503 under load; next 60s tick
+        // will retry. Logging only in debug builds.
+      }
+    }
+
+    _downsampleSparkline(data, maxPoints) {
+      if (!Array.isArray(data) || data.length <= maxPoints) return data;
+      const step = data.length / maxPoints;
+      const out = [];
+      for (let i = 0; i < maxPoints; i++) {
+        out.push(data[Math.floor(i * step)]);
+      }
+      out.push(data[data.length - 1]);
+      return out;
     }
     
     _startRotationTimer() {
@@ -4981,6 +5160,13 @@ console.log(
       if (this._rotationTimer) {
         clearInterval(this._rotationTimer);
         this._rotationTimer = null;
+      }
+      // Phase 5.67: stop sparkline refresh polling on detach to avoid
+      // leaking timers when the dashboard tab is switched or the card
+      // is removed.
+      if (this._sparklineTimer) {
+        clearInterval(this._sparklineTimer);
+        this._sparklineTimer = null;
       }
       if (this._resizeObserver) {
         this._resizeObserver.disconnect();
@@ -5784,6 +5970,78 @@ console.log(
       .text-consumer-6 { fill: var(--pipe-consumer-6-color); }
       .text-consumer-7 { fill: var(--pipe-consumer-7-color); }
     `;
+    }
+
+    // --- SPARKLINE RENDERER (Phase 5.67) ---
+    // Returns an SVG with an area/line chart of the recent history of the
+    // entity tied to consumer index `idx`. Sits inside the .bubble div as
+    // an absolutely positioned child. Layer z-index is configurable so the
+    // sparkline can render behind the donut, between donut and text, or
+    // (rarely) in front of the text. The SVG has its own circular clipPath
+    // so the chart respects the bubble shape even when the bubble has
+    // overflow:visible (which .mix-ring sets on bubbles with a mix-ring).
+    _renderSparkline(idx) {
+      if (!this.config) return html``;
+      if (this.config[`consumer_${idx}_sparkline`] !== true) return html``;
+      const entityId = this.config?.entities?.[`consumer_${idx}`];
+      if (!entityId) return html``;
+      const data = this._sparklineData?.[entityId];
+      if (!Array.isArray(data) || data.length < 2) return html``;
+
+      const opacityRaw = this.config[`consumer_${idx}_sparkline_opacity`];
+      const opacity = (opacityRaw === undefined || opacityRaw === null)
+        ? 0.35 : Math.max(0.05, Math.min(1, parseFloat(opacityRaw)));
+      const style = this.config[`consumer_${idx}_sparkline_style`] || 'area-line';
+      const layer = this.config[`consumer_${idx}_sparkline_layer`] || 'back';
+      const color = this.config[`consumer_${idx}_sparkline_color`]
+        || this._getConsumerColor?.(idx) || 'var(--consumer-' + idx + '-color)';
+
+      // Layer mapping: donut ::before is z-index:-1, bubble content is
+      // z-index:2. 'back' = 0 (above donut, below content), 'mid' = 1,
+      // 'front' = 3 (above content -- intrusive but available).
+      const zIndex = layer === 'front' ? 3 : layer === 'mid' ? 1 : 0;
+
+      // Downsample to keep path simple. 60 points across the bubble is
+      // plenty visually; rendering 1000+ points each frame would burn cpu.
+      const downsampled = this._downsampleSparkline(data, 60);
+      const W = 90, H = 90; // logical viewBox; bubble scales it via preserveAspectRatio:none
+      const tMin = downsampled[0].t;
+      const tMax = downsampled[downsampled.length - 1].t;
+      const tSpan = (tMax - tMin) || 1;
+      const vMaxRaw = Math.max(...downsampled.map(p => p.v), 0);
+      const vMax = (vMaxRaw <= 0) ? 1 : vMaxRaw * 1.1; // 10% headroom
+      const xy = downsampled.map(p => [
+        ((p.t - tMin) / tSpan) * W,
+        H - (Math.max(0, p.v) / vMax) * H
+      ]);
+      const linePath = xy.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+      const areaPath = `${linePath} L${W},${H} L0,${H} Z`;
+
+      const clipId = `sparkline-clip-c${idx}`;
+      const gradId = `sparkline-grad-c${idx}`;
+      const showArea = (style === 'area' || style === 'area-line');
+      const showLine = (style === 'line' || style === 'area-line');
+
+      return html`
+        <svg class="sparkline-svg sparkline-c${idx}"
+             viewBox="0 0 ${W} ${H}"
+             preserveAspectRatio="none"
+             style="position:absolute; inset:0; width:100%; height:100%; z-index:${zIndex}; pointer-events:none; opacity:${opacity};">
+          <defs>
+            <clipPath id="${clipId}">
+              <circle cx="${W / 2}" cy="${H / 2}" r="${W / 2 - 2}" />
+            </clipPath>
+            <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${color}" stop-opacity="0.85" />
+              <stop offset="100%" stop-color="${color}" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <g clip-path="url(#${clipId})">
+            ${showArea ? html`<path d="${areaPath}" fill="url(#${gradId})" stroke="none" />` : ''}
+            ${showLine ? html`<path d="${linePath}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" />` : ''}
+          </g>
+        </svg>
+      `;
     }
 
     // --- SVG ICON RENDERER ---
@@ -7677,10 +7935,19 @@ console.log(
           c6MixRing ? `--c6-mix-gradient: ${c6MixGradientVal}; --c6-mix-gap: ${c6MixGap}px; --c6-mix-thickness: ${c6MixThickness}px;` : '',
         ].filter(Boolean).join(' ');
 
+        // Phase 5.67: per-bubble sparkline. Renders nothing unless the
+        // toggle for this bubble's index is on. cssClass is 'c1'..'c7';
+        // strip the leading 'c' to get the numeric index.
+        const consumerIdx = parseInt(cssClass.replace('c', ''), 10);
+        const sparklineSvg = (consumerIdx >= 1 && consumerIdx <= 7)
+          ? this._renderSparkline(consumerIdx)
+          : html``;
+
         return html`
             <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${c3Donut ? 'donut' : ''} ${c3MixRing ? 'mix-ring' : ''} ${c4Donut ? 'donut' : ''} ${c4MixRing ? 'mix-ring' : ''} ${c6Donut ? 'donut' : ''} ${c6MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
+                ${sparklineSvg}
                 ${iconContent}
                 ${subLine}
                 <div class="value ${hasAnyRotationSlot ? 'rotating-value' : ''}" style="${bigValueStyle}">${bigValue}</div>
