@@ -6146,17 +6146,24 @@ console.log(
       const style = this.config[`consumer_${idx}_sparkline_style`] || 'area-line';
       const layer = this.config[`consumer_${idx}_sparkline_layer`] || 'back';
       const color = this.config[`consumer_${idx}_sparkline_color`]
-        || this._getConsumerColor?.(idx) || 'var(--consumer-' + idx + '-color)';
+        || this._getConsumerColor?.(idx) || `var(--consumer-${idx}-color)`;
 
-      // Layer mapping: donut ::before is z-index:-1, bubble content is
-      // z-index:2. 'back' = 0 (above donut, below content), 'mid' = 1,
-      // 'front' = 3 (above content -- intrusive but available).
-      const zIndex = layer === 'front' ? 3 : layer === 'mid' ? 1 : 0;
+      // Phase 5.67.3: layer z-index. Bubble itself is z-index:2 (see .bubble CSS).
+      // Donut ::before sits at z-index:-1. We want the sparkline as a visible
+      // background INSIDE the bubble, behind the icon/value but above the donut
+      // mask. 'back' = 1 (above donut, below text+icon). 'mid' = 2 (same as
+      // bubble base, alongside icon). 'front' = 3 (above text -- intrusive).
+      const zIndex = layer === 'front' ? 3 : layer === 'mid' ? 2 : 1;
 
       // Downsample to keep path simple. 60 points across the bubble is
       // plenty visually; rendering 1000+ points each frame would burn cpu.
       const downsampled = this._downsampleSparkline(data, 60);
-      const W = 90, H = 90; // logical viewBox; bubble scales it via preserveAspectRatio:none
+      // Phase 5.67.3: use the actual bubble size in pixels rather than viewBox
+      // units. The bubble is square with side = bubble_size (default 90px,
+      // here 104px). Drawing in real pixels removes the viewBox->CSS coordinate
+      // translation that can fail silently when the parent is absolute-positioned.
+      const size = parseInt(this.config.bubble_size || 90, 10);
+      const W = size, H = size;
       const tMin = downsampled[0].t;
       const tMax = downsampled[downsampled.length - 1].t;
       const tSpan = (tMax - tMin) || 1;
@@ -6169,30 +6176,61 @@ console.log(
       const linePath = xy.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
       const areaPath = `${linePath} L${W},${H} L0,${H} Z`;
 
-      const clipId = `sparkline-clip-c${idx}`;
-      const gradId = `sparkline-grad-c${idx}`;
       const showArea = (style === 'area' || style === 'area-line');
       const showLine = (style === 'line' || style === 'area-line');
 
+      // Phase 5.67.3: wrapper div with CSS clip-path: circle(50%). This is
+      // the Baseline-supported method (MDN, all major browsers since 2017).
+      // Avoids the SVG-internal <clipPath id="..."> + url(#id) pattern which
+      // can fail to resolve inside Shadow DOM in some browser/HA combinations.
+      // Reference: developer.mozilla.org/en-US/docs/Web/CSS/clip-path.
+      //
+      // The wrapper sits absolutely positioned over the bubble interior, with
+      // fixed pixel dimensions that exactly match the bubble. clip-path on the
+      // wrapper crops the SVG to a perfect circle that respects the bubble's
+      // border-radius:50%.
+      //
+      // The SVG uses explicit width/height attributes (not %), and an explicit
+      // xmlns attribute. lit-html renders this as a real <svg> namespace
+      // element inside the HTML template.
+      //
+      // For diagnostic visibility during development, opacity is preserved
+      // from config. The gradient ID is per-bubble-instance unique to avoid
+      // any chance of cross-bubble clashes.
+      const gradId = `sparkline-grad-c${idx}-${Math.floor(tMax)}`;
+
+      // Phase 5.67.3: visible diagnostic marker in test-mode. When test_mode
+      // is on, render a thick red border around the sparkline wrapper so the
+      // user can SEE whether the wrapper landed in the DOM. This is the final
+      // diagnostic step: if you see the red border, the DOM is correct and any
+      // graph-invisibility is a clip-path / path-coordinate issue. If you don't
+      // see the red border, the bubble itself is hiding the wrapper (z-index,
+      // overflow, or some specificity collision in CSS).
+      const testMode = this.config[`consumer_${idx}_sparkline_test_mode`] === true;
+      const diagnosticBorder = testMode
+        ? `outline: 3px dashed red; outline-offset: -3px;`
+        : '';
+
       return html`
-        <svg class="sparkline-svg sparkline-c${idx}"
-             viewBox="0 0 ${W} ${H}"
-             preserveAspectRatio="none"
-             style="position:absolute; inset:0; width:100%; height:100%; z-index:${zIndex}; pointer-events:none; opacity:${opacity};">
-          <defs>
-            <clipPath id="${clipId}">
-              <circle cx="${W / 2}" cy="${H / 2}" r="${W / 2 - 2}" />
-            </clipPath>
-            <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="${color}" stop-opacity="0.85" />
-              <stop offset="100%" stop-color="${color}" stop-opacity="0" />
-            </linearGradient>
-          </defs>
-          <g clip-path="url(#${clipId})">
+        <div class="sparkline-wrap"
+             style="position:absolute; left:0; top:0; width:${W}px; height:${H}px;
+                    clip-path: circle(50%); -webkit-clip-path: circle(50%);
+                    z-index:${zIndex}; pointer-events:none; opacity:${opacity};
+                    overflow:hidden; border-radius:50%; ${diagnosticBorder}">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="${W}" height="${H}"
+               viewBox="0 0 ${W} ${H}"
+               style="display:block;">
+            <defs>
+              <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${color}" stop-opacity="0.85" />
+                <stop offset="100%" stop-color="${color}" stop-opacity="0" />
+              </linearGradient>
+            </defs>
             ${showArea ? html`<path d="${areaPath}" fill="url(#${gradId})" stroke="none" />` : ''}
             ${showLine ? html`<path d="${linePath}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" />` : ''}
-          </g>
-        </svg>
+          </svg>
+        </div>
       `;
     }
 
