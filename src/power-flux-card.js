@@ -1285,12 +1285,22 @@ console.log(
         ? `outline: 3px dashed red; outline-offset: -3px;`
         : '';
 
+      // Phase 5.67.4: in test mode, FORCE the stroke colour to bright lime
+      // green and the fill colour to bright magenta. This bypasses any
+      // chance that the user-configured colour resolves to transparent
+      // (empty colour picker, undefined CSS variable). If the path uses
+      // a known-good colour and is still invisible, the issue is NOT
+      // colour-related.
+      const renderColor = testMode ? '#00ff00' : color;
+      const renderFill = testMode ? '#ff00ff' : `url(#${gradId})`;
+
       return html`
         <div class="sparkline-wrap"
              style="position:absolute; left:0; top:0; width:${W}px; height:${H}px;
                     clip-path: circle(50%); -webkit-clip-path: circle(50%);
                     z-index:${zIndex}; pointer-events:none; opacity:${opacity};
-                    overflow:hidden; border-radius:50%; ${diagnosticBorder}">
+                    overflow:hidden; border-radius:50%; ${diagnosticBorder}
+                    ${testMode ? 'background: rgba(255,255,0,0.25);' : ''}">
           <svg xmlns="http://www.w3.org/2000/svg"
                width="${W}" height="${H}"
                viewBox="0 0 ${W} ${H}"
@@ -1301,8 +1311,8 @@ console.log(
                 <stop offset="100%" stop-color="${color}" stop-opacity="0" />
               </linearGradient>
             </defs>
-            ${showArea ? html`<path d="${areaPath}" fill="url(#${gradId})" stroke="none" />` : ''}
-            ${showLine ? html`<path d="${linePath}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" />` : ''}
+            ${showArea ? html`<path d="${areaPath}" fill="${renderFill}" stroke="none" />` : ''}
+            ${showLine ? html`<path d="${linePath}" fill="none" stroke="${renderColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />` : ''}
           </svg>
         </div>
       `;
