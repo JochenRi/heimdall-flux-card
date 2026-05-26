@@ -837,6 +837,18 @@ console.log(
           z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.61: Spüler (Consumer 4) configurable donut ring.
+         Generic ratio donut: secondary_consumer_4 / consumer_4_soc_max
+         (default 5, suited to a daily energy budget in kWh on a dishwasher). */
+      .bubble.c4.donut { border: none !important; background: transparent; }
+      .bubble.c4.donut.tinted { background: color-mix(in srgb, var(--pipe-consumer-4-color, var(--consumer-4-color)), transparent 85%); }
+      .bubble.c4.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--c4-gradient, var(--pipe-consumer-4-color, var(--consumer-4-color)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -2414,6 +2426,28 @@ console.log(
         }
       }
 
+      // --- Spüler / Consumer 4 Configurable Donut Gradient (Phase 5.61) ---
+      // Generic ratio donut, default max=5 for daily kWh budget on a dishwasher.
+      let c4GradientVal = '';
+      let c4DonutActive = false;
+      
+      if (this.config.consumer_4_soc_donut_mode === true && entities.secondary_consumer_4) {
+        const rawVal = parseFloat(getVal(entities.secondary_consumer_4));
+        const socMax = parseFloat(this.config.consumer_4_soc_max);
+        const maxVal = (!isNaN(socMax) && socMax > 0) ? socMax : 5;
+        if (!isNaN(rawVal) && rawVal >= 0) {
+          const pct = Math.max(0, Math.min(100, (rawVal / maxVal) * 100));
+          const restPct = 100 - pct;
+          
+          let stops = [];
+          let current = 0;
+          if (pct > 0) { stops.push(`var(--pipe-consumer-4-color) ${current}% ${current + pct}%`); current += pct; }
+          if (restPct > 0) { stops.push(`var(--c4-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          c4GradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c4DonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -2693,6 +2727,9 @@ console.log(
         const c3MixThickness = (this.config.consumer_3_mix_ring_thickness !== undefined)
           ? parseInt(this.config.consumer_3_mix_ring_thickness, 10) : 4;
         
+        // Phase 5.61: Configurable donut for Spüler (Consumer 4).
+        const c4Donut = (cssClass === 'c4' && c4DonutActive);
+        
         const bubbleStyle = [
           c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
           c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
@@ -2704,10 +2741,11 @@ console.log(
           c2MixRing ? `--c2-mix-gradient: ${c2MixGradientVal}; --c2-mix-gap: ${c2MixGap}px; --c2-mix-thickness: ${c2MixThickness}px;` : '',
           c3Donut ? `--c3-gradient: ${c3GradientVal};` : '',
           c3MixRing ? `--c3-mix-gradient: ${c3MixGradientVal}; --c3-mix-gap: ${c3MixGap}px; --c3-mix-thickness: ${c3MixThickness}px;` : '',
+          c4Donut ? `--c4-gradient: ${c4GradientVal};` : '',
         ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${c3Donut ? 'donut' : ''} ${c3MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${c3Donut ? 'donut' : ''} ${c3MixRing ? 'mix-ring' : ''} ${c4Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
