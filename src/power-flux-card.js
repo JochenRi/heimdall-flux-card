@@ -849,6 +849,20 @@ console.log(
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.63: Spüler charge-mix ring -- outer ring around the configurable donut.
+         Uses --c4-mix-gradient (conic, 4 segments PV/LG/Venus/Grid). Mirror of c3. */
+      .bubble.c4.mix-ring { overflow: visible; }
+      .bubble.c4.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--c4-mix-gap, 8px) + var(--c4-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--c4-mix-thickness, 4px);
+          background: var(--c4-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -2448,6 +2462,42 @@ console.log(
         }
       }
 
+      // --- Spüler / Consumer 4 Charge-Mix Ring (Phase 5.63) ---
+      let c4MixGradientVal = '';
+      let c4MixActive = false;
+      
+      if (this.config.consumer_4_mix_donut_mode === true) {
+        const period = (this.config.consumer_4_mix_period === 'month' || this.config.consumer_4_mix_period === 'year')
+          ? this.config.consumer_4_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const pv    = readVal(`consumer_4_mix_pv_${period}`);
+        const lg    = readVal(`consumer_4_mix_lg_${period}`);
+        const venus = readVal(`consumer_4_mix_venus_${period}`);
+        const grid  = readVal(`consumer_4_mix_grid_${period}`);
+        const total = pv + lg + venus + grid;
+        if (total > 0) {
+          const pctPv    = (pv    / total) * 100;
+          const pctLg    = (lg    / total) * 100;
+          const pctVenus = (venus / total) * 100;
+          const pctGrid  = (grid  / total) * 100;
+          
+          let stops = [];
+          let cursor = 0;
+          if (pctPv > 0)    { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`);    cursor += pctPv; }
+          if (pctLg > 0)    { stops.push(`var(--pipe-battery-color) ${cursor}% ${cursor + pctLg}%`);   cursor += pctLg; }
+          if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
+          if (pctGrid > 0)  { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          c4MixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c4MixActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -2730,6 +2780,13 @@ console.log(
         // Phase 5.61: Configurable donut for Spüler (Consumer 4).
         const c4Donut = (cssClass === 'c4' && c4DonutActive);
         
+        // Phase 5.63: Charge-mix outer ring for Spüler.
+        const c4MixRing = (cssClass === 'c4' && c4MixActive);
+        const c4MixGap = (this.config.consumer_4_mix_ring_gap !== undefined)
+          ? parseInt(this.config.consumer_4_mix_ring_gap, 10) : 8;
+        const c4MixThickness = (this.config.consumer_4_mix_ring_thickness !== undefined)
+          ? parseInt(this.config.consumer_4_mix_ring_thickness, 10) : 4;
+        
         const bubbleStyle = [
           c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
           c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
@@ -2742,10 +2799,11 @@ console.log(
           c3Donut ? `--c3-gradient: ${c3GradientVal};` : '',
           c3MixRing ? `--c3-mix-gradient: ${c3MixGradientVal}; --c3-mix-gap: ${c3MixGap}px; --c3-mix-thickness: ${c3MixThickness}px;` : '',
           c4Donut ? `--c4-gradient: ${c4GradientVal};` : '',
+          c4MixRing ? `--c4-mix-gradient: ${c4MixGradientVal}; --c4-mix-gap: ${c4MixGap}px; --c4-mix-thickness: ${c4MixThickness}px;` : '',
         ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${c3Donut ? 'donut' : ''} ${c3MixRing ? 'mix-ring' : ''} ${c4Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${c3Donut ? 'donut' : ''} ${c3MixRing ? 'mix-ring' : ''} ${c4Donut ? 'donut' : ''} ${c4MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
