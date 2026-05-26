@@ -233,11 +233,12 @@ console.log(
 
     _fetchAllSparklines() {
       if (!this.hass || !this.config) return;
-      // Phase 5.67 prototype: only Trockner (Consumer 3). When this proves
-      // out visually, the loop will be extended to all 7 consumer bubbles
-      // and the 4 source bubbles. Each one is opt-in via its own toggle
-      // so this stays cheap until users actually enable it.
-      for (const idx of [3]) {
+      // Phase 5.67.7: Tesla (c1) added alongside Trockner (c3). Roll-out
+      // proceeds one bubble at a time to keep risk low -- each bubble can
+      // be verified visually in test_mode before live data is enabled.
+      // Each bubble is opt-in via its own consumer_X_sparkline toggle so
+      // disabled bubbles cost nothing.
+      for (const idx of [1, 3]) {
         if (this.config[`consumer_${idx}_sparkline`] !== true) continue;
         // Phase 5.67.1: explicit per-sparkline entity override, falls back
         // to the bubble's main entity. Empty string counts as unset.

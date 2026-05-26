@@ -797,9 +797,11 @@ class PowerFluxCardEditor extends LitElement {
                 'consumer_1_mix_lg_day', 'consumer_1_mix_lg_month', 'consumer_1_mix_lg_year',
                 'consumer_1_mix_venus_day', 'consumer_1_mix_venus_month', 'consumer_1_mix_venus_year',
                 'consumer_1_mix_grid_day', 'consumer_1_mix_grid_month', 'consumer_1_mix_grid_year',
-                // Phase 5.67.1: optional per-bubble sparkline source entity.
-                // Prototype on Consumer 3; extends to others when sparkline
-                // feature is rolled out.
+                // Phase 5.67.1+: optional per-bubble sparkline source entity.
+                // Added one bubble at a time as the sparkline feature rolls out.
+                // 5.67  = Consumer 3 (Trockner)
+                // 5.67.7 = Consumer 1 (Tesla)
+                'consumer_1_sparkline_entity',
                 'consumer_3_sparkline_entity'
             ];
 
@@ -4435,6 +4437,101 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_rotate_daily_3 || "", 'consumer_1_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
             ${this._renderColorPicker('consumer_1_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+
+            <!-- Phase 5.67.7: Sparkline / history graph in bubble background.
+                 Tesla is the second bubble to get this feature (after Trockner
+                 in Phase 5.67). Same control set, same default colour (red,
+                 matching Tesla brand). -->
+            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
+                <ha-icon icon="mdi:chart-line-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
+                ${this._localize('editor.sparkline_title')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_1_sparkline === true}
+                    .configValue=${'consumer_1_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_sparkline_entity || "", 'consumer_1_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h",  label: "1h"  },
+                    { value: "6h",  label: "6h"  },
+                    { value: "12h", label: "12h" },
+                    { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.consumer_1_sparkline_period || '24h'}
+                .configValue=${'consumer_1_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
+                ] } }}
+                .value=${this._config.consumer_1_sparkline_layer || 'back'}
+                .configValue=${'consumer_1_sparkline_layer'}
+                .label=${this._localize('editor.sparkline_layer')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.consumer_1_sparkline_style || 'area-line'}
+                .configValue=${'consumer_1_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.consumer_1_sparkline_opacity !== undefined ? this._config.consumer_1_sparkline_opacity : 0.35}
+                .configValue=${'consumer_1_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderColorPicker('consumer_1_sparkline_color', this._localize('editor.sparkline_color'), '#ff3333')}
+
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.consumer_1_sparkline_debug === true}
+                    .configValue=${'consumer_1_sparkline_debug'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
+            </div>
+
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.consumer_1_sparkline_test_mode === true}
+                    .configValue=${'consumer_1_sparkline_test_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+            </div>
         </div>
         `;
     }
@@ -5159,11 +5256,12 @@ console.log(
 
     _fetchAllSparklines() {
       if (!this.hass || !this.config) return;
-      // Phase 5.67 prototype: only Trockner (Consumer 3). When this proves
-      // out visually, the loop will be extended to all 7 consumer bubbles
-      // and the 4 source bubbles. Each one is opt-in via its own toggle
-      // so this stays cheap until users actually enable it.
-      for (const idx of [3]) {
+      // Phase 5.67.7: Tesla (c1) added alongside Trockner (c3). Roll-out
+      // proceeds one bubble at a time to keep risk low -- each bubble can
+      // be verified visually in test_mode before live data is enabled.
+      // Each bubble is opt-in via its own consumer_X_sparkline toggle so
+      // disabled bubbles cost nothing.
+      for (const idx of [1, 3]) {
         if (this.config[`consumer_${idx}_sparkline`] !== true) continue;
         // Phase 5.67.1: explicit per-sparkline entity override, falls back
         // to the bubble's main entity. Empty string counts as unset.
