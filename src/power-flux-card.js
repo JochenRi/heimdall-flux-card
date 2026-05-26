@@ -1198,15 +1198,29 @@ console.log(
     // --- SPARKLINE RENDERER (Phase 5.67) ---
     // Returns an SVG with an area/line chart of the recent history of the
     // entity tied to consumer index `idx`. Sits inside the .bubble div as
-    // an absolutely positioned child. Layer z-index is configurable so the
-    // sparkline can render behind the donut, between donut and text, or
-    // (rarely) in front of the text. The SVG has its own circular clipPath
-    // so the chart respects the bubble shape even when the bubble has
-    // overflow:visible (which .mix-ring sets on bubbles with a mix-ring).
+    // an absolutely positioned child, clipped to a circle via CSS clip-path.
+    //
+    // Implementation notes (hard-won during 5.67.0 through 5.67.5):
+    //   - CSS `clip-path: circle(50%)` on the wrapper div, NOT an SVG-internal
+    //     <clipPath> with url(#id). Internal references can fail to resolve
+    //     inside Shadow DOM. Reference: MDN clip-path, Baseline since 2017.
+    //   - Explicit pixel width/height on the <svg>, NOT 100%. SVG sizing
+    //     inside an absolute-positioned container is unreliable with %.
+    //   - The entire <svg>...</svg> block is one flat inline expression in
+    //     the html`` template. Conditional <path> elements via
+    //     ${cond ? html`<path/>` : ''} create nested TemplateResults that
+    //     fail to mount as SVG-namespace nodes (lit-html limitation in this
+    //     stripped-down HA-internal lit environment). Instead we ALWAYS
+    //     render both <path> elements and conditionally blank their d=""
+    //     attribute when the style toggle disables them.
+    //   - No xmlns attribute on <svg>. The working _renderIcon helpers in
+    //     this same file don't set xmlns either; HA's lit-html handles SVG
+    //     namespace automatically for the <svg> opening tag.
     _renderSparkline(idx) {
       if (!this.config) return html``;
       if (this.config[`consumer_${idx}_sparkline`] !== true) return html``;
-      // Phase 5.67.1: same override/fallback logic as in _fetchAllSparklines.
+      // Sensor: explicit per-sparkline entity override, falls back to the
+      // bubble's main entity. Empty string counts as unset.
       const overrideEntity = this.config[`consumer_${idx}_sparkline_entity`];
       const fallbackEntity = this.config?.entities?.[`consumer_${idx}`];
       const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : fallbackEntity;
@@ -1222,20 +1236,18 @@ console.log(
       const color = this.config[`consumer_${idx}_sparkline_color`]
         || this._getConsumerColor?.(idx) || `var(--consumer-${idx}-color)`;
 
-      // Phase 5.67.3: layer z-index. Bubble itself is z-index:2 (see .bubble CSS).
-      // Donut ::before sits at z-index:-1. We want the sparkline as a visible
-      // background INSIDE the bubble, behind the icon/value but above the donut
-      // mask. 'back' = 1 (above donut, below text+icon). 'mid' = 2 (same as
-      // bubble base, alongside icon). 'front' = 3 (above text -- intrusive).
+      // Layer z-index. Bubble itself is z-index:2 (see .bubble CSS).
+      // Donut ::before sits at z-index:-1. 'back' = 1 (above donut, below
+      // text+icon), 'mid' = 2 (alongside icon), 'front' = 3 (above text).
       const zIndex = layer === 'front' ? 3 : layer === 'mid' ? 2 : 1;
 
-      // Downsample to keep path simple. 60 points across the bubble is
-      // plenty visually; rendering 1000+ points each frame would burn cpu.
+      // Downsample to keep path simple. 60 points is plenty visually.
       const downsampled = this._downsampleSparkline(data, 60);
-      // Phase 5.67.3: use the actual bubble size in pixels rather than viewBox
-      // units. The bubble is square with side = bubble_size (default 90px,
-      // here 104px). Drawing in real pixels removes the viewBox->CSS coordinate
-      // translation that can fail silently when the parent is absolute-positioned.
+
+      // Use actual bubble size in pixels, not viewBox units. The bubble is
+      // square with side = bubble_size (default 90px). Drawing in real
+      // pixels removes the viewBox->CSS coordinate translation that can
+      // fail silently inside absolute-positioned parents.
       const size = parseInt(this.config.bubble_size || 90, 10);
       const W = size, H = size;
       const tMin = downsampled[0].t;
@@ -1250,70 +1262,16 @@ console.log(
       const linePath = xy.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
       const areaPath = `${linePath} L${W},${H} L0,${H} Z`;
 
-      const showArea = (style === 'area' || style === 'area-line');
-      const showLine = (style === 'line' || style === 'area-line');
+      // Style toggle: blank out the d attribute when a part is disabled
+      // rather than conditionally omitting the <path> element. Omitting
+      // re-introduces the lit-html SVG-namespace bug from Phase 5.67.3.
+      const effectiveAreaPath = (style === 'area' || style === 'area-line') ? areaPath : '';
+      const effectiveLinePath = (style === 'line' || style === 'area-line') ? linePath : '';
 
-      // Phase 5.67.3: wrapper div with CSS clip-path: circle(50%). This is
-      // the Baseline-supported method (MDN, all major browsers since 2017).
-      // Avoids the SVG-internal <clipPath id="..."> + url(#id) pattern which
-      // can fail to resolve inside Shadow DOM in some browser/HA combinations.
-      // Reference: developer.mozilla.org/en-US/docs/Web/CSS/clip-path.
-      //
-      // The wrapper sits absolutely positioned over the bubble interior, with
-      // fixed pixel dimensions that exactly match the bubble. clip-path on the
-      // wrapper crops the SVG to a perfect circle that respects the bubble's
-      // border-radius:50%.
-      //
-      // The SVG uses explicit width/height attributes (not %), and an explicit
-      // xmlns attribute. lit-html renders this as a real <svg> namespace
-      // element inside the HTML template.
-      //
-      // For diagnostic visibility during development, opacity is preserved
-      // from config. The gradient ID is per-bubble-instance unique to avoid
-      // any chance of cross-bubble clashes.
+      // Per-instance unique gradient ID. Avoids cross-bubble collisions
+      // inside the Shadow DOM. Includes the latest timestamp so it changes
+      // on every refetch.
       const gradId = `sparkline-grad-c${idx}-${Math.floor(tMax)}`;
-
-      // Phase 5.67.3: visible diagnostic marker in test-mode. When test_mode
-      // is on, render a thick red border around the sparkline wrapper so the
-      // user can SEE whether the wrapper landed in the DOM. This is the final
-      // diagnostic step: if you see the red border, the DOM is correct and any
-      // graph-invisibility is a clip-path / path-coordinate issue. If you don't
-      // see the red border, the bubble itself is hiding the wrapper (z-index,
-      // overflow, or some specificity collision in CSS).
-      const testMode = this.config[`consumer_${idx}_sparkline_test_mode`] === true;
-      const diagnosticBorder = testMode
-        ? `outline: 3px dashed red; outline-offset: -3px;`
-        : '';
-
-      // Phase 5.67.4: in test mode, FORCE the stroke colour to bright lime
-      // green and the fill colour to bright magenta. This bypasses any
-      // chance that the user-configured colour resolves to transparent
-      // (empty colour picker, undefined CSS variable). If the path uses
-      // a known-good colour and is still invisible, the issue is NOT
-      // colour-related.
-      const renderColor = testMode ? '#00ff00' : color;
-      const renderFill = testMode ? '#ff00ff' : `url(#${gradId})`;
-
-      // Phase 5.67.5: rewrite SVG block in the EXACT pattern used by the
-      // working _renderIcon() helpers throughout this card (e.g. solar
-      // icon at line ~1316). Three critical points:
-      //
-      // 1. NO xmlns attribute on <svg>. The working icons don't set it
-      //    and they render perfectly. HA's lit-html handles SVG namespace
-      //    automatically when the <svg> opens inside an html`` template.
-      //
-      // 2. NO nested html`` sub-templates inside <svg>. The previous
-      //    Phase 5.67.3 used ${showArea ? html`<path .../>` : ''} which
-      //    creates inner TemplateResults that fail to mount as SVG-namespace
-      //    nodes inside the outer SVG context. The yellow background
-      //    appearing without any path in 5.67.4 was the direct proof of
-      //    this failure mode -- the wrapper div rendered, the SVG tag
-      //    opened, but the inner <path> elements went into HTML namespace.
-      //
-      // 3. The entire <svg>...</svg> block is one flat inline expression
-      //    in the html`` template -- same shape as the working icons.
-      //    Conditionals are not needed in test_mode (both fill and line
-      //    are forced visible), so we always render both paths.
 
       const wrapperStyle = [
         `position:absolute`,
@@ -1328,11 +1286,9 @@ console.log(
         `opacity:${opacity}`,
         `overflow:hidden`,
         `border-radius:50%`,
-        testMode ? `background:rgba(255,255,0,0.25)` : '',
-        diagnosticBorder,
-      ].filter(Boolean).join(';');
+      ].join(';');
 
-      return html`<div class="sparkline-wrap" style="${wrapperStyle}"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.85"></stop><stop offset="100%" stop-color="${color}" stop-opacity="0"></stop></linearGradient></defs><path d="${areaPath}" fill="${renderFill}" stroke="none"></path><path d="${linePath}" fill="none" stroke="${renderColor}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path></svg></div>`;
+      return html`<div class="sparkline-wrap" style="${wrapperStyle}"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.85"></stop><stop offset="100%" stop-color="${color}" stop-opacity="0"></stop></linearGradient></defs><path d="${effectiveAreaPath}" fill="url(#${gradId})" stroke="none"></path><path d="${effectiveLinePath}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></path></svg></div>`;
     }
 
     // --- SVG ICON RENDERER ---
