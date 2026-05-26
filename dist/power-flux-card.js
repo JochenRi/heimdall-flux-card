@@ -76,6 +76,10 @@ const lang_de = {
     "editor.consumer_2_mix_lg_year": "Batterie 1-Anteil Jahr (kWh)",
     "editor.consumer_2_mix_venus_year": "Batterie 2-Anteil Jahr (kWh)",
     "editor.consumer_2_mix_grid_year": "Netz-Anteil Jahr (kWh)",
+    "editor.consumer_3_donut_section": "Konfigurierbarer Donut (innerer Ring)",
+    "editor.consumer_3_donut_hint": "Zeigt den Wert des Zweitsensors als gefüllten Ring um die Bubble. Frei einsetzbar -- z.B. Tagesverbrauch (Max 5 kWh), Restzeit-Minuten oder anderes Fortschrittsmaß. Das Maximum legt fest, was 100% bedeutet.",
+    "editor.consumer_3_soc_donut_enable": "Donut aktivieren",
+    "editor.consumer_3_soc_max": "Maximum (= 100% Füllung)",
     "editor.consumer_1_mix_section": "Lade-Mix-Ring (äußerer Ring)",
     "editor.consumer_1_mix_hint": "Zeigt einen zweiten Ring außen um die Bubble. Der Ring teilt sich in vier Segmente auf (PV gelb / Batterie 1 lila / Batterie 2 violett / Netz rot) gewichtet nach dem Energie-Mix im gewählten Zeitraum. Sensoren bitte als Tages-/Monats-/Jahres-kWh-Werte in HEIMDALL anlegen.",
     "editor.consumer_1_mix_enable": "Lade-Mix-Ring aktivieren",
@@ -333,6 +337,10 @@ const lang_en = {
     "editor.consumer_2_mix_lg_year": "Battery 1 share year (kWh)",
     "editor.consumer_2_mix_venus_year": "Battery 2 share year (kWh)",
     "editor.consumer_2_mix_grid_year": "Grid share year (kWh)",
+    "editor.consumer_3_donut_section": "Configurable donut (inner ring)",
+    "editor.consumer_3_donut_hint": "Renders the secondary sensor value as a filled ring around the bubble. Generic use — e.g. daily energy budget (max 5 kWh), remaining minutes, or other progress indicator. Maximum defines what 100% means.",
+    "editor.consumer_3_soc_donut_enable": "Enable donut",
+    "editor.consumer_3_soc_max": "Maximum (= 100% fill)",
     "editor.consumer_1_mix_section": "Charge-mix ring (outer ring)",
     "editor.consumer_1_mix_hint": "Renders a second ring outside the bubble. Split into four segments (PV yellow / Battery 1 purple / Battery 2 violet / Grid red) weighted by the energy mix in the chosen period. Provide daily/monthly/yearly kWh sensors via HEIMDALL.",
     "editor.consumer_1_mix_enable": "Enable charge-mix ring",
@@ -2094,6 +2102,172 @@ class PowerFluxCardEditor extends LitElement {
         `;
     }
 
+    // Phase 5.58: dedicated sub-view for Trockner (Consumer 3) -- fifth bubble
+    // with full feature parity to Tesla/BWWP/Pumpe/Waschen. Default donut
+    // max = 5 (kWh) suitable for a daily energy budget on a tumble dryer.
+    // User can override consumer_3_soc_max for any other ratio metric.
+    // Rotation (phase 5.59) and charge-mix ring (phase 5.60) follow.
+    _renderConsumer3View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._consumerMenuLabel(3)}</h2>
+        </div>
+
+        <div class="consumer-group">
+            <div class="consumer-title" style="color: #06b6d4;">${this._localize('editor.consumer_3_title')}</div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_3_enabled !== false}
+                    .configValue=${'consumer_3_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3, 'consumer_3', this._localize('editor.entity'))}
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${textSelectorSchema}
+                .value=${this._config.consumer_3_label}
+                .configValue=${'consumer_3_label'}
+                .label=${this._localize('editor.label')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${iconSelectorSchema}
+                .value=${this._config.consumer_3_icon}
+                .configValue=${'consumer_3_icon'}
+                .label=${this._localize('editor.icon')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.invert_consumer')}</span>
+                <ha-switch
+                    .checked=${this._config.invert_consumer_3 === true}
+                    .configValue=${'invert_consumer_3'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                <span>${this._localize('editor.consumer_hide_pipe')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_3_hide_pipe === true}
+                    .configValue=${'consumer_3_hide_pipe'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            ${this._config.consumer_3_hide_pipe === true ? html`
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
+                .value=${this._config.consumer_3_pipe_threshold !== undefined ? this._config.consumer_3_pipe_threshold : 0}
+                .configValue=${'consumer_3_pipe_threshold'}
+                .label=${this._localize('editor.consumer_pipe_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ` : ''}
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_unit_kw')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_3_unit_kw === true}
+                    .configValue=${'consumer_3_unit_kw'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_power')}</span>
+                <ha-switch
+                    .checked=${this._config.consumer_3_show_power !== false}
+                    .configValue=${'consumer_3_show_power'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
+                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_consumer_3 === true}
+                    .configValue=${'show_flow_rate_consumer_3'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_3_label_offset_x !== undefined ? this._config.consumer_3_label_offset_x : 0}
+                .configValue=${'consumer_3_label_offset_x'}
+                .label=${this._localize('editor.consumer_label_offset_x')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_3_label_offset_y !== undefined ? this._config.consumer_3_label_offset_y : -25}
+                .configValue=${'consumer_3_label_offset_y'}
+                .label=${this._localize('editor.consumer_label_offset_y')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                .value=${this._config.consumer_3_animation_threshold !== undefined ? this._config.consumer_3_animation_threshold : 0}
+                .configValue=${'consumer_3_animation_threshold'}
+                .label=${this._localize('editor.consumer_animation_threshold')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_3 || "", 'secondary_consumer_3', this._localize('editor.secondary_sensor'))}
+
+            ${this._renderColorPickerQuint('color_consumer_3', 'color_pipe_consumer_3', 'color_text_consumer_3', 'color_icon_consumer_3', 'color_secondary_consumer_3', '#06b6d4')}
+
+            <!-- Phase 5.58: configurable donut for Trockner. Generic ratio
+                 visualisation: secondary sensor / max. Use a daily energy
+                 sensor with max=5 kWh for budget, or any other progress
+                 indicator. -->
+            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
+                <ha-icon icon="mdi:donut-small" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
+                ${this._localize('editor.consumer_3_donut_section')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_3_donut_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.consumer_3_soc_donut_mode === true}
+                    .configValue=${'consumer_3_soc_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.consumer_3_soc_donut_enable')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
+                .value=${this._config.consumer_3_soc_max !== undefined ? this._config.consumer_3_soc_max : 5}
+                .configValue=${'consumer_3_soc_max'}
+                .label=${this._localize('editor.consumer_3_soc_max')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+        `;
+    }
+
     // Phase 5.55: dedicated sub-view for Waschen (Consumer 2) -- fourth bubble
     // with full feature parity to Tesla/BWWP/Pumpe. Default donut max = 5 (kWh)
     // suitable for a daily energy budget on a washing machine. User can
@@ -3339,7 +3513,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'venus') return this._renderVenusView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_1') return this._renderConsumer1View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_2') return this._renderConsumer2View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
-        if (this._subView === 'consumer_3') return this._renderConsumerNView(3, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'consumer_3') return this._renderConsumer3View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_4') return this._renderConsumerNView(4, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_5') return this._renderConsumer5View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_6') return this._renderConsumerNView(6, entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
@@ -4576,6 +4750,18 @@ console.log(
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;
           z-index: -1; pointer-events: none;
+      }
+      
+      /* Phase 5.58: Trockner (Consumer 3) configurable donut ring.
+         Generic ratio donut: secondary_consumer_3 / consumer_3_soc_max
+         (default 5, suited to a daily energy budget in kWh on a dryer). */
+      .bubble.c3.donut { border: none !important; background: transparent; }
+      .bubble.c3.donut.tinted { background: color-mix(in srgb, var(--pipe-consumer-3-color, var(--consumer-3-color)), transparent 85%); }
+      .bubble.c3.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--c3-gradient, var(--pipe-consumer-3-color, var(--consumer-3-color)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
       .icon-svg, .icon-custom {
@@ -6095,6 +6281,30 @@ console.log(
         }
       }
 
+      // --- Trockner / Consumer 3 Configurable Donut Gradient (Phase 5.58) ---
+      // Generic ratio donut, same shape as Waschen donut. Default max=5 suits
+      // a daily energy budget in kWh on a tumble dryer; user can override
+      // consumer_3_soc_max for other ranges.
+      let c3GradientVal = '';
+      let c3DonutActive = false;
+      
+      if (this.config.consumer_3_soc_donut_mode === true && entities.secondary_consumer_3) {
+        const rawVal = parseFloat(getVal(entities.secondary_consumer_3));
+        const socMax = parseFloat(this.config.consumer_3_soc_max);
+        const maxVal = (!isNaN(socMax) && socMax > 0) ? socMax : 5;
+        if (!isNaN(rawVal) && rawVal >= 0) {
+          const pct = Math.max(0, Math.min(100, (rawVal / maxVal) * 100));
+          const restPct = 100 - pct;
+          
+          let stops = [];
+          let current = 0;
+          if (pct > 0) { stops.push(`var(--pipe-consumer-3-color) ${current}% ${current + pct}%`); current += pct; }
+          if (restPct > 0) { stops.push(`var(--c3-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          c3GradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c3DonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -6363,6 +6573,10 @@ console.log(
         const c2MixThickness = (this.config.consumer_2_mix_ring_thickness !== undefined)
           ? parseInt(this.config.consumer_2_mix_ring_thickness, 10) : 4;
         
+        // Phase 5.58: Configurable donut for Trockner (Consumer 3). Same shape
+        // as c2Donut, for cssClass === 'c3'.
+        const c3Donut = (cssClass === 'c3' && c3DonutActive);
+        
         const bubbleStyle = [
           c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
           c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
@@ -6372,10 +6586,11 @@ console.log(
           c7MixRing ? `--c7-mix-gradient: ${c7MixGradientVal}; --c7-mix-gap: ${c7MixGap}px; --c7-mix-thickness: ${c7MixThickness}px;` : '',
           c2Donut ? `--c2-gradient: ${c2GradientVal};` : '',
           c2MixRing ? `--c2-mix-gradient: ${c2MixGradientVal}; --c2-mix-gap: ${c2MixGap}px; --c2-mix-thickness: ${c2MixThickness}px;` : '',
+          c3Donut ? `--c3-gradient: ${c3GradientVal};` : '',
         ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${c3Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}

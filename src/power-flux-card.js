@@ -811,6 +811,18 @@ console.log(
           z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.58: Trockner (Consumer 3) configurable donut ring.
+         Generic ratio donut: secondary_consumer_3 / consumer_3_soc_max
+         (default 5, suited to a daily energy budget in kWh on a dryer). */
+      .bubble.c3.donut { border: none !important; background: transparent; }
+      .bubble.c3.donut.tinted { background: color-mix(in srgb, var(--pipe-consumer-3-color, var(--consumer-3-color)), transparent 85%); }
+      .bubble.c3.donut::before {
+          content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px;
+          background: var(--c3-gradient, var(--pipe-consumer-3-color, var(--consumer-3-color)));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
       .icon-svg, .icon-custom {
           width: 33px; height: 33px; position: absolute; top: 10px; left: 50%; margin-left: -17px; z-index: 2; display: block;
       }
@@ -2328,6 +2340,30 @@ console.log(
         }
       }
 
+      // --- Trockner / Consumer 3 Configurable Donut Gradient (Phase 5.58) ---
+      // Generic ratio donut, same shape as Waschen donut. Default max=5 suits
+      // a daily energy budget in kWh on a tumble dryer; user can override
+      // consumer_3_soc_max for other ranges.
+      let c3GradientVal = '';
+      let c3DonutActive = false;
+      
+      if (this.config.consumer_3_soc_donut_mode === true && entities.secondary_consumer_3) {
+        const rawVal = parseFloat(getVal(entities.secondary_consumer_3));
+        const socMax = parseFloat(this.config.consumer_3_soc_max);
+        const maxVal = (!isNaN(socMax) && socMax > 0) ? socMax : 5;
+        if (!isNaN(rawVal) && rawVal >= 0) {
+          const pct = Math.max(0, Math.min(100, (rawVal / maxVal) * 100));
+          const restPct = 100 - pct;
+          
+          let stops = [];
+          let current = 0;
+          if (pct > 0) { stops.push(`var(--pipe-consumer-3-color) ${current}% ${current + pct}%`); current += pct; }
+          if (restPct > 0) { stops.push(`var(--c3-donut-rest-color, rgba(160, 160, 160, 0.7)) ${current}% 100%`); }
+          c3GradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          c3DonutActive = true;
+        }
+      }
+
       // Phase 5.24/5.25: a bubble counts as "active for display" if either
       //   (a) power is currently flowing, OR
       //   (b) a donut is active on it (donut content is always meaningful), OR
@@ -2596,6 +2632,10 @@ console.log(
         const c2MixThickness = (this.config.consumer_2_mix_ring_thickness !== undefined)
           ? parseInt(this.config.consumer_2_mix_ring_thickness, 10) : 4;
         
+        // Phase 5.58: Configurable donut for Trockner (Consumer 3). Same shape
+        // as c2Donut, for cssClass === 'c3'.
+        const c3Donut = (cssClass === 'c3' && c3DonutActive);
+        
         const bubbleStyle = [
           c1Donut ? `--c1-gradient: ${c1GradientVal};` : '',
           c1MixRing ? `--c1-mix-gradient: ${c1MixGradientVal}; --c1-mix-gap: ${c1MixGap}px; --c1-mix-thickness: ${c1MixThickness}px;` : '',
@@ -2605,10 +2645,11 @@ console.log(
           c7MixRing ? `--c7-mix-gradient: ${c7MixGradientVal}; --c7-mix-gap: ${c7MixGap}px; --c7-mix-thickness: ${c7MixThickness}px;` : '',
           c2Donut ? `--c2-gradient: ${c2GradientVal};` : '',
           c2MixRing ? `--c2-mix-gradient: ${c2MixGradientVal}; --c2-mix-gap: ${c2MixGap}px; --c2-mix-thickness: ${c2MixThickness}px;` : '',
+          c3Donut ? `--c3-gradient: ${c3GradientVal};` : '',
         ].filter(Boolean).join(' ');
 
         return html`
-            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+            <div class="bubble ${cssClass} ${cssClass.replace('c', 'node-c')} ${c1Donut ? 'donut' : ''} ${c1MixRing ? 'mix-ring' : ''} ${c5Donut ? 'donut' : ''} ${c5MixRing ? 'mix-ring' : ''} ${c7Donut ? 'donut' : ''} ${c7MixRing ? 'mix-ring' : ''} ${c2Donut ? 'donut' : ''} ${c2MixRing ? 'mix-ring' : ''} ${c3Donut ? 'donut' : ''} ${tintClass} ${glowClass}"
                 style="${bubbleStyle}"
                 @click=${() => this._handleClick(entities[configKey])}>
                 ${iconContent}
