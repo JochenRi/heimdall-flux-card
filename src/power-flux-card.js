@@ -233,10 +233,10 @@ console.log(
 
     _fetchAllSparklines() {
       if (!this.hass || !this.config) return;
-      // Phase 5.67.11: Klima (c6) added. Roll-out order: 3, 1, 2, 4, 5, 6.
-      // Each bubble is opt-in via its own consumer_X_sparkline toggle so
-      // disabled bubbles cost nothing.
-      for (const idx of [1, 2, 3, 4, 5, 6]) {
+      // Phase 5.67.12: Pumpe (c7) added -- COMPLETES ALL 7 CONSUMER BUBBLES.
+      // Roll-out order: 3, 1, 2, 4, 5, 6, 7. Each bubble is opt-in via its
+      // own consumer_X_sparkline toggle so disabled bubbles cost nothing.
+      for (const idx of [1, 2, 3, 4, 5, 6, 7]) {
         if (this.config[`consumer_${idx}_sparkline`] !== true) continue;
         // Phase 5.67.1: explicit per-sparkline entity override, falls back
         // to the bubble's main entity. Empty string counts as unset.
