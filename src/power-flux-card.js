@@ -263,7 +263,8 @@ console.log(
       // Storage key is the entity_id, so consumer and source sparklines
       // coexist without collisions.
       // Phase 5.71: Venus added alongside battery.
-      for (const prefix of ['battery', 'venus']) {
+      // Phase 5.72: Solar added.
+      for (const prefix of ['battery', 'venus', 'solar']) {
         if (this.config[`${prefix}_sparkline`] !== true) continue;
         const overrideEntity = this.config[`${prefix}_sparkline_entity`];
         const fallbackEntity = this.config?.entities?.[prefix];
@@ -884,6 +885,25 @@ console.log(
           background: var(--solar-gradient, var(--neon-yellow));
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
+      /* Phase 5.72: Solar PV-distribution mix-ring -- 4-segment outer ring
+         around the PV-forecast donut. Semantics differ from LG/Venus (which
+         answer "where did my energy come from"): for SOLAR the question is
+         "where did my PV energy go?" -- house direct-consumption / LG /
+         Venus / grid export. 4 segments because all four destinations are
+         real for a PV system with batteries and grid export. Mirror of
+         consumer mix-ring CSS (phase 5.48) but on .solar instead of .c1. */
+      .bubble.solar.mix-ring { overflow: visible; }
+      .bubble.solar.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--solar-mix-gap, 8px) + var(--solar-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--solar-mix-thickness, 4px);
+          background: var(--solar-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
       }
       
       /* Phase 5.36: battery SoC donut ring */
@@ -2493,6 +2513,57 @@ console.log(
         // else: both essentially zero -> donut off, normal yellow border.
       }
 
+      // --- Solar PV-Distribution Mix Ring (Phase 5.72) ---
+      // SECOND ring around the PV-forecast donut. Unlike LG/Venus mix-rings
+      // (which answer "where did my stored energy come from?", 2 segments
+      // PV+Grid), this answers "where did my PV energy go?": 4 segments
+      // House (direct consumption), LG, Venus, Grid (export). All four are
+      // real destinations for a PV system with two batteries and grid feed-in.
+      //
+      // Activated by:
+      //   solar_mix_donut_mode (editor toggle, off by default)
+      //   solar_mix_period ('day' | 'month' | 'year', default 'day')
+      // Reads:
+      //   solar_mix_{house,lg,venus,grid}_{day,month,year}
+      // Renders only if total > 0.
+      let solarMixGradientVal = '';
+      let solarMixActive = false;
+      
+      if (this.config.solar_mix_donut_mode === true) {
+        const period = (this.config.solar_mix_period === 'month' || this.config.solar_mix_period === 'year')
+          ? this.config.solar_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const house = readVal(`solar_mix_house_${period}`);
+        const lg    = readVal(`solar_mix_lg_${period}`);
+        const venus = readVal(`solar_mix_venus_${period}`);
+        const grid  = readVal(`solar_mix_grid_${period}`);
+        const total = house + lg + venus + grid;
+        if (total > 0) {
+          const pctHouse = (house / total) * 100;
+          const pctLg    = (lg    / total) * 100;
+          const pctVenus = (venus / total) * 100;
+          const pctGrid  = (grid  / total) * 100;
+          
+          // Segment colours match the destination's bubble colour. House
+          // uses --pipe-house-color (falls back to neon-pink as in existing
+          // house bubble CSS). LG = battery, Venus = venus, Grid = grid.
+          let stops = [];
+          let cursor = 0;
+          if (pctHouse > 0) { stops.push(`var(--pipe-house-color, var(--neon-pink)) ${cursor}% ${cursor + pctHouse}%`); cursor += pctHouse; }
+          if (pctLg > 0)    { stops.push(`var(--pipe-battery-color) ${cursor}% ${cursor + pctLg}%`); cursor += pctLg; }
+          if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
+          if (pctGrid > 0)  { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          solarMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          solarMixActive = true;
+        }
+      }
+
       // --- Battery SoC Donut Gradient (Phase 5.36) ---
       // Visualizes the LG battery's State of Charge as a coloured ring.
       //   Filled segment   = battery pipe colour (default: --pipe-battery-color)
@@ -3577,12 +3648,27 @@ console.log(
                   const rot = this._getBubbleRotationDisplay('solar', liveText, liveColor);
                   // Phase 5.24/5.25: solar bubble stays in its active color if
                   // (a) flowing, (b) donut active, or (c) global always-color toggle on.
-                  const bubbleStateClass = (isSolarActive || solarDonutActive || alwaysColor) ? 'solar' : 'inactive';
-                  const glowOnState = (isSolarActive || solarDonutActive || alwaysColor) ? glowClass : '';
+                  // Phase 5.72: ALSO stay-coloured when mix-ring active, so the
+                  // .solar.mix-ring CSS rule matches even at night when
+                  // bubbleStateClass would otherwise be 'inactive'.
+                  const bubbleStateClass = (isSolarActive || solarDonutActive || solarMixActive || alwaysColor) ? 'solar' : 'inactive';
+                  const glowOnState = (isSolarActive || solarDonutActive || solarMixActive || alwaysColor) ? glowClass : '';
+                  // Phase 5.72: optional mix-ring style vars. Independent
+                  // of the PV-forecast donut: either can be on/off solo.
+                  const solarMixGap = parseInt(this.config.solar_mix_gap !== undefined ? this.config.solar_mix_gap : 8, 10);
+                  const solarMixThk = parseInt(this.config.solar_mix_thickness !== undefined ? this.config.solar_mix_thickness : 4, 10);
+                  const solarStyleParts = [];
+                  if (solarDonutActive) solarStyleParts.push(`--solar-gradient: ${solarGradientVal};`);
+                  if (solarMixActive) {
+                    solarStyleParts.push(`--solar-mix-gradient: ${solarMixGradientVal};`);
+                    solarStyleParts.push(`--solar-mix-gap: ${solarMixGap}px;`);
+                    solarStyleParts.push(`--solar-mix-thickness: ${solarMixThk}px;`);
+                  }
                   return html`
-                  <div class="bubble ${bubbleStateClass} node-solar ${solarDonutActive ? 'donut' : ''} ${tintClass} ${glowOnState}"
-                      style="${solarDonutActive ? `--solar-gradient: ${solarGradientVal};` : ''}"
+                  <div class="bubble ${bubbleStateClass} node-solar ${solarDonutActive ? 'donut' : ''} ${solarMixActive ? 'mix-ring' : ''} ${tintClass} ${glowOnState}"
+                      style="${solarStyleParts.join(' ')}"
                       @click=${() => this._handleClick(entities.solar)}>
+                      ${this._renderSparklineForSource('solar')}
                       ${renderMainIcon('solar', solarVal, iconSolar, solarColor)}
                       ${renderSecondaryOrLabel(labelSolarText, showLabelSolar, entities.secondary_solar, hasSecondarySolar, 'secondary_solar')}
                       <div class="value rotating-value" style="color: ${rot.color};">${rot.text}</div>

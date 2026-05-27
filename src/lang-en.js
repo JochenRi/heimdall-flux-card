@@ -360,5 +360,23 @@ export default {
     "editor.venus_mix_year_section": "Yearly sensors",
     "editor.venus_mix_pv_label": "PV → Venus (kWh)",
     "editor.venus_mix_grid_label": "Grid → Venus (kWh)",
+
+    // Phase 5.72: Solar PV-distribution mix ring (House / LG / Venus / Grid-export)
+    "editor.solar_mix_section": "PV distribution (outer mix ring)",
+    "editor.solar_mix_hint": "Adds a second ring around the PV donut showing where PV energy went: direct house consumption, LG charging, Venus charging, grid export.",
+    "editor.solar_mix_enabled": "Enable PV-distribution ring",
+    "editor.solar_mix_period": "Time period",
+    "editor.solar_mix_period_day": "Day",
+    "editor.solar_mix_period_month": "Month",
+    "editor.solar_mix_period_year": "Year",
+    "editor.solar_mix_gap": "Gap from PV donut (px)",
+    "editor.solar_mix_thickness": "Ring thickness (px)",
+    "editor.solar_mix_day_section": "Daily sensors",
+    "editor.solar_mix_month_section": "Monthly sensors",
+    "editor.solar_mix_year_section": "Yearly sensors",
+    "editor.solar_mix_house_label": "PV → House (kWh)",
+    "editor.solar_mix_lg_label": "PV → LG (kWh)",
+    "editor.solar_mix_venus_label": "PV → Venus (kWh)",
+    "editor.solar_mix_grid_label": "PV → Grid export (kWh)",
   }
 };

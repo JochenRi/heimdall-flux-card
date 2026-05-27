@@ -365,6 +365,24 @@ const lang_de = {
     "editor.venus_mix_year_section": "Jahres-Sensoren",
     "editor.venus_mix_pv_label": "PV → Venus (kWh)",
     "editor.venus_mix_grid_label": "Netz → Venus (kWh)",
+
+    // Phase 5.72: Solar PV-distribution mix ring (Haus / LG / Venus / Netz-Export)
+    "editor.solar_mix_section": "PV-Verteilung (Mix-Ring außen)",
+    "editor.solar_mix_hint": "Zeigt um den PV-Donut herum einen zweiten Ring an, der angibt wohin die PV-Energie geflossen ist: Direktverbrauch Haus, LG-Ladung, Venus-Ladung, Netz-Export.",
+    "editor.solar_mix_enabled": "PV-Verteilungs-Ring aktivieren",
+    "editor.solar_mix_period": "Zeitraum",
+    "editor.solar_mix_period_day": "Tag",
+    "editor.solar_mix_period_month": "Monat",
+    "editor.solar_mix_period_year": "Jahr",
+    "editor.solar_mix_gap": "Abstand zur PV-Donut (px)",
+    "editor.solar_mix_thickness": "Ring-Dicke (px)",
+    "editor.solar_mix_day_section": "Tages-Sensoren",
+    "editor.solar_mix_month_section": "Monats-Sensoren",
+    "editor.solar_mix_year_section": "Jahres-Sensoren",
+    "editor.solar_mix_house_label": "PV → Haus (kWh)",
+    "editor.solar_mix_lg_label": "PV → LG (kWh)",
+    "editor.solar_mix_venus_label": "PV → Venus (kWh)",
+    "editor.solar_mix_grid_label": "PV → Netz Export (kWh)",
   }
 };
 const lang_en = {
@@ -729,6 +747,24 @@ const lang_en = {
     "editor.venus_mix_year_section": "Yearly sensors",
     "editor.venus_mix_pv_label": "PV → Venus (kWh)",
     "editor.venus_mix_grid_label": "Grid → Venus (kWh)",
+
+    // Phase 5.72: Solar PV-distribution mix ring (House / LG / Venus / Grid-export)
+    "editor.solar_mix_section": "PV distribution (outer mix ring)",
+    "editor.solar_mix_hint": "Adds a second ring around the PV donut showing where PV energy went: direct house consumption, LG charging, Venus charging, grid export.",
+    "editor.solar_mix_enabled": "Enable PV-distribution ring",
+    "editor.solar_mix_period": "Time period",
+    "editor.solar_mix_period_day": "Day",
+    "editor.solar_mix_period_month": "Month",
+    "editor.solar_mix_period_year": "Year",
+    "editor.solar_mix_gap": "Gap from PV donut (px)",
+    "editor.solar_mix_thickness": "Ring thickness (px)",
+    "editor.solar_mix_day_section": "Daily sensors",
+    "editor.solar_mix_month_section": "Monthly sensors",
+    "editor.solar_mix_year_section": "Yearly sensors",
+    "editor.solar_mix_house_label": "PV → House (kWh)",
+    "editor.solar_mix_lg_label": "PV → LG (kWh)",
+    "editor.solar_mix_venus_label": "PV → Venus (kWh)",
+    "editor.solar_mix_grid_label": "PV → Grid export (kWh)",
   }
 };
 
@@ -893,7 +929,15 @@ class PowerFluxCardEditor extends LitElement {
                 'venus_mix_pv_day', 'venus_mix_pv_month', 'venus_mix_pv_year',
                 'venus_mix_grid_day', 'venus_mix_grid_month', 'venus_mix_grid_year',
                 // Phase 5.71: Venus sparkline source entity override (optional).
-                'venus_sparkline_entity'
+                'venus_sparkline_entity',
+                // Phase 5.72: Solar PV-distribution mix ring (4 destinations).
+                // House/LG/Venus/Grid x 3 periods = 12 keys.
+                'solar_mix_house_day', 'solar_mix_house_month', 'solar_mix_house_year',
+                'solar_mix_lg_day',    'solar_mix_lg_month',    'solar_mix_lg_year',
+                'solar_mix_venus_day', 'solar_mix_venus_month', 'solar_mix_venus_year',
+                'solar_mix_grid_day',  'solar_mix_grid_month',  'solar_mix_grid_year',
+                // Phase 5.72: Solar sparkline source entity override (optional).
+                'solar_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -1443,6 +1487,172 @@ class PowerFluxCardEditor extends LitElement {
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.pv_donut_produced_today || "", 'pv_donut_produced_today', this._localize('editor.pv_donut_produced_sensor'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.pv_donut_forecast_today || "", 'pv_donut_forecast_today', this._localize('editor.pv_donut_forecast_sensor'))}
+
+            <!-- Phase 5.72: Solar PV-distribution mix-ring -- 4 segments
+                 (House / LG / Venus / Grid-export). Sits OUTSIDE the
+                 PV-forecast donut. Source-bubble semantics inverted from
+                 LG/Venus: instead of "where did my charge come from",
+                 it answers "where did my PV energy go". -->
+            <div class="group-title">
+                <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
+                ${this._localize('editor.solar_mix_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.solar_mix_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.solar_mix_donut_mode === true}
+                    .configValue=${'solar_mix_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.solar_mix_enabled')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "day",   label: this._localize('editor.solar_mix_period_day')   },
+                    { value: "month", label: this._localize('editor.solar_mix_period_month') },
+                    { value: "year",  label: this._localize('editor.solar_mix_period_year')  }
+                ] } }}
+                .value=${this._config.solar_mix_period || 'day'}
+                .configValue=${'solar_mix_period'}
+                .label=${this._localize('editor.solar_mix_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+                .value=${this._config.solar_mix_gap !== undefined ? this._config.solar_mix_gap : 8}
+                .configValue=${'solar_mix_gap'}
+                .label=${this._localize('editor.solar_mix_gap')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+                .value=${this._config.solar_mix_thickness !== undefined ? this._config.solar_mix_thickness : 4}
+                .configValue=${'solar_mix_thickness'}
+                .label=${this._localize('editor.solar_mix_thickness')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <!-- Day-period sensors (4 destinations) -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.solar_mix_day_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_house_day || "", 'solar_mix_house_day', this._localize('editor.solar_mix_house_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_lg_day || "", 'solar_mix_lg_day', this._localize('editor.solar_mix_lg_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_venus_day || "", 'solar_mix_venus_day', this._localize('editor.solar_mix_venus_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_grid_day || "", 'solar_mix_grid_day', this._localize('editor.solar_mix_grid_label'))}
+
+            <!-- Month-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.solar_mix_month_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_house_month || "", 'solar_mix_house_month', this._localize('editor.solar_mix_house_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_lg_month || "", 'solar_mix_lg_month', this._localize('editor.solar_mix_lg_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_venus_month || "", 'solar_mix_venus_month', this._localize('editor.solar_mix_venus_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_grid_month || "", 'solar_mix_grid_month', this._localize('editor.solar_mix_grid_label'))}
+
+            <!-- Year-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.solar_mix_year_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_house_year || "", 'solar_mix_house_year', this._localize('editor.solar_mix_house_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_lg_year || "", 'solar_mix_lg_year', this._localize('editor.solar_mix_lg_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_venus_year || "", 'solar_mix_venus_year', this._localize('editor.solar_mix_venus_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_grid_year || "", 'solar_mix_grid_year', this._localize('editor.solar_mix_grid_label'))}
+
+            <!-- Phase 5.72: Solar sparkline. Same control set as LG/Venus,
+                 driven by solar_sparkline_* keys via _renderSparklineForSource('solar').
+                 Default colour matches the solar pipe colour (yellow). -->
+            <div class="group-title">
+                <ha-icon icon="mdi:chart-line-variant"></ha-icon>
+                ${this._localize('editor.sparkline_title')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.solar_sparkline === true}
+                    .configValue=${'solar_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_sparkline_entity || "", 'solar_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h",  label: "1h"  },
+                    { value: "6h",  label: "6h"  },
+                    { value: "12h", label: "12h" },
+                    { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.solar_sparkline_period || '24h'}
+                .configValue=${'solar_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
+                ] } }}
+                .value=${this._config.solar_sparkline_layer || 'back'}
+                .configValue=${'solar_sparkline_layer'}
+                .label=${this._localize('editor.sparkline_layer')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.solar_sparkline_style || 'area-line'}
+                .configValue=${'solar_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.solar_sparkline_opacity !== undefined ? this._config.solar_sparkline_opacity : 0.35}
+                .configValue=${'solar_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderColorPicker('solar_sparkline_color', this._localize('editor.sparkline_color'), '#ffd900')}
+
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.solar_sparkline_test_mode === true}
+                    .configValue=${'solar_sparkline_test_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+            </div>
         </div>
       `;
     }
@@ -6171,7 +6381,8 @@ console.log(
       // Storage key is the entity_id, so consumer and source sparklines
       // coexist without collisions.
       // Phase 5.71: Venus added alongside battery.
-      for (const prefix of ['battery', 'venus']) {
+      // Phase 5.72: Solar added.
+      for (const prefix of ['battery', 'venus', 'solar']) {
         if (this.config[`${prefix}_sparkline`] !== true) continue;
         const overrideEntity = this.config[`${prefix}_sparkline_entity`];
         const fallbackEntity = this.config?.entities?.[prefix];
@@ -6792,6 +7003,25 @@ console.log(
           background: var(--solar-gradient, var(--neon-yellow));
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
+      /* Phase 5.72: Solar PV-distribution mix-ring -- 4-segment outer ring
+         around the PV-forecast donut. Semantics differ from LG/Venus (which
+         answer "where did my energy come from"): for SOLAR the question is
+         "where did my PV energy go?" -- house direct-consumption / LG /
+         Venus / grid export. 4 segments because all four destinations are
+         real for a PV system with batteries and grid export. Mirror of
+         consumer mix-ring CSS (phase 5.48) but on .solar instead of .c1. */
+      .bubble.solar.mix-ring { overflow: visible; }
+      .bubble.solar.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--solar-mix-gap, 8px) + var(--solar-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--solar-mix-thickness, 4px);
+          background: var(--solar-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
       }
       
       /* Phase 5.36: battery SoC donut ring */
@@ -8401,6 +8631,57 @@ console.log(
         // else: both essentially zero -> donut off, normal yellow border.
       }
 
+      // --- Solar PV-Distribution Mix Ring (Phase 5.72) ---
+      // SECOND ring around the PV-forecast donut. Unlike LG/Venus mix-rings
+      // (which answer "where did my stored energy come from?", 2 segments
+      // PV+Grid), this answers "where did my PV energy go?": 4 segments
+      // House (direct consumption), LG, Venus, Grid (export). All four are
+      // real destinations for a PV system with two batteries and grid feed-in.
+      //
+      // Activated by:
+      //   solar_mix_donut_mode (editor toggle, off by default)
+      //   solar_mix_period ('day' | 'month' | 'year', default 'day')
+      // Reads:
+      //   solar_mix_{house,lg,venus,grid}_{day,month,year}
+      // Renders only if total > 0.
+      let solarMixGradientVal = '';
+      let solarMixActive = false;
+      
+      if (this.config.solar_mix_donut_mode === true) {
+        const period = (this.config.solar_mix_period === 'month' || this.config.solar_mix_period === 'year')
+          ? this.config.solar_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const house = readVal(`solar_mix_house_${period}`);
+        const lg    = readVal(`solar_mix_lg_${period}`);
+        const venus = readVal(`solar_mix_venus_${period}`);
+        const grid  = readVal(`solar_mix_grid_${period}`);
+        const total = house + lg + venus + grid;
+        if (total > 0) {
+          const pctHouse = (house / total) * 100;
+          const pctLg    = (lg    / total) * 100;
+          const pctVenus = (venus / total) * 100;
+          const pctGrid  = (grid  / total) * 100;
+          
+          // Segment colours match the destination's bubble colour. House
+          // uses --pipe-house-color (falls back to neon-pink as in existing
+          // house bubble CSS). LG = battery, Venus = venus, Grid = grid.
+          let stops = [];
+          let cursor = 0;
+          if (pctHouse > 0) { stops.push(`var(--pipe-house-color, var(--neon-pink)) ${cursor}% ${cursor + pctHouse}%`); cursor += pctHouse; }
+          if (pctLg > 0)    { stops.push(`var(--pipe-battery-color) ${cursor}% ${cursor + pctLg}%`); cursor += pctLg; }
+          if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
+          if (pctGrid > 0)  { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          solarMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          solarMixActive = true;
+        }
+      }
+
       // --- Battery SoC Donut Gradient (Phase 5.36) ---
       // Visualizes the LG battery's State of Charge as a coloured ring.
       //   Filled segment   = battery pipe colour (default: --pipe-battery-color)
@@ -9485,12 +9766,27 @@ console.log(
                   const rot = this._getBubbleRotationDisplay('solar', liveText, liveColor);
                   // Phase 5.24/5.25: solar bubble stays in its active color if
                   // (a) flowing, (b) donut active, or (c) global always-color toggle on.
-                  const bubbleStateClass = (isSolarActive || solarDonutActive || alwaysColor) ? 'solar' : 'inactive';
-                  const glowOnState = (isSolarActive || solarDonutActive || alwaysColor) ? glowClass : '';
+                  // Phase 5.72: ALSO stay-coloured when mix-ring active, so the
+                  // .solar.mix-ring CSS rule matches even at night when
+                  // bubbleStateClass would otherwise be 'inactive'.
+                  const bubbleStateClass = (isSolarActive || solarDonutActive || solarMixActive || alwaysColor) ? 'solar' : 'inactive';
+                  const glowOnState = (isSolarActive || solarDonutActive || solarMixActive || alwaysColor) ? glowClass : '';
+                  // Phase 5.72: optional mix-ring style vars. Independent
+                  // of the PV-forecast donut: either can be on/off solo.
+                  const solarMixGap = parseInt(this.config.solar_mix_gap !== undefined ? this.config.solar_mix_gap : 8, 10);
+                  const solarMixThk = parseInt(this.config.solar_mix_thickness !== undefined ? this.config.solar_mix_thickness : 4, 10);
+                  const solarStyleParts = [];
+                  if (solarDonutActive) solarStyleParts.push(`--solar-gradient: ${solarGradientVal};`);
+                  if (solarMixActive) {
+                    solarStyleParts.push(`--solar-mix-gradient: ${solarMixGradientVal};`);
+                    solarStyleParts.push(`--solar-mix-gap: ${solarMixGap}px;`);
+                    solarStyleParts.push(`--solar-mix-thickness: ${solarMixThk}px;`);
+                  }
                   return html`
-                  <div class="bubble ${bubbleStateClass} node-solar ${solarDonutActive ? 'donut' : ''} ${tintClass} ${glowOnState}"
-                      style="${solarDonutActive ? `--solar-gradient: ${solarGradientVal};` : ''}"
+                  <div class="bubble ${bubbleStateClass} node-solar ${solarDonutActive ? 'donut' : ''} ${solarMixActive ? 'mix-ring' : ''} ${tintClass} ${glowOnState}"
+                      style="${solarStyleParts.join(' ')}"
                       @click=${() => this._handleClick(entities.solar)}>
+                      ${this._renderSparklineForSource('solar')}
                       ${renderMainIcon('solar', solarVal, iconSolar, solarColor)}
                       ${renderSecondaryOrLabel(labelSolarText, showLabelSolar, entities.secondary_solar, hasSecondarySolar, 'secondary_solar')}
                       <div class="value rotating-value" style="color: ${rot.color};">${rot.text}</div>

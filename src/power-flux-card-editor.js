@@ -153,7 +153,15 @@ class PowerFluxCardEditor extends LitElement {
                 'venus_mix_pv_day', 'venus_mix_pv_month', 'venus_mix_pv_year',
                 'venus_mix_grid_day', 'venus_mix_grid_month', 'venus_mix_grid_year',
                 // Phase 5.71: Venus sparkline source entity override (optional).
-                'venus_sparkline_entity'
+                'venus_sparkline_entity',
+                // Phase 5.72: Solar PV-distribution mix ring (4 destinations).
+                // House/LG/Venus/Grid x 3 periods = 12 keys.
+                'solar_mix_house_day', 'solar_mix_house_month', 'solar_mix_house_year',
+                'solar_mix_lg_day',    'solar_mix_lg_month',    'solar_mix_lg_year',
+                'solar_mix_venus_day', 'solar_mix_venus_month', 'solar_mix_venus_year',
+                'solar_mix_grid_day',  'solar_mix_grid_month',  'solar_mix_grid_year',
+                // Phase 5.72: Solar sparkline source entity override (optional).
+                'solar_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -703,6 +711,172 @@ class PowerFluxCardEditor extends LitElement {
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.pv_donut_produced_today || "", 'pv_donut_produced_today', this._localize('editor.pv_donut_produced_sensor'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.pv_donut_forecast_today || "", 'pv_donut_forecast_today', this._localize('editor.pv_donut_forecast_sensor'))}
+
+            <!-- Phase 5.72: Solar PV-distribution mix-ring -- 4 segments
+                 (House / LG / Venus / Grid-export). Sits OUTSIDE the
+                 PV-forecast donut. Source-bubble semantics inverted from
+                 LG/Venus: instead of "where did my charge come from",
+                 it answers "where did my PV energy go". -->
+            <div class="group-title">
+                <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
+                ${this._localize('editor.solar_mix_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.solar_mix_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.solar_mix_donut_mode === true}
+                    .configValue=${'solar_mix_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.solar_mix_enabled')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "day",   label: this._localize('editor.solar_mix_period_day')   },
+                    { value: "month", label: this._localize('editor.solar_mix_period_month') },
+                    { value: "year",  label: this._localize('editor.solar_mix_period_year')  }
+                ] } }}
+                .value=${this._config.solar_mix_period || 'day'}
+                .configValue=${'solar_mix_period'}
+                .label=${this._localize('editor.solar_mix_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+                .value=${this._config.solar_mix_gap !== undefined ? this._config.solar_mix_gap : 8}
+                .configValue=${'solar_mix_gap'}
+                .label=${this._localize('editor.solar_mix_gap')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+                .value=${this._config.solar_mix_thickness !== undefined ? this._config.solar_mix_thickness : 4}
+                .configValue=${'solar_mix_thickness'}
+                .label=${this._localize('editor.solar_mix_thickness')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <!-- Day-period sensors (4 destinations) -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.solar_mix_day_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_house_day || "", 'solar_mix_house_day', this._localize('editor.solar_mix_house_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_lg_day || "", 'solar_mix_lg_day', this._localize('editor.solar_mix_lg_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_venus_day || "", 'solar_mix_venus_day', this._localize('editor.solar_mix_venus_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_grid_day || "", 'solar_mix_grid_day', this._localize('editor.solar_mix_grid_label'))}
+
+            <!-- Month-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.solar_mix_month_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_house_month || "", 'solar_mix_house_month', this._localize('editor.solar_mix_house_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_lg_month || "", 'solar_mix_lg_month', this._localize('editor.solar_mix_lg_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_venus_month || "", 'solar_mix_venus_month', this._localize('editor.solar_mix_venus_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_grid_month || "", 'solar_mix_grid_month', this._localize('editor.solar_mix_grid_label'))}
+
+            <!-- Year-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.solar_mix_year_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_house_year || "", 'solar_mix_house_year', this._localize('editor.solar_mix_house_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_lg_year || "", 'solar_mix_lg_year', this._localize('editor.solar_mix_lg_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_venus_year || "", 'solar_mix_venus_year', this._localize('editor.solar_mix_venus_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_grid_year || "", 'solar_mix_grid_year', this._localize('editor.solar_mix_grid_label'))}
+
+            <!-- Phase 5.72: Solar sparkline. Same control set as LG/Venus,
+                 driven by solar_sparkline_* keys via _renderSparklineForSource('solar').
+                 Default colour matches the solar pipe colour (yellow). -->
+            <div class="group-title">
+                <ha-icon icon="mdi:chart-line-variant"></ha-icon>
+                ${this._localize('editor.sparkline_title')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.solar_sparkline === true}
+                    .configValue=${'solar_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_sparkline_entity || "", 'solar_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h",  label: "1h"  },
+                    { value: "6h",  label: "6h"  },
+                    { value: "12h", label: "12h" },
+                    { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.solar_sparkline_period || '24h'}
+                .configValue=${'solar_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
+                ] } }}
+                .value=${this._config.solar_sparkline_layer || 'back'}
+                .configValue=${'solar_sparkline_layer'}
+                .label=${this._localize('editor.sparkline_layer')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.solar_sparkline_style || 'area-line'}
+                .configValue=${'solar_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.solar_sparkline_opacity !== undefined ? this._config.solar_sparkline_opacity : 0.35}
+                .configValue=${'solar_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderColorPicker('solar_sparkline_color', this._localize('editor.sparkline_color'), '#ffd900')}
+
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.solar_sparkline_test_mode === true}
+                    .configValue=${'solar_sparkline_test_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+            </div>
         </div>
       `;
     }
