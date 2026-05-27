@@ -143,7 +143,11 @@ class PowerFluxCardEditor extends LitElement {
                 // otherwise picked sensors land as top-level config keys
                 // instead of under config.entities.* (Phase 4.15 bug).
                 'battery_mix_pv_day', 'battery_mix_pv_month', 'battery_mix_pv_year',
-                'battery_mix_grid_day', 'battery_mix_grid_month', 'battery_mix_grid_year'
+                'battery_mix_grid_day', 'battery_mix_grid_month', 'battery_mix_grid_year',
+                // Phase 5.69: LG sparkline source entity override (optional).
+                // First source-bubble sparkline. Follows the same pattern as
+                // consumer_X_sparkline_entity but with battery_ prefix.
+                'battery_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -1233,6 +1237,92 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_year || "", 'battery_mix_pv_year', this._localize('editor.battery_mix_pv_label'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_year || "", 'battery_mix_grid_year', this._localize('editor.battery_mix_grid_label'))}
+
+            <!-- Phase 5.69: LG sparkline section. Same control set as the 7
+                 consumer sparklines, but driven by source-prefix keys
+                 (battery_sparkline_* instead of consumer_X_sparkline_*).
+                 Default colour matches the bubble's pipe colour. -->
+            <div class="group-title">
+                <ha-icon icon="mdi:chart-line-variant"></ha-icon>
+                ${this._localize('editor.sparkline_title')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_sparkline === true}
+                    .configValue=${'battery_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_sparkline_entity || "", 'battery_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h",  label: "1h"  },
+                    { value: "6h",  label: "6h"  },
+                    { value: "12h", label: "12h" },
+                    { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.battery_sparkline_period || '24h'}
+                .configValue=${'battery_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
+                ] } }}
+                .value=${this._config.battery_sparkline_layer || 'back'}
+                .configValue=${'battery_sparkline_layer'}
+                .label=${this._localize('editor.sparkline_layer')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.battery_sparkline_style || 'area-line'}
+                .configValue=${'battery_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.battery_sparkline_opacity !== undefined ? this._config.battery_sparkline_opacity : 0.35}
+                .configValue=${'battery_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderColorPicker('battery_sparkline_color', this._localize('editor.sparkline_color'), '#e100ff')}
+
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.battery_sparkline_test_mode === true}
+                    .configValue=${'battery_sparkline_test_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+            </div>
         </div>
       `;
     }

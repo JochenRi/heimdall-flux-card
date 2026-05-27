@@ -851,7 +851,11 @@ class PowerFluxCardEditor extends LitElement {
                 // otherwise picked sensors land as top-level config keys
                 // instead of under config.entities.* (Phase 4.15 bug).
                 'battery_mix_pv_day', 'battery_mix_pv_month', 'battery_mix_pv_year',
-                'battery_mix_grid_day', 'battery_mix_grid_month', 'battery_mix_grid_year'
+                'battery_mix_grid_day', 'battery_mix_grid_month', 'battery_mix_grid_year',
+                // Phase 5.69: LG sparkline source entity override (optional).
+                // First source-bubble sparkline. Follows the same pattern as
+                // consumer_X_sparkline_entity but with battery_ prefix.
+                'battery_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -1941,6 +1945,92 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_year || "", 'battery_mix_pv_year', this._localize('editor.battery_mix_pv_label'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_year || "", 'battery_mix_grid_year', this._localize('editor.battery_mix_grid_label'))}
+
+            <!-- Phase 5.69: LG sparkline section. Same control set as the 7
+                 consumer sparklines, but driven by source-prefix keys
+                 (battery_sparkline_* instead of consumer_X_sparkline_*).
+                 Default colour matches the bubble's pipe colour. -->
+            <div class="group-title">
+                <ha-icon icon="mdi:chart-line-variant"></ha-icon>
+                ${this._localize('editor.sparkline_title')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_sparkline === true}
+                    .configValue=${'battery_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_sparkline_entity || "", 'battery_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h",  label: "1h"  },
+                    { value: "6h",  label: "6h"  },
+                    { value: "12h", label: "12h" },
+                    { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.battery_sparkline_period || '24h'}
+                .configValue=${'battery_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
+                ] } }}
+                .value=${this._config.battery_sparkline_layer || 'back'}
+                .configValue=${'battery_sparkline_layer'}
+                .label=${this._localize('editor.sparkline_layer')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.battery_sparkline_style || 'area-line'}
+                .configValue=${'battery_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.battery_sparkline_opacity !== undefined ? this._config.battery_sparkline_opacity : 0.35}
+                .configValue=${'battery_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderColorPicker('battery_sparkline_color', this._localize('editor.sparkline_color'), '#e100ff')}
+
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.battery_sparkline_test_mode === true}
+                    .configValue=${'battery_sparkline_test_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+            </div>
         </div>
       `;
     }
@@ -5878,6 +5968,27 @@ console.log(
         const period = this.config[`consumer_${idx}_sparkline_period`] || '24h';
         this._fetchSparklineHistory(entityId, period, idx);
       }
+
+      // Phase 5.69: Source-bubble sparklines. Same fetch infrastructure as
+      // consumers (reuses _fetchSparklineHistory and _generateTestSparkline)
+      // but driven by source-prefix config keys instead of consumer_${idx}_*.
+      // Storage key is the entity_id, so consumer and source sparklines
+      // coexist without collisions. Starts with 'battery' (LG); 'venus',
+      // 'solar', 'grid' can be added later by extending the array.
+      for (const prefix of ['battery']) {
+        if (this.config[`${prefix}_sparkline`] !== true) continue;
+        const overrideEntity = this.config[`${prefix}_sparkline_entity`];
+        const fallbackEntity = this.config?.entities?.[prefix];
+        const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : fallbackEntity;
+        if (!entityId) continue;
+        if (this.config[`${prefix}_sparkline_test_mode`] === true) {
+          // Pass null idx so the consumer-specific debug check stays silent.
+          this._generateTestSparkline(entityId, null);
+          continue;
+        }
+        const period = this.config[`${prefix}_sparkline_period`] || '24h';
+        this._fetchSparklineHistory(entityId, period, null);
+      }
     }
 
     _generateTestSparkline(entityId, idx) {
@@ -6911,6 +7022,82 @@ console.log(
       // inside the Shadow DOM. Includes the latest timestamp so it changes
       // on every refetch.
       const gradId = `sparkline-grad-c${idx}-${Math.floor(tMax)}`;
+
+      const wrapperStyle = [
+        `position:absolute`,
+        `left:0`,
+        `top:0`,
+        `width:${W}px`,
+        `height:${H}px`,
+        `clip-path:circle(50%)`,
+        `-webkit-clip-path:circle(50%)`,
+        `z-index:${zIndex}`,
+        `pointer-events:none`,
+        `opacity:${opacity}`,
+        `overflow:hidden`,
+        `border-radius:50%`,
+      ].join(';');
+
+      return html`<div class="sparkline-wrap" style="${wrapperStyle}"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.85"></stop><stop offset="100%" stop-color="${color}" stop-opacity="0"></stop></linearGradient></defs><path d="${effectiveAreaPath}" fill="url(#${gradId})" stroke="none"></path><path d="${effectiveLinePath}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></path></svg></div>`;
+    }
+
+    // Phase 5.69: Source-bubble sparkline renderer. Near-clone of
+    // _renderSparkline above, but driven by a string prefix
+    // ('battery', 'venus', 'solar', 'grid') instead of a numeric idx.
+    //
+    // Option B from the design discussion: separate function rather
+    // than parametrising the consumer one. Trade-off accepted: ~80
+    // lines of code duplication, but ZERO risk to the 7 working
+    // consumer sparklines. Any future change to sparkline behaviour
+    // that should apply to BOTH paths needs to be made in both places.
+    //
+    // Config keys read: ${prefix}_sparkline, ${prefix}_sparkline_entity,
+    // ${prefix}_sparkline_opacity, ${prefix}_sparkline_style,
+    // ${prefix}_sparkline_layer, ${prefix}_sparkline_color.
+    // Storage key in this._sparklineData is the entity_id, identical
+    // to the consumer path -- they share one data store.
+    _renderSparklineForSource(prefix) {
+      if (!this.config) return html``;
+      if (this.config[`${prefix}_sparkline`] !== true) return html``;
+      const overrideEntity = this.config[`${prefix}_sparkline_entity`];
+      const fallbackEntity = this.config?.entities?.[prefix];
+      const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : fallbackEntity;
+      if (!entityId) return html``;
+      const data = this._sparklineData?.[entityId];
+      if (!Array.isArray(data) || data.length < 2) return html``;
+
+      const opacityRaw = this.config[`${prefix}_sparkline_opacity`];
+      const opacity = (opacityRaw === undefined || opacityRaw === null)
+        ? 0.35 : Math.max(0.05, Math.min(1, parseFloat(opacityRaw)));
+      const style = this.config[`${prefix}_sparkline_style`] || 'area-line';
+      const layer = this.config[`${prefix}_sparkline_layer`] || 'back';
+      // Default colour falls through to the bubble's pipe colour CSS var,
+      // so a freshly enabled sparkline looks reasonable without picking
+      // a colour. Battery -> --pipe-battery-color, venus -> --pipe-venus-color, etc.
+      const color = this.config[`${prefix}_sparkline_color`]
+        || `var(--pipe-${prefix}-color)`;
+
+      const zIndex = layer === 'front' ? 3 : layer === 'mid' ? 2 : 1;
+      const downsampled = this._downsampleSparkline(data, 60);
+
+      const size = parseInt(this.config.bubble_size || 90, 10);
+      const W = size, H = size;
+      const tMin = downsampled[0].t;
+      const tMax = downsampled[downsampled.length - 1].t;
+      const tSpan = (tMax - tMin) || 1;
+      const vMaxRaw = Math.max(...downsampled.map(p => p.v), 0);
+      const vMax = (vMaxRaw <= 0) ? 1 : vMaxRaw * 1.1;
+      const xy = downsampled.map(p => [
+        ((p.t - tMin) / tSpan) * W,
+        H - (Math.max(0, p.v) / vMax) * H
+      ]);
+      const linePath = xy.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+      const areaPath = `${linePath} L${W},${H} L0,${H} Z`;
+      const effectiveAreaPath = (style === 'area' || style === 'area-line') ? areaPath : '';
+      const effectiveLinePath = (style === 'line' || style === 'area-line') ? linePath : '';
+
+      // Source-prefixed gradient ID to keep it unique across source/consumer.
+      const gradId = `sparkline-grad-${prefix}-${Math.floor(tMax)}`;
 
       const wrapperStyle = [
         `position:absolute`,
@@ -9109,6 +9296,7 @@ console.log(
                   <div class="bubble battery node-battery ${batteryDonutActive ? 'donut' : ''} ${batteryMixActive ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
                       style="${batteryStyleParts.join(' ')}"
                       @click=${() => this._handleClick(entities.battery)}>
+                      ${this._renderSparklineForSource('battery')}
                       ${renderMainIcon('battery', battSoc, iconBattery)}
                       ${renderSecondaryOrLabel(labelBatteryText, showLabelBattery, entities.secondary_battery, hasSecondaryBattery, 'secondary_battery')}
                       <div class="value rotating-value" style="color: ${rot.color};">${rot.text}</div>
