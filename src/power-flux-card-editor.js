@@ -147,7 +147,13 @@ class PowerFluxCardEditor extends LitElement {
                 // Phase 5.69: LG sparkline source entity override (optional).
                 // First source-bubble sparkline. Follows the same pattern as
                 // consumer_X_sparkline_entity but with battery_ prefix.
-                'battery_sparkline_entity'
+                'battery_sparkline_entity',
+                // Phase 5.70: Venus charge-source mix ring. Same 2-source schema
+                // as LG: PV + Grid x 3 periods = 6 keys.
+                'venus_mix_pv_day', 'venus_mix_pv_month', 'venus_mix_pv_year',
+                'venus_mix_grid_day', 'venus_mix_grid_month', 'venus_mix_grid_year',
+                // Phase 5.71: Venus sparkline source entity override (optional).
+                'venus_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -1574,6 +1580,164 @@ class PowerFluxCardEditor extends LitElement {
                     @change=${this._valueChanged}
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.venus_soc_donut_enabled')}</div>
+            </div>
+
+            <!-- Phase 5.70: Venus charge-source mix-ring. Mirror of LG mix-ring
+                 (phase 5.68) -- same 2-segment semantics (PV + Grid only). -->
+            <div class="group-title">
+                <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
+                ${this._localize('editor.venus_mix_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.venus_mix_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.venus_mix_donut_mode === true}
+                    .configValue=${'venus_mix_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.venus_mix_enabled')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "day",   label: this._localize('editor.venus_mix_period_day')   },
+                    { value: "month", label: this._localize('editor.venus_mix_period_month') },
+                    { value: "year",  label: this._localize('editor.venus_mix_period_year')  }
+                ] } }}
+                .value=${this._config.venus_mix_period || 'day'}
+                .configValue=${'venus_mix_period'}
+                .label=${this._localize('editor.venus_mix_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+                .value=${this._config.venus_mix_gap !== undefined ? this._config.venus_mix_gap : 8}
+                .configValue=${'venus_mix_gap'}
+                .label=${this._localize('editor.venus_mix_gap')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+                .value=${this._config.venus_mix_thickness !== undefined ? this._config.venus_mix_thickness : 4}
+                .configValue=${'venus_mix_thickness'}
+                .label=${this._localize('editor.venus_mix_thickness')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <!-- Day-period sensors (PV + Grid) -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.venus_mix_day_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_pv_day || "", 'venus_mix_pv_day', this._localize('editor.venus_mix_pv_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_grid_day || "", 'venus_mix_grid_day', this._localize('editor.venus_mix_grid_label'))}
+
+            <!-- Month-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.venus_mix_month_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_pv_month || "", 'venus_mix_pv_month', this._localize('editor.venus_mix_pv_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_grid_month || "", 'venus_mix_grid_month', this._localize('editor.venus_mix_grid_label'))}
+
+            <!-- Year-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.venus_mix_year_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_pv_year || "", 'venus_mix_pv_year', this._localize('editor.venus_mix_pv_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_grid_year || "", 'venus_mix_grid_year', this._localize('editor.venus_mix_grid_label'))}
+
+            <!-- Phase 5.71: Venus sparkline. Same control set as LG sparkline
+                 (phase 5.69), driven by venus_sparkline_* keys via the
+                 _renderSparklineForSource('venus') helper. Default colour matches
+                 the Venus bubble pipe colour (violet #8d07d5). -->
+            <div class="group-title">
+                <ha-icon icon="mdi:chart-line-variant"></ha-icon>
+                ${this._localize('editor.sparkline_title')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.venus_sparkline === true}
+                    .configValue=${'venus_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_sparkline_entity || "", 'venus_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h",  label: "1h"  },
+                    { value: "6h",  label: "6h"  },
+                    { value: "12h", label: "12h" },
+                    { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.venus_sparkline_period || '24h'}
+                .configValue=${'venus_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
+                ] } }}
+                .value=${this._config.venus_sparkline_layer || 'back'}
+                .configValue=${'venus_sparkline_layer'}
+                .label=${this._localize('editor.sparkline_layer')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.venus_sparkline_style || 'area-line'}
+                .configValue=${'venus_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.venus_sparkline_opacity !== undefined ? this._config.venus_sparkline_opacity : 0.35}
+                .configValue=${'venus_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderColorPicker('venus_sparkline_color', this._localize('editor.sparkline_color'), '#8d07d5')}
+
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.venus_sparkline_test_mode === true}
+                    .configValue=${'venus_sparkline_test_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
             </div>
         </div>
       `;

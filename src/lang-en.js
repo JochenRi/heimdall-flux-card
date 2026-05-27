@@ -344,5 +344,21 @@ export default {
     "editor.battery_mix_year_section": "Yearly sensors",
     "editor.battery_mix_pv_label": "PV → LG (kWh)",
     "editor.battery_mix_grid_label": "Grid → LG (kWh)",
+
+    // Phase 5.70: Venus charge-source mix ring (PV vs Grid) -- identical to LG
+    "editor.venus_mix_section": "Charge source (outer mix ring)",
+    "editor.venus_mix_hint": "Adds a second ring around the SoC donut showing where Venus's stored energy came from. For a storage bubble there are only 2 sources: PV and Grid.",
+    "editor.venus_mix_enabled": "Enable charge-source ring",
+    "editor.venus_mix_period": "Time period",
+    "editor.venus_mix_period_day": "Day",
+    "editor.venus_mix_period_month": "Month",
+    "editor.venus_mix_period_year": "Year",
+    "editor.venus_mix_gap": "Gap from SoC donut (px)",
+    "editor.venus_mix_thickness": "Ring thickness (px)",
+    "editor.venus_mix_day_section": "Daily sensors",
+    "editor.venus_mix_month_section": "Monthly sensors",
+    "editor.venus_mix_year_section": "Yearly sensors",
+    "editor.venus_mix_pv_label": "PV → Venus (kWh)",
+    "editor.venus_mix_grid_label": "Grid → Venus (kWh)",
   }
 };

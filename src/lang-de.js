@@ -344,5 +344,21 @@ export default {
     "editor.battery_mix_year_section": "Jahres-Sensoren",
     "editor.battery_mix_pv_label": "PV → LG (kWh)",
     "editor.battery_mix_grid_label": "Netz → LG (kWh)",
+
+    // Phase 5.70: Venus charge-source mix ring (PV vs Grid) -- identical to LG
+    "editor.venus_mix_section": "Lade-Herkunft (Mix-Ring außen)",
+    "editor.venus_mix_hint": "Zeigt um die SoC-Donut herum einen zweiten Ring an, der angibt aus welchen Quellen Venus geladen wurde. Bei einem Speicher gibt es nur 2 Quellen: PV und Netz.",
+    "editor.venus_mix_enabled": "Lade-Herkunfts-Ring aktivieren",
+    "editor.venus_mix_period": "Zeitraum",
+    "editor.venus_mix_period_day": "Tag",
+    "editor.venus_mix_period_month": "Monat",
+    "editor.venus_mix_period_year": "Jahr",
+    "editor.venus_mix_gap": "Abstand zur SoC-Donut (px)",
+    "editor.venus_mix_thickness": "Ring-Dicke (px)",
+    "editor.venus_mix_day_section": "Tages-Sensoren",
+    "editor.venus_mix_month_section": "Monats-Sensoren",
+    "editor.venus_mix_year_section": "Jahres-Sensoren",
+    "editor.venus_mix_pv_label": "PV → Venus (kWh)",
+    "editor.venus_mix_grid_label": "Netz → Venus (kWh)",
   }
 };

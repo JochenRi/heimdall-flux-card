@@ -261,9 +261,9 @@ console.log(
       // consumers (reuses _fetchSparklineHistory and _generateTestSparkline)
       // but driven by source-prefix config keys instead of consumer_${idx}_*.
       // Storage key is the entity_id, so consumer and source sparklines
-      // coexist without collisions. Starts with 'battery' (LG); 'venus',
-      // 'solar', 'grid' can be added later by extending the array.
-      for (const prefix of ['battery']) {
+      // coexist without collisions.
+      // Phase 5.71: Venus added alongside battery.
+      for (const prefix of ['battery', 'venus']) {
         if (this.config[`${prefix}_sparkline`] !== true) continue;
         const overrideEntity = this.config[`${prefix}_sparkline_entity`];
         const fallbackEntity = this.config?.entities?.[prefix];
@@ -922,6 +922,22 @@ console.log(
           background: var(--venus-gradient, var(--pipe-venus-color, var(--venus-color)));
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
+      /* Phase 5.70: Venus (Marstek) charge-source mix-ring. Mirror of the LG
+         mix-ring from phase 5.68 -- same 2-segment semantics (PV + Grid only),
+         same source-bubble logic. Sits outside the SoC donut by a configurable
+         gap, with its own configurable thickness. */
+      .bubble.venus.mix-ring { overflow: visible; }
+      .bubble.venus.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--venus-mix-gap, 8px) + var(--venus-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--venus-mix-thickness, 4px);
+          background: var(--venus-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
       }
       
       /* Phase 5.47: Tesla (Consumer 1) SoC donut ring.
@@ -2570,6 +2586,47 @@ console.log(
         }
       }
 
+      // --- Venus Charge-Source Mix Ring (Phase 5.70) ---
+      // SECOND ring around the Venus SoC donut. Mirror of LG mix-ring
+      // (Phase 5.68) -- identical semantics: 2 segments (PV + Grid)
+      // because Venus is also a SOURCE bubble that can only be charged
+      // from PV or Grid. User confirmed: identical to LG.
+      //
+      // Activated by:
+      //   venus_mix_donut_mode (editor toggle, off by default)
+      //   venus_mix_period ('day' | 'month' | 'year', default 'day')
+      // Reads:
+      //   venus_mix_{pv,grid}_{day,month,year}
+      // Renders only if total > 0 (no division by zero, no inert ring).
+      let venusMixGradientVal = '';
+      let venusMixActive = false;
+      
+      if (this.config.venus_mix_donut_mode === true) {
+        const period = (this.config.venus_mix_period === 'month' || this.config.venus_mix_period === 'year')
+          ? this.config.venus_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const pv   = readVal(`venus_mix_pv_${period}`);
+        const grid = readVal(`venus_mix_grid_${period}`);
+        const total = pv + grid;
+        if (total > 0) {
+          const pctPv   = (pv   / total) * 100;
+          const pctGrid = (grid / total) * 100;
+          
+          let stops = [];
+          let cursor = 0;
+          if (pctPv > 0)   { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`); cursor += pctPv; }
+          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          venusMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          venusMixActive = true;
+        }
+      }
+
       // --- Tesla / Consumer 1 SoC Donut Gradient (Phase 5.47) ---
       // Same conic-gradient pattern as Battery/Venus, but with a configurable
       // maximum (consumer_1_soc_max, default 100). This makes the donut
@@ -3604,10 +3661,22 @@ console.log(
                     ? 'var(--text-venus-color)'
                     : 'var(--venus-color)';
                   const rot = this._getBubbleRotationDisplay('venus', liveText, liveColor);
+                  // Phase 5.70: optional mix-ring class + CSS custom properties.
+                  // Identical pattern to LG (phase 5.68). Defaults: gap 8px, thickness 4px.
+                  const venusMixGap = parseInt(this.config.venus_mix_gap !== undefined ? this.config.venus_mix_gap : 8, 10);
+                  const venusMixThk = parseInt(this.config.venus_mix_thickness !== undefined ? this.config.venus_mix_thickness : 4, 10);
+                  const venusStyleParts = [];
+                  if (venusDonutActive) venusStyleParts.push(`--venus-gradient: ${venusGradientVal};`);
+                  if (venusMixActive) {
+                    venusStyleParts.push(`--venus-mix-gradient: ${venusMixGradientVal};`);
+                    venusStyleParts.push(`--venus-mix-gap: ${venusMixGap}px;`);
+                    venusStyleParts.push(`--venus-mix-thickness: ${venusMixThk}px;`);
+                  }
                   return html`
-                  <div class="bubble venus node-venus ${venusDonutActive ? 'donut' : ''} ${tintClass} ${glowClass}"
-                      style="${venusDonutActive ? `--venus-gradient: ${venusGradientVal};` : ''}"
+                  <div class="bubble venus node-venus ${venusDonutActive ? 'donut' : ''} ${venusMixActive ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+                      style="${venusStyleParts.join(' ')}"
                       @click=${() => this._handleClick(entities.venus)}>
+                      ${this._renderSparklineForSource('venus')}
                       ${renderMainIcon('venus', venusSoc, iconVenus)}
                       ${renderSecondaryOrLabel(labelVenusText, showLabelVenus, entities.secondary_venus, hasSecondaryVenus, 'secondary_venus')}
                       <div class="value rotating-value" style="color: ${rot.color};">${rot.text}</div>
