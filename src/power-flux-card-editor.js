@@ -136,7 +136,14 @@ class PowerFluxCardEditor extends LitElement {
                 'consumer_4_sparkline_entity',
                 'consumer_5_sparkline_entity',
                 'consumer_6_sparkline_entity',
-                'consumer_7_sparkline_entity'
+                'consumer_7_sparkline_entity',
+                // Phase 5.68: LG (battery) charge-source mix ring. 2 sources
+                // (PV + Grid) x 3 periods (day/month/year) = 6 sensor keys.
+                // CRITICAL: every sensor-picker key MUST be in this array,
+                // otherwise picked sensors land as top-level config keys
+                // instead of under config.entities.* (Phase 4.15 bug).
+                'battery_mix_pv_day', 'battery_mix_pv_month', 'battery_mix_pv_year',
+                'battery_mix_grid_day', 'battery_mix_grid_month', 'battery_mix_grid_year'
             ];
 
             let newConfig = { ...this._config };
@@ -1152,6 +1159,80 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.battery_soc_donut_enabled')}</div>
             </div>
+
+            <!-- Phase 5.68: LG charge-source mix-ring -- an OUTER ring around the
+                 SoC donut, showing where LG's stored energy came from over the
+                 chosen period. Source-bubble semantics: only PV and Grid can
+                 charge LG, so 2 segments only. -->
+            <div class="group-title">
+                <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
+                ${this._localize('editor.battery_mix_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.battery_mix_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_mix_donut_mode === true}
+                    .configValue=${'battery_mix_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.battery_mix_enabled')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "day",   label: this._localize('editor.battery_mix_period_day')   },
+                    { value: "month", label: this._localize('editor.battery_mix_period_month') },
+                    { value: "year",  label: this._localize('editor.battery_mix_period_year')  }
+                ] } }}
+                .value=${this._config.battery_mix_period || 'day'}
+                .configValue=${'battery_mix_period'}
+                .label=${this._localize('editor.battery_mix_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+                .value=${this._config.battery_mix_gap !== undefined ? this._config.battery_mix_gap : 8}
+                .configValue=${'battery_mix_gap'}
+                .label=${this._localize('editor.battery_mix_gap')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+                .value=${this._config.battery_mix_thickness !== undefined ? this._config.battery_mix_thickness : 4}
+                .configValue=${'battery_mix_thickness'}
+                .label=${this._localize('editor.battery_mix_thickness')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <!-- Day-period sensors (PV + Grid) -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.battery_mix_day_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_day || "", 'battery_mix_pv_day', this._localize('editor.battery_mix_pv_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_day || "", 'battery_mix_grid_day', this._localize('editor.battery_mix_grid_label'))}
+
+            <!-- Month-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.battery_mix_month_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_month || "", 'battery_mix_pv_month', this._localize('editor.battery_mix_pv_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_month || "", 'battery_mix_grid_month', this._localize('editor.battery_mix_grid_label'))}
+
+            <!-- Year-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.battery_mix_year_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_year || "", 'battery_mix_pv_year', this._localize('editor.battery_mix_pv_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_year || "", 'battery_mix_grid_year', this._localize('editor.battery_mix_grid_label'))}
         </div>
       `;
     }

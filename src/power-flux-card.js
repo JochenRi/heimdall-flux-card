@@ -875,6 +875,24 @@ console.log(
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.68: LG (battery) charge-source mix-ring -- a SECOND outer ring around
+         the SoC donut. Uses --battery-mix-gradient (conic, 2 segments PV/Grid weighted
+         by user-chosen period). Semantics differ from consumer mix-rings: for a
+         source bubble like LG, "mix" means "where did the energy I store come from"
+         -- and LG can only be charged from PV or Grid (never from Venus or itself).
+         Hence only 2 segments. Mirror of c1/c5 mix-ring CSS (phase 5.48/5.51). */
+      .bubble.battery.mix-ring { overflow: visible; }
+      .bubble.battery.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--battery-mix-gap, 8px) + var(--battery-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--battery-mix-thickness, 4px);
+          background: var(--battery-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
+      }
+      
       /* Phase 5.37: Venus SoC donut ring */
       .bubble.venus.donut { border: none !important; background: transparent; }
       .bubble.venus.donut.tinted { background: color-mix(in srgb, var(--pipe-venus-color, var(--venus-color)), transparent 85%); }
@@ -2393,6 +2411,48 @@ console.log(
         }
       }
 
+      // --- LG / Battery Charge-Source Mix Ring (Phase 5.68) ---
+      // SECOND ring around the LG SoC donut. Shows where LG's stored energy
+      // came from over the chosen period. Unlike consumer mix-rings (4 segments
+      // PV/LG/Venus/Grid), this is a SOURCE bubble so the answer is simpler:
+      // LG can be charged only from PV or from Grid -- never from itself or
+      // from Venus. So only 2 segments and 2 input sensors per period.
+      //
+      // Activated by:
+      //   battery_mix_donut_mode (editor toggle, off by default)
+      //   battery_mix_period ('day' | 'month' | 'year', default 'day')
+      // Reads:
+      //   battery_mix_{pv,grid}_{day,month,year}
+      // Renders only if total > 0 (no division by zero, no inert ring).
+      let batteryMixGradientVal = '';
+      let batteryMixActive = false;
+      
+      if (this.config.battery_mix_donut_mode === true) {
+        const period = (this.config.battery_mix_period === 'month' || this.config.battery_mix_period === 'year')
+          ? this.config.battery_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const pv   = readVal(`battery_mix_pv_${period}`);
+        const grid = readVal(`battery_mix_grid_${period}`);
+        const total = pv + grid;
+        if (total > 0) {
+          const pctPv   = (pv   / total) * 100;
+          const pctGrid = (grid / total) * 100;
+          
+          let stops = [];
+          let cursor = 0;
+          if (pctPv > 0)   { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`); cursor += pctPv; }
+          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          batteryMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          batteryMixActive = true;
+        }
+      }
+
       // --- Venus SoC Donut Gradient (Phase 5.37) ---
       // Identical pattern to the battery donut. Activated by venus_soc_donut_mode.
       let venusGradientVal = '';
@@ -3411,9 +3471,21 @@ console.log(
                     ? 'var(--text-battery-color)'
                     : 'var(--neon-green)';
                   const rot = this._getBubbleRotationDisplay('battery', liveText, liveColor);
+                  // Phase 5.68: optional mix-ring class + CSS custom properties.
+                  // Independent from the SoC donut: either can be on/off solo or
+                  // both together. Defaults: gap 8px, thickness 4px.
+                  const batteryMixGap = parseInt(this.config.battery_mix_gap !== undefined ? this.config.battery_mix_gap : 8, 10);
+                  const batteryMixThk = parseInt(this.config.battery_mix_thickness !== undefined ? this.config.battery_mix_thickness : 4, 10);
+                  const batteryStyleParts = [];
+                  if (batteryDonutActive) batteryStyleParts.push(`--battery-gradient: ${batteryGradientVal};`);
+                  if (batteryMixActive) {
+                    batteryStyleParts.push(`--battery-mix-gradient: ${batteryMixGradientVal};`);
+                    batteryStyleParts.push(`--battery-mix-gap: ${batteryMixGap}px;`);
+                    batteryStyleParts.push(`--battery-mix-thickness: ${batteryMixThk}px;`);
+                  }
                   return html`
-                  <div class="bubble battery node-battery ${batteryDonutActive ? 'donut' : ''} ${tintClass} ${glowClass}"
-                      style="${batteryDonutActive ? `--battery-gradient: ${batteryGradientVal};` : ''}"
+                  <div class="bubble battery node-battery ${batteryDonutActive ? 'donut' : ''} ${batteryMixActive ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+                      style="${batteryStyleParts.join(' ')}"
                       @click=${() => this._handleClick(entities.battery)}>
                       ${renderMainIcon('battery', battSoc, iconBattery)}
                       ${renderSecondaryOrLabel(labelBatteryText, showLabelBattery, entities.secondary_battery, hasSecondaryBattery, 'secondary_battery')}

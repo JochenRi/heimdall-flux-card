@@ -328,5 +328,21 @@ export default {
     "editor.sparkline_entity_hint": "Wenn leer, wird der Hauptsensor der Bubble verwendet. Wähle einen anderen Sensor (z.B. Temperatur, Tagesverbrauch), wenn Du etwas anderes als Leistung im Verlauf sehen möchtest.",
     "editor.sparkline_debug": "Debug-Konsolen-Ausgabe (DevTools)",
     "editor.sparkline_test_mode": "Test-Modus (synthetische Sinus-Daten)",
+
+    // Phase 5.68: LG charge-source mix ring (PV vs Grid)
+    "editor.battery_mix_section": "Lade-Herkunft (Mix-Ring außen)",
+    "editor.battery_mix_hint": "Zeigt um die SoC-Donut herum einen zweiten Ring an, der angibt aus welchen Quellen LG geladen wurde. Bei einem Speicher gibt es nur 2 Quellen: PV und Netz.",
+    "editor.battery_mix_enabled": "Lade-Herkunfts-Ring aktivieren",
+    "editor.battery_mix_period": "Zeitraum",
+    "editor.battery_mix_period_day": "Tag",
+    "editor.battery_mix_period_month": "Monat",
+    "editor.battery_mix_period_year": "Jahr",
+    "editor.battery_mix_gap": "Abstand zur SoC-Donut (px)",
+    "editor.battery_mix_thickness": "Ring-Dicke (px)",
+    "editor.battery_mix_day_section": "Tages-Sensoren",
+    "editor.battery_mix_month_section": "Monats-Sensoren",
+    "editor.battery_mix_year_section": "Jahres-Sensoren",
+    "editor.battery_mix_pv_label": "PV → LG (kWh)",
+    "editor.battery_mix_grid_label": "Netz → LG (kWh)",
   }
 };

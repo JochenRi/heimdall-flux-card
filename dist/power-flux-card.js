@@ -333,6 +333,22 @@ const lang_de = {
     "editor.sparkline_entity_hint": "Wenn leer, wird der Hauptsensor der Bubble verwendet. Wähle einen anderen Sensor (z.B. Temperatur, Tagesverbrauch), wenn Du etwas anderes als Leistung im Verlauf sehen möchtest.",
     "editor.sparkline_debug": "Debug-Konsolen-Ausgabe (DevTools)",
     "editor.sparkline_test_mode": "Test-Modus (synthetische Sinus-Daten)",
+
+    // Phase 5.68: LG charge-source mix ring (PV vs Grid)
+    "editor.battery_mix_section": "Lade-Herkunft (Mix-Ring außen)",
+    "editor.battery_mix_hint": "Zeigt um die SoC-Donut herum einen zweiten Ring an, der angibt aus welchen Quellen LG geladen wurde. Bei einem Speicher gibt es nur 2 Quellen: PV und Netz.",
+    "editor.battery_mix_enabled": "Lade-Herkunfts-Ring aktivieren",
+    "editor.battery_mix_period": "Zeitraum",
+    "editor.battery_mix_period_day": "Tag",
+    "editor.battery_mix_period_month": "Monat",
+    "editor.battery_mix_period_year": "Jahr",
+    "editor.battery_mix_gap": "Abstand zur SoC-Donut (px)",
+    "editor.battery_mix_thickness": "Ring-Dicke (px)",
+    "editor.battery_mix_day_section": "Tages-Sensoren",
+    "editor.battery_mix_month_section": "Monats-Sensoren",
+    "editor.battery_mix_year_section": "Jahres-Sensoren",
+    "editor.battery_mix_pv_label": "PV → LG (kWh)",
+    "editor.battery_mix_grid_label": "Netz → LG (kWh)",
   }
 };
 const lang_en = {
@@ -665,6 +681,22 @@ const lang_en = {
     "editor.sparkline_entity_hint": "Leave empty to use the bubble's main entity. Pick a different sensor (e.g. temperature, daily total) if you want to chart something other than power.",
     "editor.sparkline_debug": "Debug console output (DevTools)",
     "editor.sparkline_test_mode": "Test mode (synthetic sine data)",
+
+    // Phase 5.68: LG charge-source mix ring (PV vs Grid)
+    "editor.battery_mix_section": "Charge source (outer mix ring)",
+    "editor.battery_mix_hint": "Adds a second ring around the SoC donut showing where LG's stored energy came from. For a storage bubble there are only 2 sources: PV and Grid.",
+    "editor.battery_mix_enabled": "Enable charge-source ring",
+    "editor.battery_mix_period": "Time period",
+    "editor.battery_mix_period_day": "Day",
+    "editor.battery_mix_period_month": "Month",
+    "editor.battery_mix_period_year": "Year",
+    "editor.battery_mix_gap": "Gap from SoC donut (px)",
+    "editor.battery_mix_thickness": "Ring thickness (px)",
+    "editor.battery_mix_day_section": "Daily sensors",
+    "editor.battery_mix_month_section": "Monthly sensors",
+    "editor.battery_mix_year_section": "Yearly sensors",
+    "editor.battery_mix_pv_label": "PV → LG (kWh)",
+    "editor.battery_mix_grid_label": "Grid → LG (kWh)",
   }
 };
 
@@ -812,7 +844,14 @@ class PowerFluxCardEditor extends LitElement {
                 'consumer_4_sparkline_entity',
                 'consumer_5_sparkline_entity',
                 'consumer_6_sparkline_entity',
-                'consumer_7_sparkline_entity'
+                'consumer_7_sparkline_entity',
+                // Phase 5.68: LG (battery) charge-source mix ring. 2 sources
+                // (PV + Grid) x 3 periods (day/month/year) = 6 sensor keys.
+                // CRITICAL: every sensor-picker key MUST be in this array,
+                // otherwise picked sensors land as top-level config keys
+                // instead of under config.entities.* (Phase 4.15 bug).
+                'battery_mix_pv_day', 'battery_mix_pv_month', 'battery_mix_pv_year',
+                'battery_mix_grid_day', 'battery_mix_grid_month', 'battery_mix_grid_year'
             ];
 
             let newConfig = { ...this._config };
@@ -1828,6 +1867,80 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.battery_soc_donut_enabled')}</div>
             </div>
+
+            <!-- Phase 5.68: LG charge-source mix-ring -- an OUTER ring around the
+                 SoC donut, showing where LG's stored energy came from over the
+                 chosen period. Source-bubble semantics: only PV and Grid can
+                 charge LG, so 2 segments only. -->
+            <div class="group-title">
+                <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
+                ${this._localize('editor.battery_mix_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.battery_mix_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.battery_mix_donut_mode === true}
+                    .configValue=${'battery_mix_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.battery_mix_enabled')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "day",   label: this._localize('editor.battery_mix_period_day')   },
+                    { value: "month", label: this._localize('editor.battery_mix_period_month') },
+                    { value: "year",  label: this._localize('editor.battery_mix_period_year')  }
+                ] } }}
+                .value=${this._config.battery_mix_period || 'day'}
+                .configValue=${'battery_mix_period'}
+                .label=${this._localize('editor.battery_mix_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+                .value=${this._config.battery_mix_gap !== undefined ? this._config.battery_mix_gap : 8}
+                .configValue=${'battery_mix_gap'}
+                .label=${this._localize('editor.battery_mix_gap')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+                .value=${this._config.battery_mix_thickness !== undefined ? this._config.battery_mix_thickness : 4}
+                .configValue=${'battery_mix_thickness'}
+                .label=${this._localize('editor.battery_mix_thickness')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <!-- Day-period sensors (PV + Grid) -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.battery_mix_day_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_day || "", 'battery_mix_pv_day', this._localize('editor.battery_mix_pv_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_day || "", 'battery_mix_grid_day', this._localize('editor.battery_mix_grid_label'))}
+
+            <!-- Month-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.battery_mix_month_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_month || "", 'battery_mix_pv_month', this._localize('editor.battery_mix_pv_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_month || "", 'battery_mix_grid_month', this._localize('editor.battery_mix_grid_label'))}
+
+            <!-- Year-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.battery_mix_year_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_year || "", 'battery_mix_pv_year', this._localize('editor.battery_mix_pv_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_year || "", 'battery_mix_grid_year', this._localize('editor.battery_mix_grid_label'))}
         </div>
       `;
     }
@@ -6384,6 +6497,24 @@ console.log(
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
       }
       
+      /* Phase 5.68: LG (battery) charge-source mix-ring -- a SECOND outer ring around
+         the SoC donut. Uses --battery-mix-gradient (conic, 2 segments PV/Grid weighted
+         by user-chosen period). Semantics differ from consumer mix-rings: for a
+         source bubble like LG, "mix" means "where did the energy I store come from"
+         -- and LG can only be charged from PV or Grid (never from Venus or itself).
+         Hence only 2 segments. Mirror of c1/c5 mix-ring CSS (phase 5.48/5.51). */
+      .bubble.battery.mix-ring { overflow: visible; }
+      .bubble.battery.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--battery-mix-gap, 8px) + var(--battery-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--battery-mix-thickness, 4px);
+          background: var(--battery-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
+      }
+      
       /* Phase 5.37: Venus SoC donut ring */
       .bubble.venus.donut { border: none !important; background: transparent; }
       .bubble.venus.donut.tinted { background: color-mix(in srgb, var(--pipe-venus-color, var(--venus-color)), transparent 85%); }
@@ -7902,6 +8033,48 @@ console.log(
         }
       }
 
+      // --- LG / Battery Charge-Source Mix Ring (Phase 5.68) ---
+      // SECOND ring around the LG SoC donut. Shows where LG's stored energy
+      // came from over the chosen period. Unlike consumer mix-rings (4 segments
+      // PV/LG/Venus/Grid), this is a SOURCE bubble so the answer is simpler:
+      // LG can be charged only from PV or from Grid -- never from itself or
+      // from Venus. So only 2 segments and 2 input sensors per period.
+      //
+      // Activated by:
+      //   battery_mix_donut_mode (editor toggle, off by default)
+      //   battery_mix_period ('day' | 'month' | 'year', default 'day')
+      // Reads:
+      //   battery_mix_{pv,grid}_{day,month,year}
+      // Renders only if total > 0 (no division by zero, no inert ring).
+      let batteryMixGradientVal = '';
+      let batteryMixActive = false;
+      
+      if (this.config.battery_mix_donut_mode === true) {
+        const period = (this.config.battery_mix_period === 'month' || this.config.battery_mix_period === 'year')
+          ? this.config.battery_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const pv   = readVal(`battery_mix_pv_${period}`);
+        const grid = readVal(`battery_mix_grid_${period}`);
+        const total = pv + grid;
+        if (total > 0) {
+          const pctPv   = (pv   / total) * 100;
+          const pctGrid = (grid / total) * 100;
+          
+          let stops = [];
+          let cursor = 0;
+          if (pctPv > 0)   { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`); cursor += pctPv; }
+          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          batteryMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          batteryMixActive = true;
+        }
+      }
+
       // --- Venus SoC Donut Gradient (Phase 5.37) ---
       // Identical pattern to the battery donut. Activated by venus_soc_donut_mode.
       let venusGradientVal = '';
@@ -8920,9 +9093,21 @@ console.log(
                     ? 'var(--text-battery-color)'
                     : 'var(--neon-green)';
                   const rot = this._getBubbleRotationDisplay('battery', liveText, liveColor);
+                  // Phase 5.68: optional mix-ring class + CSS custom properties.
+                  // Independent from the SoC donut: either can be on/off solo or
+                  // both together. Defaults: gap 8px, thickness 4px.
+                  const batteryMixGap = parseInt(this.config.battery_mix_gap !== undefined ? this.config.battery_mix_gap : 8, 10);
+                  const batteryMixThk = parseInt(this.config.battery_mix_thickness !== undefined ? this.config.battery_mix_thickness : 4, 10);
+                  const batteryStyleParts = [];
+                  if (batteryDonutActive) batteryStyleParts.push(`--battery-gradient: ${batteryGradientVal};`);
+                  if (batteryMixActive) {
+                    batteryStyleParts.push(`--battery-mix-gradient: ${batteryMixGradientVal};`);
+                    batteryStyleParts.push(`--battery-mix-gap: ${batteryMixGap}px;`);
+                    batteryStyleParts.push(`--battery-mix-thickness: ${batteryMixThk}px;`);
+                  }
                   return html`
-                  <div class="bubble battery node-battery ${batteryDonutActive ? 'donut' : ''} ${tintClass} ${glowClass}"
-                      style="${batteryDonutActive ? `--battery-gradient: ${batteryGradientVal};` : ''}"
+                  <div class="bubble battery node-battery ${batteryDonutActive ? 'donut' : ''} ${batteryMixActive ? 'mix-ring' : ''} ${tintClass} ${glowClass}"
+                      style="${batteryStyleParts.join(' ')}"
                       @click=${() => this._handleClick(entities.battery)}>
                       ${renderMainIcon('battery', battSoc, iconBattery)}
                       ${renderSecondaryOrLabel(labelBatteryText, showLabelBattery, entities.secondary_battery, hasSecondaryBattery, 'secondary_battery')}

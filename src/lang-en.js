@@ -328,5 +328,21 @@ export default {
     "editor.sparkline_entity_hint": "Leave empty to use the bubble's main entity. Pick a different sensor (e.g. temperature, daily total) if you want to chart something other than power.",
     "editor.sparkline_debug": "Debug console output (DevTools)",
     "editor.sparkline_test_mode": "Test mode (synthetic sine data)",
+
+    // Phase 5.68: LG charge-source mix ring (PV vs Grid)
+    "editor.battery_mix_section": "Charge source (outer mix ring)",
+    "editor.battery_mix_hint": "Adds a second ring around the SoC donut showing where LG's stored energy came from. For a storage bubble there are only 2 sources: PV and Grid.",
+    "editor.battery_mix_enabled": "Enable charge-source ring",
+    "editor.battery_mix_period": "Time period",
+    "editor.battery_mix_period_day": "Day",
+    "editor.battery_mix_period_month": "Month",
+    "editor.battery_mix_period_year": "Year",
+    "editor.battery_mix_gap": "Gap from SoC donut (px)",
+    "editor.battery_mix_thickness": "Ring thickness (px)",
+    "editor.battery_mix_day_section": "Daily sensors",
+    "editor.battery_mix_month_section": "Monthly sensors",
+    "editor.battery_mix_year_section": "Yearly sensors",
+    "editor.battery_mix_pv_label": "PV → LG (kWh)",
+    "editor.battery_mix_grid_label": "Grid → LG (kWh)",
   }
 };
