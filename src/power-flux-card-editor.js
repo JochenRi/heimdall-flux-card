@@ -161,7 +161,12 @@ class PowerFluxCardEditor extends LitElement {
                 'solar_mix_venus_day', 'solar_mix_venus_month', 'solar_mix_venus_year',
                 'solar_mix_grid_day',  'solar_mix_grid_month',  'solar_mix_grid_year',
                 // Phase 5.72: Solar sparkline source entity override (optional).
-                'solar_sparkline_entity'
+                'solar_sparkline_entity',
+                // Phase 5.73: Grid Import/Export balance mix-ring (2 segments).
+                // Import + Export x 3 periods = 6 keys, plus sparkline override.
+                'grid_mix_import_day', 'grid_mix_import_month', 'grid_mix_import_year',
+                'grid_mix_export_day', 'grid_mix_export_month', 'grid_mix_export_year',
+                'grid_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -1086,6 +1091,168 @@ class PowerFluxCardEditor extends LitElement {
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_import_today || "", 'grid_donut_import_today', this._localize('editor.grid_donut_import_sensor'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_export_today || "", 'grid_donut_export_today', this._localize('editor.grid_donut_export_sensor'))}
+
+            <!-- Phase 5.73: Grid Import/Export balance mix-ring. 2-segment outer
+                 ring around the existing Tages-Mix donut. Answers
+                 "wie ist meine Netz-Bilanz?". -->
+            <div class="group-title">
+                <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
+                ${this._localize('editor.grid_mix_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.grid_mix_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.grid_mix_donut_mode === true}
+                    .configValue=${'grid_mix_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.grid_mix_enabled')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "day",   label: this._localize('editor.grid_mix_period_day')   },
+                    { value: "month", label: this._localize('editor.grid_mix_period_month') },
+                    { value: "year",  label: this._localize('editor.grid_mix_period_year')  }
+                ] } }}
+                .value=${this._config.grid_mix_period || 'day'}
+                .configValue=${'grid_mix_period'}
+                .label=${this._localize('editor.grid_mix_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+                .value=${this._config.grid_mix_gap !== undefined ? this._config.grid_mix_gap : 8}
+                .configValue=${'grid_mix_gap'}
+                .label=${this._localize('editor.grid_mix_gap')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+                .value=${this._config.grid_mix_thickness !== undefined ? this._config.grid_mix_thickness : 4}
+                .configValue=${'grid_mix_thickness'}
+                .label=${this._localize('editor.grid_mix_thickness')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <!-- Day-period sensors (Import + Export) -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.grid_mix_day_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_import_day || "", 'grid_mix_import_day', this._localize('editor.grid_mix_import_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_export_day || "", 'grid_mix_export_day', this._localize('editor.grid_mix_export_label'))}
+
+            <!-- Month-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.grid_mix_month_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_import_month || "", 'grid_mix_import_month', this._localize('editor.grid_mix_import_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_export_month || "", 'grid_mix_export_month', this._localize('editor.grid_mix_export_label'))}
+
+            <!-- Year-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.grid_mix_year_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_import_year || "", 'grid_mix_import_year', this._localize('editor.grid_mix_import_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_export_year || "", 'grid_mix_export_year', this._localize('editor.grid_mix_export_label'))}
+
+            <!-- Phase 5.73: Grid sparkline. Default sensor (when override is
+                 empty) is the bubble's main entity entities.grid which is
+                 typically the combined/signed grid sensor. Sparkline data
+                 path uses Math.max(0, v) so negative export values appear as
+                 zero -- user can pick an import-only or export-only sensor
+                 as override to see those separately. Default colour matches
+                 the grid pipe colour (red). -->
+            <div class="group-title">
+                <ha-icon icon="mdi:chart-line-variant"></ha-icon>
+                ${this._localize('editor.sparkline_title')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.grid_sparkline === true}
+                    .configValue=${'grid_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_sparkline_entity || "", 'grid_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h",  label: "1h"  },
+                    { value: "6h",  label: "6h"  },
+                    { value: "12h", label: "12h" },
+                    { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.grid_sparkline_period || '24h'}
+                .configValue=${'grid_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
+                ] } }}
+                .value=${this._config.grid_sparkline_layer || 'back'}
+                .configValue=${'grid_sparkline_layer'}
+                .label=${this._localize('editor.sparkline_layer')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.grid_sparkline_style || 'area-line'}
+                .configValue=${'grid_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.grid_sparkline_opacity !== undefined ? this._config.grid_sparkline_opacity : 0.35}
+                .configValue=${'grid_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderColorPicker('grid_sparkline_color', this._localize('editor.sparkline_color'), '#ff0040')}
+
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.grid_sparkline_test_mode === true}
+                    .configValue=${'grid_sparkline_test_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+            </div>
         </div>
       `;
     }

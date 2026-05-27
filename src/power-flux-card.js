@@ -264,7 +264,8 @@ console.log(
       // coexist without collisions.
       // Phase 5.71: Venus added alongside battery.
       // Phase 5.72: Solar added.
-      for (const prefix of ['battery', 'venus', 'solar']) {
+      // Phase 5.73: Grid added -- ALL 4 SOURCE BUBBLES now covered.
+      for (const prefix of ['battery', 'venus', 'solar', 'grid']) {
         if (this.config[`${prefix}_sparkline`] !== true) continue;
         const overrideEntity = this.config[`${prefix}_sparkline_entity`];
         const fallbackEntity = this.config?.entities?.[prefix];
@@ -875,6 +876,23 @@ console.log(
           background: var(--grid-gradient, var(--neon-blue));
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
+      /* Phase 5.73: Grid Import/Export balance mix-ring -- a SECOND outer ring
+         around the existing Grid Tages-Mix donut. Semantics: 2 segments
+         (Import-Anteil in Grid-Pipe-Farbe rot, Export-Anteil in Export-/PV-
+         Farbe). Answers "wie ist meine Netz-Bilanz?". Mirror of LG/Venus
+         mix-ring CSS but on .grid. */
+      .bubble.grid.mix-ring { overflow: visible; }
+      .bubble.grid.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--grid-mix-gap, 8px) + var(--grid-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--grid-mix-thickness, 4px);
+          background: var(--grid-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
       }
       
       /* Phase 5.23: PV solar donut -- forecast progress ring */
@@ -2441,6 +2459,52 @@ console.log(
         gridDonutActive = true;
       }
 
+      // --- Grid Import/Export Balance Mix Ring (Phase 5.73) ---
+      // SECOND ring around the existing Grid Tages-Mix donut. Semantics
+      // differ from LG/Venus (which answer "where did charge come from",
+      // 2 segments PV+Grid) and from Solar (which answers "where did PV
+      // go", 4 segments): for Grid the question is "wie ist meine
+      // Netz-Bilanz?" -- 2 segments Import vs Export.
+      //
+      // Activated by:
+      //   grid_mix_donut_mode (editor toggle, off by default)
+      //   grid_mix_period ('day' | 'month' | 'year', default 'day')
+      // Reads:
+      //   grid_mix_{import,export}_{day,month,year}
+      // Renders only if total > 0 (no division by zero, no inert ring).
+      let gridMixGradientVal = '';
+      let gridMixActive = false;
+      
+      if (this.config.grid_mix_donut_mode === true) {
+        const period = (this.config.grid_mix_period === 'month' || this.config.grid_mix_period === 'year')
+          ? this.config.grid_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const importVal = readVal(`grid_mix_import_${period}`);
+        const exportVal = readVal(`grid_mix_export_${period}`);
+        const total = importVal + exportVal;
+        if (total > 0) {
+          const pctImport = (importVal / total) * 100;
+          const pctExport = (exportVal / total) * 100;
+          
+          let stops = [];
+          let cursor = 0;
+          // Import-Anteil first in grid pipe colour (red), then Export-Anteil
+          // in export/solar colour (green). User can override via colour-text
+          // properties on the bubble but the ring uses pipe colours by design
+          // so it stays consistent with the live-flow Pipes.
+          if (pctImport > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% ${cursor + pctImport}%`); cursor += pctImport; }
+          if (pctExport > 0) { stops.push(`var(--export-color, var(--pipe-solar-color)) ${cursor}% 100%`); }
+          gridMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          gridMixActive = true;
+        }
+      }
+
       // --- PV Donut Gradient (Phase 5.23) ---
       // Visualizes today's forecast progress: how much of the day's expected
       // production has already been generated.
@@ -3681,14 +3745,30 @@ console.log(
                   const showArrow = rot.kind === 'live';
                   // Phase 5.24/5.25: grid bubble stays in active color if flowing,
                   // donut active, or global always-color toggle on.
+                  // Phase 5.73: ALSO stay-coloured when mix-ring active so the
+                  // .grid.mix-ring CSS rule matches even at zero-flow moments.
+                  // We keep the bidirectional exporting distinction for active
+                  // flow only; mix-ring on its own falls back to plain 'grid'.
                   const bubbleStateClass = isGridActive
                     ? (isGridExporting ? 'grid exporting' : 'grid')
-                    : ((gridDonutActive || alwaysColor) ? 'grid' : 'inactive');
-                  const glowOnState = (isGridActive || gridDonutActive || alwaysColor) ? glowClass : '';
+                    : ((gridDonutActive || gridMixActive || alwaysColor) ? 'grid' : 'inactive');
+                  const glowOnState = (isGridActive || gridDonutActive || gridMixActive || alwaysColor) ? glowClass : '';
+                  // Phase 5.73: optional mix-ring style vars. Independent
+                  // of the Tages-Mix donut: either can be on/off solo.
+                  const gridMixGap = parseInt(this.config.grid_mix_gap !== undefined ? this.config.grid_mix_gap : 8, 10);
+                  const gridMixThk = parseInt(this.config.grid_mix_thickness !== undefined ? this.config.grid_mix_thickness : 4, 10);
+                  const gridStyleParts = [];
+                  if (gridDonutActive) gridStyleParts.push(`--grid-gradient: ${gridGradientVal};`);
+                  if (gridMixActive) {
+                    gridStyleParts.push(`--grid-mix-gradient: ${gridMixGradientVal};`);
+                    gridStyleParts.push(`--grid-mix-gap: ${gridMixGap}px;`);
+                    gridStyleParts.push(`--grid-mix-thickness: ${gridMixThk}px;`);
+                  }
                   return html`
-                  <div class="bubble ${bubbleStateClass} node-grid ${gridDonutActive ? 'donut' : ''} ${tintClass} ${glowOnState}"
-                      style="${gridDonutActive ? `--grid-gradient: ${gridGradientVal};` : ''}"
+                  <div class="bubble ${bubbleStateClass} node-grid ${gridDonutActive ? 'donut' : ''} ${gridMixActive ? 'mix-ring' : ''} ${tintClass} ${glowOnState}"
+                      style="${gridStyleParts.join(' ')}"
                       @click=${() => this._handleClick(entities.grid_combined || entities.grid)}>
+                      ${this._renderSparklineForSource('grid')}
                       ${renderMainIcon('grid', isGridExporting ? gridExport : gridImport, iconGrid, gridIconColor)}
                       ${renderSecondaryOrLabel(labelGridText, showLabelGrid, entities.secondary_grid, hasSecondaryGrid, 'secondary_grid')}
                       <div class="value rotating-value" style="color: ${rot.color};">

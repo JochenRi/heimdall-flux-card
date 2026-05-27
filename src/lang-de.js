@@ -378,5 +378,21 @@ export default {
     "editor.solar_mix_lg_label": "PV → LG (kWh)",
     "editor.solar_mix_venus_label": "PV → Venus (kWh)",
     "editor.solar_mix_grid_label": "PV → Netz Export (kWh)",
+
+    // Phase 5.73: Grid Import/Export balance mix ring (2 Segmente Import vs Export)
+    "editor.grid_mix_section": "Netz-Bilanz (Mix-Ring außen)",
+    "editor.grid_mix_hint": "Zeigt um den Tages-Mix-Donut herum einen zweiten Ring an, der die Netz-Bilanz visualisiert: wie viel wurde im gewählten Zeitraum aus dem Netz bezogen (rot) und wie viel ins Netz eingespeist (grün)?",
+    "editor.grid_mix_enabled": "Netz-Bilanz-Ring aktivieren",
+    "editor.grid_mix_period": "Zeitraum",
+    "editor.grid_mix_period_day": "Tag",
+    "editor.grid_mix_period_month": "Monat",
+    "editor.grid_mix_period_year": "Jahr",
+    "editor.grid_mix_gap": "Abstand zur Tages-Mix-Donut (px)",
+    "editor.grid_mix_thickness": "Ring-Dicke (px)",
+    "editor.grid_mix_day_section": "Tages-Sensoren",
+    "editor.grid_mix_month_section": "Monats-Sensoren",
+    "editor.grid_mix_year_section": "Jahres-Sensoren",
+    "editor.grid_mix_import_label": "Netz Import (kWh)",
+    "editor.grid_mix_export_label": "Netz Export (kWh)",
   }
 };

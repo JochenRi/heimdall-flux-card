@@ -378,5 +378,21 @@ export default {
     "editor.solar_mix_lg_label": "PV → LG (kWh)",
     "editor.solar_mix_venus_label": "PV → Venus (kWh)",
     "editor.solar_mix_grid_label": "PV → Grid export (kWh)",
+
+    // Phase 5.73: Grid Import/Export balance mix ring (2 segments)
+    "editor.grid_mix_section": "Grid balance (outer mix ring)",
+    "editor.grid_mix_hint": "Adds a second ring around the Tages-Mix donut showing the grid balance: how much was imported from the grid (red) vs exported to the grid (green) in the selected period?",
+    "editor.grid_mix_enabled": "Enable grid-balance ring",
+    "editor.grid_mix_period": "Time period",
+    "editor.grid_mix_period_day": "Day",
+    "editor.grid_mix_period_month": "Month",
+    "editor.grid_mix_period_year": "Year",
+    "editor.grid_mix_gap": "Gap from Tages-Mix donut (px)",
+    "editor.grid_mix_thickness": "Ring thickness (px)",
+    "editor.grid_mix_day_section": "Daily sensors",
+    "editor.grid_mix_month_section": "Monthly sensors",
+    "editor.grid_mix_year_section": "Yearly sensors",
+    "editor.grid_mix_import_label": "Grid import (kWh)",
+    "editor.grid_mix_export_label": "Grid export (kWh)",
   }
 };

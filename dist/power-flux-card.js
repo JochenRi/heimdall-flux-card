@@ -383,6 +383,22 @@ const lang_de = {
     "editor.solar_mix_lg_label": "PV → LG (kWh)",
     "editor.solar_mix_venus_label": "PV → Venus (kWh)",
     "editor.solar_mix_grid_label": "PV → Netz Export (kWh)",
+
+    // Phase 5.73: Grid Import/Export balance mix ring (2 Segmente Import vs Export)
+    "editor.grid_mix_section": "Netz-Bilanz (Mix-Ring außen)",
+    "editor.grid_mix_hint": "Zeigt um den Tages-Mix-Donut herum einen zweiten Ring an, der die Netz-Bilanz visualisiert: wie viel wurde im gewählten Zeitraum aus dem Netz bezogen (rot) und wie viel ins Netz eingespeist (grün)?",
+    "editor.grid_mix_enabled": "Netz-Bilanz-Ring aktivieren",
+    "editor.grid_mix_period": "Zeitraum",
+    "editor.grid_mix_period_day": "Tag",
+    "editor.grid_mix_period_month": "Monat",
+    "editor.grid_mix_period_year": "Jahr",
+    "editor.grid_mix_gap": "Abstand zur Tages-Mix-Donut (px)",
+    "editor.grid_mix_thickness": "Ring-Dicke (px)",
+    "editor.grid_mix_day_section": "Tages-Sensoren",
+    "editor.grid_mix_month_section": "Monats-Sensoren",
+    "editor.grid_mix_year_section": "Jahres-Sensoren",
+    "editor.grid_mix_import_label": "Netz Import (kWh)",
+    "editor.grid_mix_export_label": "Netz Export (kWh)",
   }
 };
 const lang_en = {
@@ -765,6 +781,22 @@ const lang_en = {
     "editor.solar_mix_lg_label": "PV → LG (kWh)",
     "editor.solar_mix_venus_label": "PV → Venus (kWh)",
     "editor.solar_mix_grid_label": "PV → Grid export (kWh)",
+
+    // Phase 5.73: Grid Import/Export balance mix ring (2 segments)
+    "editor.grid_mix_section": "Grid balance (outer mix ring)",
+    "editor.grid_mix_hint": "Adds a second ring around the Tages-Mix donut showing the grid balance: how much was imported from the grid (red) vs exported to the grid (green) in the selected period?",
+    "editor.grid_mix_enabled": "Enable grid-balance ring",
+    "editor.grid_mix_period": "Time period",
+    "editor.grid_mix_period_day": "Day",
+    "editor.grid_mix_period_month": "Month",
+    "editor.grid_mix_period_year": "Year",
+    "editor.grid_mix_gap": "Gap from Tages-Mix donut (px)",
+    "editor.grid_mix_thickness": "Ring thickness (px)",
+    "editor.grid_mix_day_section": "Daily sensors",
+    "editor.grid_mix_month_section": "Monthly sensors",
+    "editor.grid_mix_year_section": "Yearly sensors",
+    "editor.grid_mix_import_label": "Grid import (kWh)",
+    "editor.grid_mix_export_label": "Grid export (kWh)",
   }
 };
 
@@ -937,7 +969,12 @@ class PowerFluxCardEditor extends LitElement {
                 'solar_mix_venus_day', 'solar_mix_venus_month', 'solar_mix_venus_year',
                 'solar_mix_grid_day',  'solar_mix_grid_month',  'solar_mix_grid_year',
                 // Phase 5.72: Solar sparkline source entity override (optional).
-                'solar_sparkline_entity'
+                'solar_sparkline_entity',
+                // Phase 5.73: Grid Import/Export balance mix-ring (2 segments).
+                // Import + Export x 3 periods = 6 keys, plus sparkline override.
+                'grid_mix_import_day', 'grid_mix_import_month', 'grid_mix_import_year',
+                'grid_mix_export_day', 'grid_mix_export_month', 'grid_mix_export_year',
+                'grid_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -1862,6 +1899,168 @@ class PowerFluxCardEditor extends LitElement {
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_import_today || "", 'grid_donut_import_today', this._localize('editor.grid_donut_import_sensor'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_export_today || "", 'grid_donut_export_today', this._localize('editor.grid_donut_export_sensor'))}
+
+            <!-- Phase 5.73: Grid Import/Export balance mix-ring. 2-segment outer
+                 ring around the existing Tages-Mix donut. Answers
+                 "wie ist meine Netz-Bilanz?". -->
+            <div class="group-title">
+                <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
+                ${this._localize('editor.grid_mix_section')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.grid_mix_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.grid_mix_donut_mode === true}
+                    .configValue=${'grid_mix_donut_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.grid_mix_enabled')}</div>
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "day",   label: this._localize('editor.grid_mix_period_day')   },
+                    { value: "month", label: this._localize('editor.grid_mix_period_month') },
+                    { value: "year",  label: this._localize('editor.grid_mix_period_year')  }
+                ] } }}
+                .value=${this._config.grid_mix_period || 'day'}
+                .configValue=${'grid_mix_period'}
+                .label=${this._localize('editor.grid_mix_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+                .value=${this._config.grid_mix_gap !== undefined ? this._config.grid_mix_gap : 8}
+                .configValue=${'grid_mix_gap'}
+                .label=${this._localize('editor.grid_mix_gap')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+                .value=${this._config.grid_mix_thickness !== undefined ? this._config.grid_mix_thickness : 4}
+                .configValue=${'grid_mix_thickness'}
+                .label=${this._localize('editor.grid_mix_thickness')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <!-- Day-period sensors (Import + Export) -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.grid_mix_day_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_import_day || "", 'grid_mix_import_day', this._localize('editor.grid_mix_import_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_export_day || "", 'grid_mix_export_day', this._localize('editor.grid_mix_export_label'))}
+
+            <!-- Month-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.grid_mix_month_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_import_month || "", 'grid_mix_import_month', this._localize('editor.grid_mix_import_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_export_month || "", 'grid_mix_export_month', this._localize('editor.grid_mix_export_label'))}
+
+            <!-- Year-period sensors -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.grid_mix_year_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_import_year || "", 'grid_mix_import_year', this._localize('editor.grid_mix_import_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_export_year || "", 'grid_mix_export_year', this._localize('editor.grid_mix_export_label'))}
+
+            <!-- Phase 5.73: Grid sparkline. Default sensor (when override is
+                 empty) is the bubble's main entity entities.grid which is
+                 typically the combined/signed grid sensor. Sparkline data
+                 path uses Math.max(0, v) so negative 
+                 zero -- user can pick an import-only or export-only sensor
+                 as override to see those separately. Default colour matches
+                 the grid pipe colour (red). -->
+            <div class="group-title">
+                <ha-icon icon="mdi:chart-line-variant"></ha-icon>
+                ${this._localize('editor.sparkline_title')}
+            </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.grid_sparkline === true}
+                    .configValue=${'grid_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_sparkline_entity || "", 'grid_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h",  label: "1h"  },
+                    { value: "6h",  label: "6h"  },
+                    { value: "12h", label: "12h" },
+                    { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.grid_sparkline_period || '24h'}
+                .configValue=${'grid_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
+                ] } }}
+                .value=${this._config.grid_sparkline_layer || 'back'}
+                .configValue=${'grid_sparkline_layer'}
+                .label=${this._localize('editor.sparkline_layer')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.grid_sparkline_style || 'area-line'}
+                .configValue=${'grid_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.grid_sparkline_opacity !== undefined ? this._config.grid_sparkline_opacity : 0.35}
+                .configValue=${'grid_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderColorPicker('grid_sparkline_color', this._localize('editor.sparkline_color'), '#ff0040')}
+
+            <div class="switch-row" style="margin-top: 8px;">
+                <ha-switch
+                    .checked=${this._config.grid_sparkline_test_mode === true}
+                    .configValue=${'grid_sparkline_test_mode'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+            </div>
         </div>
       `;
     }
@@ -6382,7 +6581,8 @@ console.log(
       // coexist without collisions.
       // Phase 5.71: Venus added alongside battery.
       // Phase 5.72: Solar added.
-      for (const prefix of ['battery', 'venus', 'solar']) {
+      // Phase 5.73: Grid added -- ALL 4 SOURCE BUBBLES now covered.
+      for (const prefix of ['battery', 'venus', 'solar', 'grid']) {
         if (this.config[`${prefix}_sparkline`] !== true) continue;
         const overrideEntity = this.config[`${prefix}_sparkline_entity`];
         const fallbackEntity = this.config?.entities?.[prefix];
@@ -6993,6 +7193,23 @@ console.log(
           background: var(--grid-gradient, var(--neon-blue));
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+      
+      /* Phase 5.73: Grid Import/Export balance mix-ring -- a SECOND outer ring
+         around the existing Grid Tages-Mix donut. Semantics: 2 segments
+         (Import-Anteil in Grid-Pipe-Farbe rot, Export-Anteil in Export-/PV-
+         Farbe). Answers "wie ist meine Netz-Bilanz?". Mirror of LG/Venus
+         mix-ring CSS but on .grid. */
+      .bubble.grid.mix-ring { overflow: visible; }
+      .bubble.grid.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--grid-mix-gap, 8px) + var(--grid-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--grid-mix-thickness, 4px);
+          background: var(--grid-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
       }
       
       /* Phase 5.23: PV solar donut -- forecast progress ring */
@@ -8559,6 +8776,52 @@ console.log(
         gridDonutActive = true;
       }
 
+      // --- Grid Import/Export Balance Mix Ring (Phase 5.73) ---
+      // SECOND ring around the existing Grid Tages-Mix donut. Semantics
+      // differ from LG/Venus (which answer "where did charge come from",
+      // 2 segments PV+Grid) and from Solar (which answers "where did PV
+      // go", 4 segments): for Grid the question is "wie ist meine
+      // Netz-Bilanz?" -- 2 segments Import vs Export.
+      //
+      // Activated by:
+      //   grid_mix_donut_mode (editor toggle, off by default)
+      //   grid_mix_period ('day' | 'month' | 'year', default 'day')
+      // Reads:
+      //   grid_mix_{import,export}_{day,month,year}
+      // Renders only if total > 0 (no division by zero, no inert ring).
+      let gridMixGradientVal = '';
+      let gridMixActive = false;
+      
+      if (this.config.grid_mix_donut_mode === true) {
+        const period = (this.config.grid_mix_period === 'month' || this.config.grid_mix_period === 'year')
+          ? this.config.grid_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const importVal = readVal(`grid_mix_import_${period}`);
+        const exportVal = readVal(`grid_mix_export_${period}`);
+        const total = importVal + exportVal;
+        if (total > 0) {
+          const pctImport = (importVal / total) * 100;
+          const pctExport = (exportVal / total) * 100;
+          
+          let stops = [];
+          let cursor = 0;
+          // Import-Anteil first in grid pipe colour (red), then Export-Anteil
+          // in export/solar colour (green). User can override via colour-text
+          // properties on the bubble but the ring uses pipe colours by design
+          // so it stays consistent with the live-flow Pipes.
+          if (pctImport > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% ${cursor + pctImport}%`); cursor += pctImport; }
+          if (pctExport > 0) { stops.push(`var(--export-color, var(--pipe-solar-color)) ${cursor}% 100%`); }
+          gridMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          gridMixActive = true;
+        }
+      }
+
       // --- PV Donut Gradient (Phase 5.23) ---
       // Visualizes today's forecast progress: how much of the day's expected
       // production has already been generated.
@@ -9799,14 +10062,30 @@ console.log(
                   const showArrow = rot.kind === 'live';
                   // Phase 5.24/5.25: grid bubble stays in active color if flowing,
                   // donut active, or global always-color toggle on.
+                  // Phase 5.73: ALSO stay-coloured when mix-ring active so the
+                  // .grid.mix-ring CSS rule matches even at zero-flow moments.
+                  // We keep the bidirectional exporting distinction for active
+                  // flow only; mix-ring on its own falls back to plain 'grid'.
                   const bubbleStateClass = isGridActive
                     ? (isGridExporting ? 'grid exporting' : 'grid')
-                    : ((gridDonutActive || alwaysColor) ? 'grid' : 'inactive');
-                  const glowOnState = (isGridActive || gridDonutActive || alwaysColor) ? glowClass : '';
+                    : ((gridDonutActive || gridMixActive || alwaysColor) ? 'grid' : 'inactive');
+                  const glowOnState = (isGridActive || gridDonutActive || gridMixActive || alwaysColor) ? glowClass : '';
+                  // Phase 5.73: optional mix-ring style vars. Independent
+                  // of the Tages-Mix donut: either can be on/off solo.
+                  const gridMixGap = parseInt(this.config.grid_mix_gap !== undefined ? this.config.grid_mix_gap : 8, 10);
+                  const gridMixThk = parseInt(this.config.grid_mix_thickness !== undefined ? this.config.grid_mix_thickness : 4, 10);
+                  const gridStyleParts = [];
+                  if (gridDonutActive) gridStyleParts.push(`--grid-gradient: ${gridGradientVal};`);
+                  if (gridMixActive) {
+                    gridStyleParts.push(`--grid-mix-gradient: ${gridMixGradientVal};`);
+                    gridStyleParts.push(`--grid-mix-gap: ${gridMixGap}px;`);
+                    gridStyleParts.push(`--grid-mix-thickness: ${gridMixThk}px;`);
+                  }
                   return html`
-                  <div class="bubble ${bubbleStateClass} node-grid ${gridDonutActive ? 'donut' : ''} ${tintClass} ${glowOnState}"
-                      style="${gridDonutActive ? `--grid-gradient: ${gridGradientVal};` : ''}"
+                  <div class="bubble ${bubbleStateClass} node-grid ${gridDonutActive ? 'donut' : ''} ${gridMixActive ? 'mix-ring' : ''} ${tintClass} ${glowOnState}"
+                      style="${gridStyleParts.join(' ')}"
                       @click=${() => this._handleClick(entities.grid_combined || entities.grid)}>
+                      ${this._renderSparklineForSource('grid')}
                       ${renderMainIcon('grid', isGridExporting ? gridExport : gridImport, iconGrid, gridIconColor)}
                       ${renderSecondaryOrLabel(labelGridText, showLabelGrid, entities.secondary_grid, hasSecondaryGrid, 'secondary_grid')}
                       <div class="value rotating-value" style="color: ${rot.color};">
