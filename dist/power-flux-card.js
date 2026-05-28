@@ -8015,6 +8015,15 @@ console.log(
     // Storage key in this._sparklineData is the entity_id, identical
     // to the consumer path -- they share one data store.
     _renderSparklineForSource(prefix) {
+      // Phase 5.76-diag4: UNCONDITIONAL marker as the very first thing.
+      // For house, return a cyan circle NO MATTER WHAT -- before any config
+      // or data check. If this cyan circle shows, the function IS called for
+      // house and a downstream check is the culprit. If it does NOT show,
+      // the function is never invoked for house at the call site (despite
+      // the lime square proving the div itself renders).
+      if (prefix === 'house') {
+        return html`<div style="position:absolute;right:8px;top:8px;width:24px;height:24px;background:cyan;z-index:99;pointer-events:none;border-radius:50%;"></div>`;
+      }
       if (!this.config) return html``;
       if (this.config[`${prefix}_sparkline`] !== true) return html``;
       const overrideEntity = this.config[`${prefix}_sparkline_entity`];
