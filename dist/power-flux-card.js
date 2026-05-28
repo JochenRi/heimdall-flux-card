@@ -14,6 +14,20 @@ const lang_de = {
     "editor.venus_section": "Batterie 2",
     "editor.temp_section": "Klima (Temperatur)",
     "editor.temp_enabled": "Klima-Bubble aktivieren",
+    "editor.temp_sensors_hint": "Sensoren für die Thermometer-Säulen. Leer lassen nutzt die Standard-Sensoren.",
+    "editor.temp_outdoor": "Außen-Temperatur (ist)",
+    "editor.temp_indoor": "Innen-Temperatur (ist)",
+    "editor.temp_forecast_high": "Vorhersage Tageshoch (außen)",
+    "editor.temp_forecast_low": "Vorhersage Tagestief (außen)",
+    "editor.temp_scales_hint": "Skalen-Bereiche für den Füllstand der Säulen.",
+    "editor.temp_outdoor_min": "Außen-Skala Minimum (°C)",
+    "editor.temp_outdoor_max": "Außen-Skala Maximum (°C)",
+    "editor.temp_indoor_min": "Innen-Skala Minimum (°C)",
+    "editor.temp_indoor_max": "Innen-Skala Maximum (°C)",
+    "editor.temp_colors_hint": "Farben der Thermometer.",
+    "editor.temp_outdoor_color": "Farbe Außen-Säule",
+    "editor.temp_indoor_color": "Farbe Innen-Säule",
+    "editor.temp_marker_color": "Farbe Vorhersage-Marker",
     "editor.consumer_1_section": "Tesla",
     "editor.consumers_section": "Haus",
     "editor.bubble_fallback": "Bubble {n}",
@@ -430,6 +444,20 @@ const lang_en = {
     "editor.venus_section": "Battery 2",
     "editor.temp_section": "Climate (Temperature)",
     "editor.temp_enabled": "Enable climate bubble",
+    "editor.temp_sensors_hint": "Sensors for the thermometer columns. Leave empty to use the defaults.",
+    "editor.temp_outdoor": "Outdoor temperature (current)",
+    "editor.temp_indoor": "Indoor temperature (current)",
+    "editor.temp_forecast_high": "Forecast daily high (outdoor)",
+    "editor.temp_forecast_low": "Forecast daily low (outdoor)",
+    "editor.temp_scales_hint": "Scale ranges for the column fill level.",
+    "editor.temp_outdoor_min": "Outdoor scale minimum (°C)",
+    "editor.temp_outdoor_max": "Outdoor scale maximum (°C)",
+    "editor.temp_indoor_min": "Indoor scale minimum (°C)",
+    "editor.temp_indoor_max": "Indoor scale maximum (°C)",
+    "editor.temp_colors_hint": "Thermometer colors.",
+    "editor.temp_outdoor_color": "Outdoor column color",
+    "editor.temp_indoor_color": "Indoor column color",
+    "editor.temp_marker_color": "Forecast marker color",
     "editor.consumer_1_section": "Tesla",
     "editor.consumers_section": "House",
     "editor.bubble_fallback": "Bubble {n}",
@@ -914,6 +942,7 @@ class PowerFluxCardEditor extends LitElement {
                 'battery_charge', 'battery_discharge',
                 'venus', 'venus_soc', 'venus_charge', 'venus_discharge',
                 'house',
+                'temp_outdoor', 'temp_indoor', 'temp_forecast_high', 'temp_forecast_low',
                 'consumer_1', 'consumer_2', 'consumer_3',
                 'consumer_4', 'consumer_5',
                 'consumer_6', 'consumer_7',
@@ -3288,10 +3317,9 @@ class PowerFluxCardEditor extends LitElement {
     // for humidity (max=100), CO2 (max=2000), or any other ratio metric.
     // Rotation (phase 5.65) and charge-mix ring (phase 5.66) follow.
     _renderTempView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
-        // Phase 5.78b: editor sub-view for the split climate (temp) bubble.
-        // For now it only carries the enable toggle so the bubble can be
-        // switched on from the UI. Sensors (indoor/outdoor + daily min/max),
-        // scale ranges and the split double-ring options land in phase 5.79.
+        // Phase 5.79c: full editor for the split climate (temp) bubble.
+        // Four entities (outdoor/indoor current + forecast high/low) land
+        // under config.entities.* via entityKeys; scales are top-level config.
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
@@ -3308,6 +3336,67 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-switch>
             <div class="switch-label">${this._localize('editor.temp_enabled')}</div>
         </div>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
+            ${this._localize('editor.temp_sensors_hint')}
+        </div>
+
+        ${this._renderEntitySelector(entitySelectorSchema, entities.temp_outdoor || "", 'temp_outdoor', this._localize('editor.temp_outdoor'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.temp_indoor || "", 'temp_indoor', this._localize('editor.temp_indoor'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.temp_forecast_high || "", 'temp_forecast_high', this._localize('editor.temp_forecast_high'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.temp_forecast_low || "", 'temp_forecast_low', this._localize('editor.temp_forecast_low'))}
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
+            ${this._localize('editor.temp_scales_hint')}
+        </div>
+
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: -40, max: 20, step: 1, mode: "slider" } }}
+                .value=${this._config.temp_outdoor_min !== undefined ? this._config.temp_outdoor_min : -10}
+                .configValue=${'temp_outdoor_min'}
+                .label=${this._localize('editor.temp_outdoor_min')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 20, max: 60, step: 1, mode: "slider" } }}
+                .value=${this._config.temp_outdoor_max !== undefined ? this._config.temp_outdoor_max : 40}
+                .configValue=${'temp_outdoor_max'}
+                .label=${this._localize('editor.temp_outdoor_max')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0, max: 20, step: 1, mode: "slider" } }}
+                .value=${this._config.temp_indoor_min !== undefined ? this._config.temp_indoor_min : 10}
+                .configValue=${'temp_indoor_min'}
+                .label=${this._localize('editor.temp_indoor_min')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+        <div>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 20, max: 40, step: 1, mode: "slider" } }}
+                .value=${this._config.temp_indoor_max !== undefined ? this._config.temp_indoor_max : 30}
+                .configValue=${'temp_indoor_max'}
+                .label=${this._localize('editor.temp_indoor_max')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+        </div>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
+            ${this._localize('editor.temp_colors_hint')}
+        </div>
+        ${this._renderColorPicker('temp_outdoor_color', this._localize('editor.temp_outdoor_color'), '#378ADD')}
+        ${this._renderColorPicker('temp_indoor_color', this._localize('editor.temp_indoor_color'), '#1D9E75')}
+        ${this._renderColorPicker('temp_marker_color', this._localize('editor.temp_marker_color'), '#D85A30')}
     `;
     }
 
