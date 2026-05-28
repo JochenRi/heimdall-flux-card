@@ -7993,7 +7993,7 @@ console.log(
       .node-battery { top: 80px; left: 420px; }  
       .node-venus { top: 80px; left: 580px; }   
       .node-house { top: 245px; left: 355px; }   
-      .node-temp { top: 225px; left: 655px; }   /* phase 5.79a-fix8: raised another 5px per user (y 225-355) */
+      .node-temp { top: 220px; left: 655px; }   /* phase 5.79a-fix9: raised another 5px per user (y 220-350) */
       .node-c1 { top: 400px; left: 130px; }
       .node-c2 { top: 400px; left: 355px; }
       .node-c3 { top: 400px; left: 580px; }
