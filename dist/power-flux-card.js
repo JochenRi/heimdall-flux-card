@@ -7868,7 +7868,7 @@ console.log(
       .node-battery { top: 80px; left: 420px; }  
       .node-venus { top: 80px; left: 580px; }   
       .node-house { top: 245px; left: 355px; }   
-      .node-temp { top: 202px; left: 655px; }   /* phase 5.79a-fix3: half of the previous raise per user (y 202-332) */
+      .node-temp { top: 207px; left: 655px; }   /* phase 5.79a-fix4: final position per user (y 207-337) */
       .node-c1 { top: 400px; left: 130px; }
       .node-c2 { top: 400px; left: 355px; }
       .node-c3 { top: 400px; left: 580px; }
