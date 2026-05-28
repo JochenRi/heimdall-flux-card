@@ -7425,6 +7425,11 @@ console.log(
 
       .bubble.house { border-color: var(--neon-pink); }
       .bubble.house.tinted { background: color-mix(in srgb, var(--neon-pink), transparent 85%); }
+      /* phase 5.78: split climate (temp) bubble. Ice-cyan glow, follows the
+         same border/tinted convention as the other bubbles. Inner ring
+         geometry (split halves, double rings) lands in phase 5.79. */
+      .bubble.temp { border-color: var(--temp-glow, #19c6e6); }
+      .bubble.temp.tinted { background: color-mix(in srgb, var(--temp-glow, #19c6e6), transparent 85%); }
       .bubble.house.donut { border: none !important; --house-gradient: var(--neon-pink); background: transparent; }
       .bubble.house.donut.tinted { background: color-mix(in srgb, var(--neon-pink), transparent 85%); }
       .bubble.house.donut::before {
@@ -7818,6 +7823,7 @@ console.log(
       .node-battery { top: 80px; left: 420px; }  
       .node-venus { top: 80px; left: 580px; }   
       .node-house { top: 245px; left: 355px; }   
+      .node-temp { top: 245px; left: 690px; }   /* phase 5.78: split climate bubble, house height, far right */
       .node-c1 { top: 400px; left: 130px; }
       .node-c2 { top: 400px; left: 355px; }
       .node-c3 { top: 400px; left: 580px; }
@@ -10559,6 +10565,11 @@ console.log(
                       <div class="value" style="${houseTextStyle}">${this._formatPower(houseDisplay)}</div>
                   </div>`;
                 })()}
+
+                ${this.config.temp_enabled === true ? html`
+                  <div class="bubble temp node-temp ${tintClass}">
+                      <div class="value" style="font-size: 11px; opacity: 0.7;">Klima</div>
+                  </div>` : ''}
 
                 ${renderConsumer(showC1, 'c1', 'consumer_1', labelC1, 'car', c1Val, this._getConsumerColor(1))}
                 ${renderConsumer(showC2, 'c2', 'consumer_2', labelC2, 'heater', c2Val, this._getConsumerColor(2))}
