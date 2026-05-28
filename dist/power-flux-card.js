@@ -10545,6 +10545,7 @@ console.log(
                     style="${houseBubbleStyle}"
                     @click=${() => this._handleClick(entities.house)}>
                     ${this._renderSparklineForSource('house')}
+                    <div style="position:absolute;left:10px;top:10px;width:30px;height:30px;background:lime;z-index:99;pointer-events:none;"></div>
                     ${renderMainIcon('house', 0, this.config.house_icon || null, this.config.color_icon_house ? 'var(--icon-house-color)' : houseDominantColor)}
                     ${renderSecondaryOrLabel(labelHouseText, showLabelHouse, entities.secondary_house, hasSecondaryHouse, 'secondary_house')}
                     <div class="value" style="${houseTextStyle}">${this._formatPower(houseDisplay)}</div>
