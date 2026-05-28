@@ -2118,21 +2118,30 @@ console.log(
 
       const fmt = (v) => (v === null ? '--' : v.toFixed(1) + '°');
 
-      // Left column x=32 (tube), right column x=98.
-      const tube = (cx, fillTopY, fillColor) => html`
-        <rect x="${cx - 7}" y="${TUBE_TOP}" width="14" height="${TUBE_H}" rx="7" fill="#1a2530"></rect>
-        <rect x="${cx - 7}" y="${fillTopY}" width="14" height="${TUBE_BOT - fillTopY}" rx="7" fill="${fillColor}"></rect>
-        <circle cx="${cx}" cy="112" r="11" fill="${fillColor}"></circle>
-      `;
+      // Precompute per-column geometry. Everything must live INLINE in one
+      // html`<svg>` template -- nested html`` fragments interpolated into an
+      // SVG render in the HTML namespace and stay invisible (5.79b bug).
+      const outFillY = colY(outFr);
+      const inFillY  = colY(inFr);
+      const outFillH = TUBE_BOT - outFillY;
+      const inFillH  = TUBE_BOT - inFillY;
+      const fcY = colY(fcFr);
 
       return html`
         <svg viewBox="0 0 130 130" width="100%" height="100%" style="position:absolute;top:0;left:0;">
           <line x1="65" y1="14" x2="65" y2="120" stroke="#333" stroke-width="1" stroke-dasharray="3 3"></line>
           <text x="32" y="13" text-anchor="middle" fill="#9aa" style="font-size:8px;letter-spacing:1px;">AUSSEN</text>
           <text x="98" y="13" text-anchor="middle" fill="#9aa" style="font-size:8px;letter-spacing:1px;">INNEN</text>
-          ${tube(32, colY(outFr), outColor)}
-          ${fcHigh !== null ? html`<line x1="41" y1="${colY(fcFr)}" x2="50" y2="${colY(fcFr)}" stroke="${markColor}" stroke-width="2.5"></line>` : ''}
-          ${tube(98, colY(inFr), inColor)}
+
+          <rect x="25" y="${TUBE_TOP}" width="14" height="${TUBE_H}" rx="7" fill="#1a2530"></rect>
+          <rect x="25" y="${outFillY}" width="14" height="${outFillH}" rx="7" fill="${outColor}"></rect>
+          <circle cx="32" cy="112" r="11" fill="${outColor}"></circle>
+          <line x1="41" y1="${fcY}" x2="50" y2="${fcY}" stroke="${markColor}" stroke-width="2.5" opacity="${fcHigh !== null ? 1 : 0}"></line>
+
+          <rect x="91" y="${TUBE_TOP}" width="14" height="${TUBE_H}" rx="7" fill="#1a2530"></rect>
+          <rect x="91" y="${inFillY}" width="14" height="${inFillH}" rx="7" fill="${inColor}"></rect>
+          <circle cx="98" cy="112" r="11" fill="${inColor}"></circle>
+
           <text x="32" y="129" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(outVal)}</text>
           <text x="98" y="129" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(inVal)}</text>
         </svg>
