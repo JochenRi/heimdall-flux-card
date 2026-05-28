@@ -1503,15 +1503,6 @@ console.log(
     // Storage key in this._sparklineData is the entity_id, identical
     // to the consumer path -- they share one data store.
     _renderSparklineForSource(prefix) {
-      // Phase 5.76-diag4: UNCONDITIONAL marker as the very first thing.
-      // For house, return a cyan circle NO MATTER WHAT -- before any config
-      // or data check. If this cyan circle shows, the function IS called for
-      // house and a downstream check is the culprit. If it does NOT show,
-      // the function is never invoked for house at the call site (despite
-      // the lime square proving the div itself renders).
-      if (prefix === 'house') {
-        return html`<div style="position:absolute;right:8px;top:8px;width:24px;height:24px;background:cyan;z-index:99;pointer-events:none;border-radius:50%;"></div>`;
-      }
       if (!this.config) return html``;
       if (this.config[`${prefix}_sparkline`] !== true) return html``;
       const overrideEntity = this.config[`${prefix}_sparkline_entity`];
@@ -1523,11 +1514,7 @@ console.log(
       const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : fallbackEntity;
       if (!entityId) return html``;
       const data = this._sparklineData?.[entityId];
-      // Phase 5.76-diag2: house-only data-independent marker (see note).
-      const houseDiag = (prefix === 'house')
-        ? html`<div style="position:absolute;left:0;top:0;width:${parseInt(this.config.bubble_size||90,10)}px;height:${parseInt(this.config.bubble_size||90,10)}px;border-radius:50%;outline:3px solid magenta;pointer-events:none;z-index:5;box-sizing:border-box;"></div>`
-        : html``;
-      if (!Array.isArray(data) || data.length < 2) return houseDiag;
+      if (!Array.isArray(data) || data.length < 2) return html``;
 
       const opacityRaw = this.config[`${prefix}_sparkline_opacity`];
       const opacity = (opacityRaw === undefined || opacityRaw === null)
@@ -4038,15 +4025,28 @@ console.log(
                   </div>`;
                 })() : ''}
                 
-                <div class="bubble house node-house ${showDonut ? 'donut' : ''} ${houseMixActive ? 'mix-ring' : ''} ${tintClass}" 
-                    style="${houseBubbleStyle}"
-                    @click=${() => this._handleClick(entities.house)}>
-                    ${this._renderSparklineForSource('house')}
-                    <div style="position:absolute;left:10px;top:10px;width:30px;height:30px;background:lime;z-index:99;pointer-events:none;"></div>
-                    ${renderMainIcon('house', 0, this.config.house_icon || null, this.config.color_icon_house ? 'var(--icon-house-color)' : houseDominantColor)}
-                    ${renderSecondaryOrLabel(labelHouseText, showLabelHouse, entities.secondary_house, hasSecondaryHouse, 'secondary_house')}
-                    <div class="value" style="${houseTextStyle}">${this._formatPower(houseDisplay)}</div>
-                </div>
+                ${(() => {
+                  // Phase 5.77: house bubble wrapped in an IIFE returning a
+                  // single html`` template, identical in structure to the
+                  // solar/grid/battery/venus bubbles above. Previously the
+                  // house bubble was a bare inline <div> and the
+                  // ${this._renderSparklineForSource('house')} expression
+                  // inside it silently failed to render (diag proved: a
+                  // hardcoded sibling element rendered, but the method-call
+                  // expression at that position did not -- a lit-html binding
+                  // quirk specific to that inline position). Moving it into an
+                  // IIFE that returns one html`` template -- the exact pattern
+                  // the working source bubbles use -- fixes it.
+                  return html`
+                  <div class="bubble house node-house ${showDonut ? 'donut' : ''} ${houseMixActive ? 'mix-ring' : ''} ${tintClass}"
+                      style="${houseBubbleStyle}"
+                      @click=${() => this._handleClick(entities.house)}>
+                      ${this._renderSparklineForSource('house')}
+                      ${renderMainIcon('house', 0, this.config.house_icon || null, this.config.color_icon_house ? 'var(--icon-house-color)' : houseDominantColor)}
+                      ${renderSecondaryOrLabel(labelHouseText, showLabelHouse, entities.secondary_house, hasSecondaryHouse, 'secondary_house')}
+                      <div class="value" style="${houseTextStyle}">${this._formatPower(houseDisplay)}</div>
+                  </div>`;
+                })()}
 
                 ${renderConsumer(showC1, 'c1', 'consumer_1', labelC1, 'car', c1Val, this._getConsumerColor(1))}
                 ${renderConsumer(showC2, 'c2', 'consumer_2', labelC2, 'heater', c2Val, this._getConsumerColor(2))}
