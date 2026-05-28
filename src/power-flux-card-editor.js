@@ -71,6 +71,7 @@ class PowerFluxCardEditor extends LitElement {
                 'venus', 'venus_soc', 'venus_charge', 'venus_discharge',
                 'house',
                 'temp_outdoor', 'temp_indoor', 'temp_forecast_high', 'temp_forecast_low',
+                'temp_indoor_sparkline_entity', 'temp_outdoor_sparkline_entity',
                 'consumer_1', 'consumer_2', 'consumer_3',
                 'consumer_4', 'consumer_5',
                 'consumer_6', 'consumer_7',
@@ -2525,6 +2526,106 @@ class PowerFluxCardEditor extends LitElement {
         ${this._renderColorPicker('temp_outdoor_color', this._localize('editor.temp_outdoor_color'), '#378ADD')}
         ${this._renderColorPicker('temp_indoor_color', this._localize('editor.temp_indoor_color'), '#1D9E75')}
         ${this._renderColorPicker('temp_marker_color', this._localize('editor.temp_marker_color'), '#D85A30')}
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 16px 0 6px;">
+            ${this._localize('editor.temp_sparkline_hint')}
+        </div>
+
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:chart-line-variant"></ha-icon>
+                ${this._localize('editor.temp_sparkline_indoor_title')}
+            </div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.temp_indoor_sparkline === true}
+                    .configValue=${'temp_indoor_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, this._config.temp_indoor_sparkline_entity || "", 'temp_indoor_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h", label: "1h" }, { value: "6h", label: "6h" },
+                    { value: "12h", label: "12h" }, { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.temp_indoor_sparkline_period || '24h'}
+                .configValue=${'temp_indoor_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area", label: this._localize('editor.sparkline_style_area') },
+                    { value: "line", label: this._localize('editor.sparkline_style_line') },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.temp_indoor_sparkline_style || 'area-line'}
+                .configValue=${'temp_indoor_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.temp_indoor_sparkline_opacity !== undefined ? this._config.temp_indoor_sparkline_opacity : 0.35}
+                .configValue=${'temp_indoor_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ${this._renderColorPicker('temp_indoor_sparkline_color', this._localize('editor.sparkline_color'), '#1D9E75')}
+        </div>
+
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:chart-line-variant"></ha-icon>
+                ${this._localize('editor.temp_sparkline_outdoor_title')}
+            </div>
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.temp_outdoor_sparkline === true}
+                    .configValue=${'temp_outdoor_sparkline'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, this._config.temp_outdoor_sparkline_entity || "", 'temp_outdoor_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "1h", label: "1h" }, { value: "6h", label: "6h" },
+                    { value: "12h", label: "12h" }, { value: "24h", label: "24h" }
+                ] } }}
+                .value=${this._config.temp_outdoor_sparkline_period || '24h'}
+                .configValue=${'temp_outdoor_sparkline_period'}
+                .label=${this._localize('editor.sparkline_period')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ select: { mode: "dropdown", options: [
+                    { value: "area", label: this._localize('editor.sparkline_style_area') },
+                    { value: "line", label: this._localize('editor.sparkline_style_line') },
+                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                ] } }}
+                .value=${this._config.temp_outdoor_sparkline_style || 'area-line'}
+                .configValue=${'temp_outdoor_sparkline_style'}
+                .label=${this._localize('editor.sparkline_style')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+                .value=${this._config.temp_outdoor_sparkline_opacity !== undefined ? this._config.temp_outdoor_sparkline_opacity : 0.35}
+                .configValue=${'temp_outdoor_sparkline_opacity'}
+                .label=${this._localize('editor.sparkline_opacity')}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+            ${this._renderColorPicker('temp_outdoor_sparkline_color', this._localize('editor.sparkline_color'), '#378ADD')}
+        </div>
     `;
     }
 

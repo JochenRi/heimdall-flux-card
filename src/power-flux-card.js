@@ -297,7 +297,7 @@ console.log(
       };
       for (const side of ['indoor', 'outdoor']) {
         if (this.config[`temp_${side}_sparkline`] !== true) continue;
-        const overrideEntity = this.config[`temp_${side}_sparkline_entity`];
+        const overrideEntity = this.config?.entities?.[`temp_${side}_sparkline_entity`] || this.config[`temp_${side}_sparkline_entity`];
         const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : tempSides[side];
         if (!entityId) continue;
         const period = this.config[`temp_${side}_sparkline_period`] || '24h';
@@ -2097,7 +2097,7 @@ console.log(
         indoor:  e.temp_indoor  || 'sensor.haus_durchschnittstemperatur',
         outdoor: e.temp_outdoor || 'sensor.sbht_003c_993b_temperature',
       };
-      const overrideEntity = this.config[`temp_${side}_sparkline_entity`];
+      const overrideEntity = e[`temp_${side}_sparkline_entity`] || this.config[`temp_${side}_sparkline_entity`];
       const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : defaults[side];
       if (!entityId) return html``;
 
