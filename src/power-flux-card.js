@@ -2239,6 +2239,9 @@ console.log(
 
           <text x="32" y="123" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(inVal)}</text>
           <text x="98" y="123" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(outVal)}</text>
+
+          <rect x="0" y="0" width="65" height="130" fill="transparent" style="cursor:pointer;" @click=${() => this._handleClick(inId)}></rect>
+          <rect x="65" y="0" width="65" height="130" fill="transparent" style="cursor:pointer;" @click=${() => this._handleClick(outId)}></rect>
         </svg>
       `;
     }
