@@ -7884,11 +7884,43 @@ console.log(
       const tMin = downsampled[0].t;
       const tMax = downsampled[downsampled.length - 1].t;
       const tSpan = (tMax - tMin) || 1;
-      const vMaxRaw = Math.max(...downsampled.map(p => p.v), 0);
-      const vMax = (vMaxRaw <= 0) ? 1 : vMaxRaw * 1.1; // 10% headroom
+      // Phase 5.75: dynamic min->max Y-axis scaling (mini-graph-card default
+      // behaviour), NOT 0->max. This is the fix for "constant value fills the
+      // whole bubble". With 0->max a flat 1100W line sits at 91% height; with
+      // min->max a flat line has vMin==vMax so it sits mid-bubble as a flat
+      // line -- matching user expectation.
+      //
+      // min_bound_range guard (also from mini-graph-card): if the real spread
+      // (vMax-vMin) is tiny (pure sensor noise), don't blow it up to fill the
+      // bubble. We enforce a minimum range so flat data stays visually flat.
+      // The minimum range is the larger of an absolute floor (avoids div-by-
+      // near-zero) and a fraction of the mean (scales with the data's
+      // magnitude so a 5kW signal and a 50W signal both look sensibly flat).
+      const vals = downsampled.map(p => Math.max(0, p.v));
+      const vDataMin = Math.min(...vals);
+      const vDataMax = Math.max(...vals);
+      const vMean = vals.reduce((a, b) => a + b, 0) / (vals.length || 1);
+      const rawRange = vDataMax - vDataMin;
+      // minRange: at least 8% of the mean, but never below an absolute 1 unit.
+      const minRange = Math.max(vMean * 0.08, 1);
+      let lo, hi;
+      if (rawRange < minRange) {
+        // Flat/near-flat: center the data band inside an artificially widened
+        // range so the line renders as a flat line mid-bubble, not at an edge.
+        const mid = (vDataMax + vDataMin) / 2;
+        lo = mid - minRange / 2;
+        hi = mid + minRange / 2;
+      } else {
+        // Real variation: a little headroom top and bottom so peaks/troughs
+        // don't touch the bubble edges.
+        const pad = rawRange * 0.1;
+        lo = vDataMin - pad;
+        hi = vDataMax + pad;
+      }
+      const vSpan = (hi - lo) || 1;
       const xy = downsampled.map(p => [
         ((p.t - tMin) / tSpan) * W,
-        H - (Math.max(0, p.v) / vMax) * H
+        H - ((Math.max(0, p.v) - lo) / vSpan) * H
       ]);
       const linePath = xy.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
       const areaPath = `${linePath} L${W},${H} L0,${H} Z`;
@@ -7970,11 +8002,29 @@ console.log(
       const tMin = downsampled[0].t;
       const tMax = downsampled[downsampled.length - 1].t;
       const tSpan = (tMax - tMin) || 1;
-      const vMaxRaw = Math.max(...downsampled.map(p => p.v), 0);
-      const vMax = (vMaxRaw <= 0) ? 1 : vMaxRaw * 1.1;
+      // Phase 5.75: dynamic min->max Y-axis scaling with min_bound_range guard.
+      // Identical to the consumer _renderSparkline path -- keep both in sync.
+      // See that function for the full rationale (mini-graph-card default).
+      const vals = downsampled.map(p => Math.max(0, p.v));
+      const vDataMin = Math.min(...vals);
+      const vDataMax = Math.max(...vals);
+      const vMean = vals.reduce((a, b) => a + b, 0) / (vals.length || 1);
+      const rawRange = vDataMax - vDataMin;
+      const minRange = Math.max(vMean * 0.08, 1);
+      let lo, hi;
+      if (rawRange < minRange) {
+        const mid = (vDataMax + vDataMin) / 2;
+        lo = mid - minRange / 2;
+        hi = mid + minRange / 2;
+      } else {
+        const pad = rawRange * 0.1;
+        lo = vDataMin - pad;
+        hi = vDataMax + pad;
+      }
+      const vSpan = (hi - lo) || 1;
       const xy = downsampled.map(p => [
         ((p.t - tMin) / tSpan) * W,
-        H - (Math.max(0, p.v) / vMax) * H
+        H - ((Math.max(0, p.v) - lo) / vSpan) * H
       ]);
       const linePath = xy.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
       const areaPath = `${linePath} L${W},${H} L0,${H} Z`;
@@ -7997,9 +8047,6 @@ console.log(
         `opacity:${opacity}`,
         `overflow:hidden`,
         `border-radius:50%`,
-        // Phase 5.74-diag: TEMP diagnostic for house only.
-        prefix === 'house' ? `outline:3px dashed red` : ``,
-        prefix === 'house' ? `background:rgba(255,0,255,0.45)` : ``,
       ].join(';');
 
       return html`<div class="sparkline-wrap" style="${wrapperStyle}"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.85"></stop><stop offset="100%" stop-color="${color}" stop-opacity="0"></stop></linearGradient></defs><path d="${effectiveAreaPath}" fill="url(#${gradId})" stroke="none"></path><path d="${effectiveLinePath}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></path></svg></div>`;
