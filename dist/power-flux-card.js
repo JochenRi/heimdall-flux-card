@@ -7997,6 +7997,9 @@ console.log(
         `opacity:${opacity}`,
         `overflow:hidden`,
         `border-radius:50%`,
+        // Phase 5.74-diag: TEMP diagnostic for house only.
+        prefix === 'house' ? `outline:3px dashed red` : ``,
+        prefix === 'house' ? `background:rgba(255,0,255,0.45)` : ``,
       ].join(';');
 
       return html`<div class="sparkline-wrap" style="${wrapperStyle}"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.85"></stop><stop offset="100%" stop-color="${color}" stop-opacity="0"></stop></linearGradient></defs><path d="${effectiveAreaPath}" fill="url(#${gradId})" stroke="none"></path><path d="${effectiveLinePath}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></path></svg></div>`;
