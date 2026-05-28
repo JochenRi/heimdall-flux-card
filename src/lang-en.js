@@ -426,5 +426,12 @@ export default {
     "editor.house_mix_year_section": "Yearly sensors",
     "editor.house_mix_self_label": "Self-supply (kWh)",
     "editor.house_mix_grid_label": "Grid import (kWh)",
+
+    // Phase 5.80: configurable Tesla mix-ring segment colors
+    "editor.consumer_1_mix_colors_section": "Ring colors per segment",
+    "editor.consumer_1_mix_color_pv": "PV segment color",
+    "editor.consumer_1_mix_color_lg": "LG segment color",
+    "editor.consumer_1_mix_color_venus": "Venus segment color",
+    "editor.consumer_1_mix_color_grid": "Grid segment color",
   }
 };

@@ -431,6 +431,13 @@ const lang_de = {
     "editor.house_mix_year_section": "Jahres-Sensoren",
     "editor.house_mix_self_label": "Eigenversorgung (kWh)",
     "editor.house_mix_grid_label": "Netzbezug (kWh)",
+
+    // Phase 5.80: configurable Tesla mix-ring segment colors
+    "editor.consumer_1_mix_colors_section": "Ring-Farben pro Segment",
+    "editor.consumer_1_mix_color_pv": "Farbe PV-Anteil",
+    "editor.consumer_1_mix_color_lg": "Farbe LG-Anteil",
+    "editor.consumer_1_mix_color_venus": "Farbe Venus-Anteil",
+    "editor.consumer_1_mix_color_grid": "Farbe Netz-Anteil",
   }
 };
 const lang_en = {
@@ -861,6 +868,13 @@ const lang_en = {
     "editor.house_mix_year_section": "Yearly sensors",
     "editor.house_mix_self_label": "Self-supply (kWh)",
     "editor.house_mix_grid_label": "Grid import (kWh)",
+
+    // Phase 5.80: configurable Tesla mix-ring segment colors
+    "editor.consumer_1_mix_colors_section": "Ring colors per segment",
+    "editor.consumer_1_mix_color_pv": "PV segment color",
+    "editor.consumer_1_mix_color_lg": "LG segment color",
+    "editor.consumer_1_mix_color_venus": "Venus segment color",
+    "editor.consumer_1_mix_color_grid": "Grid segment color",
   }
 };
 
@@ -5990,6 +6004,16 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_venus_year || "", 'consumer_1_mix_venus_year', this._localize('editor.consumer_1_mix_venus_year'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_grid_year || "", 'consumer_1_mix_grid_year', this._localize('editor.consumer_1_mix_grid_year'))}
 
+            <!-- Phase 5.80: per-segment colors for the Tesla mix-ring.
+                 Each defaults to the matching pipe color when unset. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                ${this._localize('editor.consumer_1_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('consumer_1_mix_color_pv', this._localize('editor.consumer_1_mix_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('consumer_1_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
+            ${this._renderColorPicker('consumer_1_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
+            ${this._renderColorPicker('consumer_1_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
+
             <!-- Phase 5.44: rotation for Tesla bubble (analog Battery/Venus) -->
             <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
                 <ha-icon icon="mdi:rotate-3d-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
@@ -9743,10 +9767,17 @@ console.log(
           
           let stops = [];
           let cursor = 0;
-          if (pctPv > 0)    { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`);    cursor += pctPv; }
-          if (pctLg > 0)    { stops.push(`var(--pipe-battery-color) ${cursor}% ${cursor + pctLg}%`);   cursor += pctLg; }
-          if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
-          if (pctGrid > 0)  { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          // Phase 5.80: per-segment colors are editor-configurable. Each
+          // falls back to the matching pipe color when unset, so existing
+          // configs look identical until the user picks a custom color.
+          const colPv    = this.config.consumer_1_mix_color_pv    || 'var(--pipe-solar-color)';
+          const colLg    = this.config.consumer_1_mix_color_lg    || 'var(--pipe-battery-color)';
+          const colVenus = this.config.consumer_1_mix_color_venus || 'var(--pipe-venus-color)';
+          const colGrid  = this.config.consumer_1_mix_color_grid  || 'var(--pipe-grid-color)';
+          if (pctPv > 0)    { stops.push(`${colPv} ${cursor}% ${cursor + pctPv}%`);    cursor += pctPv; }
+          if (pctLg > 0)    { stops.push(`${colLg} ${cursor}% ${cursor + pctLg}%`);   cursor += pctLg; }
+          if (pctVenus > 0) { stops.push(`${colVenus} ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
+          if (pctGrid > 0)  { stops.push(`${colGrid} ${cursor}% 100%`); }
           c1MixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           c1MixActive = true;
         }
