@@ -1322,7 +1322,7 @@ console.log(
       .node-battery { top: 80px; left: 420px; }  
       .node-venus { top: 80px; left: 580px; }   
       .node-house { top: 245px; left: 355px; }   
-      .node-temp { top: 245px; left: 655px; }   /* phase 5.78/5.79a: rectangular climate panel, house height, right side (130px wide, ends at x=785) */
+      .node-temp { top: 225px; left: 655px; }   /* phase 5.79a-fix: vertically centered on house (house center y=290; 130px panel -> top 225) */
       .node-c1 { top: 400px; left: 130px; }
       .node-c2 { top: 400px; left: 355px; }
       .node-c3 { top: 400px; left: 580px; }
