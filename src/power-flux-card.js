@@ -3179,10 +3179,16 @@ console.log(
           
           let stops = [];
           let cursor = 0;
-          if (pctPv > 0)    { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`);    cursor += pctPv; }
-          if (pctLg > 0)    { stops.push(`var(--pipe-battery-color) ${cursor}% ${cursor + pctLg}%`);   cursor += pctLg; }
-          if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
-          if (pctGrid > 0)  { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          // Phase 5.81: per-segment colors editor-configurable (like Tesla 5.80).
+          // Each falls back to its matching pipe color when unset.
+          const colPv    = this.config.consumer_5_mix_color_pv    || 'var(--pipe-solar-color)';
+          const colLg    = this.config.consumer_5_mix_color_lg    || 'var(--pipe-battery-color)';
+          const colVenus = this.config.consumer_5_mix_color_venus || 'var(--pipe-venus-color)';
+          const colGrid  = this.config.consumer_5_mix_color_grid  || 'var(--pipe-grid-color)';
+          if (pctPv > 0)    { stops.push(`${colPv} ${cursor}% ${cursor + pctPv}%`);    cursor += pctPv; }
+          if (pctLg > 0)    { stops.push(`${colLg} ${cursor}% ${cursor + pctLg}%`);   cursor += pctLg; }
+          if (pctVenus > 0) { stops.push(`${colVenus} ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
+          if (pctGrid > 0)  { stops.push(`${colGrid} ${cursor}% 100%`); }
           c5MixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           c5MixActive = true;
         }
