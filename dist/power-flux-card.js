@@ -6959,6 +6959,21 @@ console.log(
         const period = this.config[`${prefix}_sparkline_period`] || '24h';
         this._fetchSparklineHistory(entityId, period, null);
       }
+
+      // Phase 5.82a: temp-bubble sparklines (indoor/outdoor). Same fetch
+      // infrastructure; storage key is the entity_id so no collisions.
+      const tempSides = {
+        indoor:  this.config?.entities?.temp_indoor  || 'sensor.haus_durchschnittstemperatur',
+        outdoor: this.config?.entities?.temp_outdoor || 'sensor.sbht_003c_993b_temperature',
+      };
+      for (const side of ['indoor', 'outdoor']) {
+        if (this.config[`temp_${side}_sparkline`] !== true) continue;
+        const overrideEntity = this.config[`temp_${side}_sparkline_entity`];
+        const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : tempSides[side];
+        if (!entityId) continue;
+        const period = this.config[`temp_${side}_sparkline_period`] || '24h';
+        this._fetchSparklineHistory(entityId, period, null);
+      }
     }
 
     _generateTestSparkline(entityId, idx) {
@@ -8740,6 +8755,86 @@ console.log(
     }
 
     // --- RENDER STANDARD VIEW ---
+    _renderTempSparkline(side) {
+      // Phase 5.82a: one history sparkline per thermometer half. side is
+      // 'indoor' (left half) or 'outdoor' (right half). Mirrors the
+      // _renderSparklineForSource logic but clips to a 65x130 rectangle
+      // instead of a circle, so the two graphs sit behind their columns.
+      if (!this.config) return html``;
+      if (this.config[`temp_${side}_sparkline`] !== true) return html``;
+
+      const e = this.config.entities || {};
+      const defaults = {
+        indoor:  e.temp_indoor  || 'sensor.haus_durchschnittstemperatur',
+        outdoor: e.temp_outdoor || 'sensor.sbht_003c_993b_temperature',
+      };
+      const overrideEntity = this.config[`temp_${side}_sparkline_entity`];
+      const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : defaults[side];
+      if (!entityId) return html``;
+
+      const data = this._sparklineData?.[entityId];
+      if (!Array.isArray(data) || data.length < 2) return html``;
+
+      const opacityRaw = this.config[`temp_${side}_sparkline_opacity`];
+      const opacity = (opacityRaw === undefined || opacityRaw === null)
+        ? 0.35 : Math.max(0.05, Math.min(1, parseFloat(opacityRaw)));
+      const style = this.config[`temp_${side}_sparkline_style`] || 'area-line';
+      const defaultColor = side === 'indoor'
+        ? (this.config.temp_indoor_color || '#1D9E75')
+        : (this.config.temp_outdoor_color || '#378ADD');
+      const color = this.config[`temp_${side}_sparkline_color`] || defaultColor;
+
+      const downsampled = this._downsampleSparkline(data, 60);
+
+      // Half-panel geometry: each half is 65px wide, 130px tall.
+      const W = 65, H = 130;
+      const leftPx = side === 'indoor' ? 0 : 65;
+      const tMin = downsampled[0].t;
+      const tMax = downsampled[downsampled.length - 1].t;
+      const tSpan = (tMax - tMin) || 1;
+      // Temperature can be negative, so unlike the power sparklines we do
+      // NOT clamp to >=0 here. Dynamic min->max scaling with a guard band.
+      const vals = downsampled.map(p => p.v);
+      const vDataMin = Math.min(...vals);
+      const vDataMax = Math.max(...vals);
+      const rawRange = vDataMax - vDataMin;
+      const minRange = 2; // at least 2 degrees of visual span
+      let lo, hi;
+      if (rawRange < minRange) {
+        const mid = (vDataMax + vDataMin) / 2;
+        lo = mid - minRange / 2;
+        hi = mid + minRange / 2;
+      } else {
+        const pad = rawRange * 0.1;
+        lo = vDataMin - pad;
+        hi = vDataMax + pad;
+      }
+      const vSpan = (hi - lo) || 1;
+      const xy = downsampled.map(p => [
+        ((p.t - tMin) / tSpan) * W,
+        H - ((p.v - lo) / vSpan) * H
+      ]);
+      const linePath = xy.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+      const areaPath = `${linePath} L${W},${H} L0,${H} Z`;
+      const effectiveAreaPath = (style === 'area' || style === 'area-line') ? areaPath : '';
+      const effectiveLinePath = (style === 'line' || style === 'area-line') ? linePath : '';
+
+      const gradId = `temp-spark-${side}-${Math.floor(tMax)}`;
+      const wrapperStyle = [
+        `position:absolute`,
+        `left:${leftPx}px`,
+        `top:0`,
+        `width:${W}px`,
+        `height:${H}px`,
+        `z-index:0`,
+        `pointer-events:none`,
+        `opacity:${opacity}`,
+        `overflow:hidden`,
+      ].join(';');
+
+      return html`<div class="temp-sparkline-wrap" style="${wrapperStyle}"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.85"></stop><stop offset="100%" stop-color="${color}" stop-opacity="0"></stop></linearGradient></defs><path d="${effectiveAreaPath}" fill="url(#${gradId})" stroke="none"></path><path d="${effectiveLinePath}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></path></svg></div>`;
+    }
+
     _renderTempPanel() {
       // Phase 5.79b: split thermometer panel. Two vertical columns:
       // left = outdoor (current temp as fill level + forecast-high marker),
@@ -10830,6 +10925,8 @@ console.log(
 
                 ${this.config.temp_enabled === true ? html`
                   <div class="bubble temp node-temp ${tintClass}">
+                      ${this._renderTempSparkline('indoor')}
+                      ${this._renderTempSparkline('outdoor')}
                       ${this._renderTempPanel()}
                   </div>` : ''}
 
