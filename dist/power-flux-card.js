@@ -12,6 +12,8 @@ const lang_de = {
     "editor.grid_section": "Netz Import/Export",
     "editor.battery_section": "Batterie 1",
     "editor.venus_section": "Batterie 2",
+    "editor.temp_section": "Klima (Temperatur)",
+    "editor.temp_enabled": "Klima-Bubble aktivieren",
     "editor.consumer_1_section": "Tesla",
     "editor.consumers_section": "Haus",
     "editor.bubble_fallback": "Bubble {n}",
@@ -426,6 +428,8 @@ const lang_en = {
     "editor.grid_section": "Grid Connection",
     "editor.battery_section": "Battery 1",
     "editor.venus_section": "Battery 2",
+    "editor.temp_section": "Climate (Temperature)",
+    "editor.temp_enabled": "Enable climate bubble",
     "editor.consumer_1_section": "Tesla",
     "editor.consumers_section": "House",
     "editor.bubble_fallback": "Bubble {n}",
@@ -3283,6 +3287,30 @@ class PowerFluxCardEditor extends LitElement {
     // suitable for indoor temperature. User can override consumer_6_soc_max
     // for humidity (max=100), CO2 (max=2000), or any other ratio metric.
     // Rotation (phase 5.65) and charge-mix ring (phase 5.66) follow.
+    _renderTempView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        // Phase 5.78b: editor sub-view for the split climate (temp) bubble.
+        // For now it only carries the enable toggle so the bubble can be
+        // switched on from the UI. Sensors (indoor/outdoor + daily min/max),
+        // scale ranges and the split double-ring options land in phase 5.79.
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._localize('editor.temp_section')}</h2>
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.temp_enabled === true}
+                .configValue=${'temp_enabled'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.temp_enabled')}</div>
+        </div>
+    `;
+    }
+
     _renderConsumer6View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
         <div class="header">
@@ -6090,6 +6118,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'consumer_6') return this._renderConsumer6View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_7') return this._renderConsumer7View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'temp') return this._renderTempView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'donut') return this._renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
 
 
@@ -6161,6 +6190,11 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="menu-item" @click=${() => this._goSubView('donut')}>
             <div class="menu-icon"><ha-icon icon="mdi:chart-donut"></ha-icon> ${this._localize('editor.donut_section')}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+
+        <div class="menu-item" @click=${() => this._goSubView('temp')}>
+            <div class="menu-icon"><ha-icon icon="mdi:thermometer"></ha-icon> ${this._localize('editor.temp_section')}</div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
         </div>
 

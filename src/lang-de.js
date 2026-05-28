@@ -7,6 +7,8 @@ export default {
     "editor.grid_section": "Netz Import/Export",
     "editor.battery_section": "Batterie 1",
     "editor.venus_section": "Batterie 2",
+    "editor.temp_section": "Klima (Temperatur)",
+    "editor.temp_enabled": "Klima-Bubble aktivieren",
     "editor.consumer_1_section": "Tesla",
     "editor.consumers_section": "Haus",
     "editor.bubble_fallback": "Bubble {n}",

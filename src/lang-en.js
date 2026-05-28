@@ -7,6 +7,8 @@ export default {
     "editor.grid_section": "Grid Connection",
     "editor.battery_section": "Battery 1",
     "editor.venus_section": "Battery 2",
+    "editor.temp_section": "Climate (Temperature)",
+    "editor.temp_enabled": "Enable climate bubble",
     "editor.consumer_1_section": "Tesla",
     "editor.consumers_section": "House",
     "editor.bubble_fallback": "Bubble {n}",
