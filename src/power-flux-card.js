@@ -341,7 +341,19 @@ console.log(
           console.log(`[HEIMDALL Sparkline c${idx}] raw response:`, result);
         }
         if (!Array.isArray(result) || !result[0]) {
-          if (debug) console.warn(`[HEIMDALL Sparkline c${idx}] empty result for ${entityId}`);
+          if (debug) console.warn(`[HEIMDALL Sparkline c${idx}] empty result for ${entityId}, trying live state for flat line`);
+          // Phase 5.76: empty history (e.g. brand-new sensor, or one that
+          // never changed) -> draw a flat line from the current state if
+          // we have one, rather than rendering nothing.
+          const liveState = this.hass?.states?.[entityId]?.state;
+          const parsed = parseFloat(liveState);
+          if (!isNaN(parsed)) {
+            this._sparklineData[entityId] = [
+              { t: start.getTime(), v: parsed },
+              { t: end.getTime(),   v: parsed }
+            ];
+            this.requestUpdate();
+          }
           return;
         }
         const raw = result[0];
@@ -364,8 +376,41 @@ console.log(
             series.length ? { first: series[0], last: series[series.length - 1] } : null
           );
         }
+        // Phase 5.76: a sensor that held a CONSTANT value over the whole
+        // window (e.g. a consumer at 0 W for 6h, or any flat reading)
+        // produces only 0 or 1 state-change rows from the History API,
+        // which previously hit 'series.length < 2 -> return' and rendered
+        // NOTHING. But a constant value is perfectly valid data and should
+        // show as a FLAT LINE, exactly like Waschen's near-constant trace.
+        //
+        // Fix: synthesize a flat 2-point series spanning the window from
+        // whatever value we can find -- the single history point if present,
+        // otherwise the sensor's current state. Only give up if there is no
+        // usable numeric value anywhere.
         if (series.length < 2) {
-          if (debug) console.warn(`[HEIMDALL Sparkline c${idx}] series too short (${series.length}), need at least 2 points`);
+          let flatVal = NaN;
+          if (series.length === 1) {
+            flatVal = series[0].v;
+          } else {
+            // No history rows at all -> fall back to the live state value.
+            const liveState = this.hass?.states?.[entityId]?.state;
+            const parsed = parseFloat(liveState);
+            if (!isNaN(parsed)) flatVal = parsed;
+          }
+          if (isNaN(flatVal)) {
+            if (debug) console.warn(`[HEIMDALL Sparkline c${idx}] no usable value for ${entityId}, skipping`);
+            return;
+          }
+          const flatSeries = [
+            { t: start.getTime(), v: flatVal },
+            { t: end.getTime(),   v: flatVal }
+          ];
+          if (debug) {
+            // eslint-disable-next-line no-console
+            console.log(`[HEIMDALL Sparkline c${idx}] constant value ${flatVal} over window -> flat line`);
+          }
+          this._sparklineData[entityId] = flatSeries;
+          this.requestUpdate();
           return;
         }
         this._sparklineData[entityId] = series;
