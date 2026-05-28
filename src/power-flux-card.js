@@ -1514,7 +1514,11 @@ console.log(
       const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : fallbackEntity;
       if (!entityId) return html``;
       const data = this._sparklineData?.[entityId];
-      if (!Array.isArray(data) || data.length < 2) return html``;
+      // Phase 5.76-diag2: house-only data-independent marker (see note).
+      const houseDiag = (prefix === 'house')
+        ? html`<div style="position:absolute;left:0;top:0;width:${parseInt(this.config.bubble_size||90,10)}px;height:${parseInt(this.config.bubble_size||90,10)}px;border-radius:50%;outline:3px solid magenta;pointer-events:none;z-index:5;box-sizing:border-box;"></div>`
+        : html``;
+      if (!Array.isArray(data) || data.length < 2) return houseDiag;
 
       const opacityRaw = this.config[`${prefix}_sparkline_opacity`];
       const opacity = (opacityRaw === undefined || opacityRaw === null)
