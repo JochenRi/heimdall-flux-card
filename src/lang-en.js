@@ -394,5 +394,21 @@ export default {
     "editor.grid_mix_year_section": "Yearly sensors",
     "editor.grid_mix_import_label": "Grid import (kWh)",
     "editor.grid_mix_export_label": "Grid export (kWh)",
+
+    // Phase 5.74: House self-sufficiency (Autarkie) mix ring
+    "editor.house_mix_section": "Self-sufficiency (outer mix ring)",
+    "editor.house_mix_hint": "Adds a second ring around the consumption donut showing the self-sufficiency ratio: how much of the house consumption was self-supplied (PV + battery, green) vs drawn from the grid (red)?",
+    "editor.house_mix_enabled": "Enable self-sufficiency ring",
+    "editor.house_mix_period": "Time period",
+    "editor.house_mix_period_day": "Day",
+    "editor.house_mix_period_month": "Month",
+    "editor.house_mix_period_year": "Year",
+    "editor.house_mix_gap": "Gap from consumption donut (px)",
+    "editor.house_mix_thickness": "Ring thickness (px)",
+    "editor.house_mix_day_section": "Daily sensors",
+    "editor.house_mix_month_section": "Monthly sensors",
+    "editor.house_mix_year_section": "Yearly sensors",
+    "editor.house_mix_self_label": "Self-supply (kWh)",
+    "editor.house_mix_grid_label": "Grid import (kWh)",
   }
 };

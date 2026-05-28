@@ -265,7 +265,8 @@ console.log(
       // Phase 5.71: Venus added alongside battery.
       // Phase 5.72: Solar added.
       // Phase 5.73: Grid added -- ALL 4 SOURCE BUBBLES now covered.
-      for (const prefix of ['battery', 'venus', 'solar', 'grid']) {
+      // Phase 5.74: House added -- now ALL 11 visible bubbles have sparkline.
+      for (const prefix of ['battery', 'venus', 'solar', 'grid', 'house']) {
         if (this.config[`${prefix}_sparkline`] !== true) continue;
         const overrideEntity = this.config[`${prefix}_sparkline_entity`];
         // Phase 5.73-fix: Grid is special -- its primary sensor is usually
@@ -874,6 +875,24 @@ console.log(
           background: var(--house-gradient);
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+
+      /* Phase 5.74: House self-sufficiency (Autarkie) mix-ring. SECOND outer
+         ring around the existing 4-segment consumption-origin donut. The donut
+         already shows WHERE the consumed energy came from (PV/LG/Venus/Grid);
+         this ring shows the simpler self-sufficiency split: how much of the
+         house consumption was self-supplied (PV+battery) vs drawn from grid.
+         2 segments: self (solar/green) + grid (red). */
+      .bubble.house.mix-ring { overflow: visible; }
+      .bubble.house.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--house-mix-gap, 8px) + var(--house-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--house-mix-thickness, 4px);
+          background: var(--house-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
       }
 
       .bubble.grid.donut { border: none !important; background: transparent; }
@@ -2394,6 +2413,49 @@ console.log(
         houseTextCol = useColoredValues ? 'var(--neon-pink)' : '';
       }
 
+      // --- House Self-Sufficiency (Autarkie) Mix Ring (Phase 5.74) ---
+      // SECOND ring around the existing consumption-origin donut. Whereas the
+      // donut answers "where did the consumed energy come from" (4 segments),
+      // this answers the higher-level "how autark am I" question: self-supply
+      // (PV direct + LG + Venus) vs grid import. 2 segments.
+      //
+      // Activated by:
+      //   house_mix_donut_mode (editor toggle, off by default)
+      //   house_mix_period ('day' | 'month' | 'year', default 'day')
+      // Reads:
+      //   house_mix_self_{day,month,year}  -- self-supplied kWh
+      //   house_mix_grid_{day,month,year}  -- grid-imported kWh
+      // Renders only if total > 0.
+      let houseMixGradientVal = '';
+      let houseMixActive = false;
+      
+      if (this.config.house_mix_donut_mode === true) {
+        const period = (this.config.house_mix_period === 'month' || this.config.house_mix_period === 'year')
+          ? this.config.house_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const self_ = readVal(`house_mix_self_${period}`);
+        const grid  = readVal(`house_mix_grid_${period}`);
+        const total = self_ + grid;
+        if (total > 0) {
+          const pctSelf = (self_ / total) * 100;
+          const pctGrid = (grid  / total) * 100;
+          
+          let stops = [];
+          let cursor = 0;
+          // Self-supply in solar/green colour, grid import in grid red.
+          if (pctSelf > 0) { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctSelf}%`); cursor += pctSelf; }
+          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          houseMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          houseMixActive = true;
+        }
+      }
+
       const houseTintStyle = showTint
         ? `background: color-mix(in srgb, ${houseDominantColor}, transparent 85%);`
         : '';
@@ -2402,7 +2464,14 @@ console.log(
         ? `box-shadow: 0 0 15px color-mix(in srgb, ${houseDominantColor}, transparent 60%);`
         : `box-shadow: none;`;
 
-      const houseBubbleStyle = `${showDonut ? `--house-gradient: ${houseGradientVal};` : ''} ${houseTintStyle} ${houseGlowStyle}`;
+      // Phase 5.74: optional autarky mix-ring style vars, independent of the
+      // origin donut -- either can be on/off solo or together.
+      const houseMixGap = parseInt(this.config.house_mix_gap !== undefined ? this.config.house_mix_gap : 8, 10);
+      const houseMixThk = parseInt(this.config.house_mix_thickness !== undefined ? this.config.house_mix_thickness : 4, 10);
+      const houseMixStyle = houseMixActive
+        ? `--house-mix-gradient: ${houseMixGradientVal}; --house-mix-gap: ${houseMixGap}px; --house-mix-thickness: ${houseMixThk}px;`
+        : '';
+      const houseBubbleStyle = `${showDonut ? `--house-gradient: ${houseGradientVal};` : ''} ${houseMixStyle} ${houseTintStyle} ${houseGlowStyle}`;
 
       const isSolarActive = Math.round(solarVal) > 0;
       const isGridActive = Math.round(gridImport) > 0 || Math.round(gridExport) > 0;
@@ -3861,9 +3930,10 @@ console.log(
                   </div>`;
                 })() : ''}
                 
-                <div class="bubble house node-house ${showDonut ? 'donut' : ''} ${tintClass}" 
+                <div class="bubble house node-house ${showDonut ? 'donut' : ''} ${houseMixActive ? 'mix-ring' : ''} ${tintClass}" 
                     style="${houseBubbleStyle}"
                     @click=${() => this._handleClick(entities.house)}>
+                    ${this._renderSparklineForSource('house')}
                     ${renderMainIcon('house', 0, this.config.house_icon || null, this.config.color_icon_house ? 'var(--icon-house-color)' : houseDominantColor)}
                     ${renderSecondaryOrLabel(labelHouseText, showLabelHouse, entities.secondary_house, hasSecondaryHouse, 'secondary_house')}
                     <div class="value" style="${houseTextStyle}">${this._formatPower(houseDisplay)}</div>

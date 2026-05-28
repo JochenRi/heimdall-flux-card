@@ -166,7 +166,12 @@ class PowerFluxCardEditor extends LitElement {
                 // Import + Export x 3 periods = 6 keys, plus sparkline override.
                 'grid_mix_import_day', 'grid_mix_import_month', 'grid_mix_import_year',
                 'grid_mix_export_day', 'grid_mix_export_month', 'grid_mix_export_year',
-                'grid_sparkline_entity'
+                'grid_sparkline_entity',
+                // Phase 5.74: House self-sufficiency mix-ring (2 segments) +
+                // sparkline. Self + Grid x 3 periods = 6 keys, plus sparkline.
+                'house_mix_self_day', 'house_mix_self_month', 'house_mix_self_year',
+                'house_mix_grid_day', 'house_mix_grid_month', 'house_mix_grid_year',
+                'house_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -2112,6 +2117,164 @@ class PowerFluxCardEditor extends LitElement {
         ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_battery || "", 'donut_today_battery', this._localize('editor.donut_today_battery'))}
         ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_venus || "", 'donut_today_venus', this._localize('editor.donut_today_venus'))}
         ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_grid || "", 'donut_today_grid', this._localize('editor.donut_today_grid'))}
+
+        <div class="separator"></div>
+
+        <!-- Phase 5.74: House self-sufficiency (Autarkie) mix-ring. Second
+             outer ring around the consumption-origin donut. 2 segments:
+             self-supplied (PV+battery) vs grid. -->
+        <div class="group-title">
+            <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
+            ${this._localize('editor.house_mix_section')}
+        </div>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.house_mix_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.house_mix_donut_mode === true}
+                .configValue=${'house_mix_donut_mode'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.house_mix_enabled')}</div>
+        </div>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ select: { mode: "dropdown", options: [
+                { value: "day",   label: this._localize('editor.house_mix_period_day')   },
+                { value: "month", label: this._localize('editor.house_mix_period_month') },
+                { value: "year",  label: this._localize('editor.house_mix_period_year')  }
+            ] } }}
+            .value=${this._config.house_mix_period || 'day'}
+            .configValue=${'house_mix_period'}
+            .label=${this._localize('editor.house_mix_period')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+            .value=${this._config.house_mix_gap !== undefined ? this._config.house_mix_gap : 8}
+            .configValue=${'house_mix_gap'}
+            .label=${this._localize('editor.house_mix_gap')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+            .value=${this._config.house_mix_thickness !== undefined ? this._config.house_mix_thickness : 4}
+            .configValue=${'house_mix_thickness'}
+            .label=${this._localize('editor.house_mix_thickness')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+            ${this._localize('editor.house_mix_day_section')}
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_self_day || "", 'house_mix_self_day', this._localize('editor.house_mix_self_label'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_grid_day || "", 'house_mix_grid_day', this._localize('editor.house_mix_grid_label'))}
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+            ${this._localize('editor.house_mix_month_section')}
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_self_month || "", 'house_mix_self_month', this._localize('editor.house_mix_self_label'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_grid_month || "", 'house_mix_grid_month', this._localize('editor.house_mix_grid_label'))}
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+            ${this._localize('editor.house_mix_year_section')}
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_self_year || "", 'house_mix_self_year', this._localize('editor.house_mix_self_label'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_grid_year || "", 'house_mix_grid_year', this._localize('editor.house_mix_grid_label'))}
+
+        <div class="separator"></div>
+
+        <!-- Phase 5.74: House sparkline. Default sensor is entities.house
+             (the home consumption sensor). Default colour house pink. -->
+        <div class="group-title">
+            <ha-icon icon="mdi:chart-line-variant"></ha-icon>
+            ${this._localize('editor.sparkline_title')}
+        </div>
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.sparkline_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.house_sparkline === true}
+                .configValue=${'house_sparkline'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+        </div>
+
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_sparkline_entity || "", 'house_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+            ${this._localize('editor.sparkline_entity_hint')}
+        </div>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ select: { mode: "dropdown", options: [
+                { value: "1h",  label: "1h"  },
+                { value: "6h",  label: "6h"  },
+                { value: "12h", label: "12h" },
+                { value: "24h", label: "24h" }
+            ] } }}
+            .value=${this._config.house_sparkline_period || '24h'}
+            .configValue=${'house_sparkline_period'}
+            .label=${this._localize('editor.sparkline_period')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ select: { mode: "dropdown", options: [
+                { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                { value: "front", label: this._localize('editor.sparkline_layer_front') }
+            ] } }}
+            .value=${this._config.house_sparkline_layer || 'back'}
+            .configValue=${'house_sparkline_layer'}
+            .label=${this._localize('editor.sparkline_layer')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ select: { mode: "dropdown", options: [
+                { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+            ] } }}
+            .value=${this._config.house_sparkline_style || 'area-line'}
+            .configValue=${'house_sparkline_style'}
+            .label=${this._localize('editor.sparkline_style')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+            .value=${this._config.house_sparkline_opacity !== undefined ? this._config.house_sparkline_opacity : 0.35}
+            .configValue=${'house_sparkline_opacity'}
+            .label=${this._localize('editor.sparkline_opacity')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        ${this._renderColorPicker('house_sparkline_color', this._localize('editor.sparkline_color'), '#ff2d78')}
+
+        <div class="switch-row" style="margin-top: 8px;">
+            <ha-switch
+                .checked=${this._config.house_sparkline_test_mode === true}
+                .configValue=${'house_sparkline_test_mode'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+        </div>
       `;
     }
 

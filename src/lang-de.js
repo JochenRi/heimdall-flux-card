@@ -394,5 +394,21 @@ export default {
     "editor.grid_mix_year_section": "Jahres-Sensoren",
     "editor.grid_mix_import_label": "Netz Import (kWh)",
     "editor.grid_mix_export_label": "Netz Export (kWh)",
+
+    // Phase 5.74: House self-sufficiency (Autarkie) mix ring
+    "editor.house_mix_section": "Autarkie (Mix-Ring außen)",
+    "editor.house_mix_hint": "Zeigt um den Verbrauchs-Donut herum einen zweiten Ring an, der den Autarkiegrad visualisiert: wie viel des Hausverbrauchs wurde selbst erzeugt (PV + Speicher, grün) und wie viel aus dem Netz bezogen (rot)?",
+    "editor.house_mix_enabled": "Autarkie-Ring aktivieren",
+    "editor.house_mix_period": "Zeitraum",
+    "editor.house_mix_period_day": "Tag",
+    "editor.house_mix_period_month": "Monat",
+    "editor.house_mix_period_year": "Jahr",
+    "editor.house_mix_gap": "Abstand zum Verbrauchs-Donut (px)",
+    "editor.house_mix_thickness": "Ring-Dicke (px)",
+    "editor.house_mix_day_section": "Tages-Sensoren",
+    "editor.house_mix_month_section": "Monats-Sensoren",
+    "editor.house_mix_year_section": "Jahres-Sensoren",
+    "editor.house_mix_self_label": "Eigenversorgung (kWh)",
+    "editor.house_mix_grid_label": "Netzbezug (kWh)",
   }
 };

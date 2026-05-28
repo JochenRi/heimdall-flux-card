@@ -399,6 +399,22 @@ const lang_de = {
     "editor.grid_mix_year_section": "Jahres-Sensoren",
     "editor.grid_mix_import_label": "Netz Import (kWh)",
     "editor.grid_mix_export_label": "Netz Export (kWh)",
+
+    // Phase 5.74: House self-sufficiency (Autarkie) mix ring
+    "editor.house_mix_section": "Autarkie (Mix-Ring außen)",
+    "editor.house_mix_hint": "Zeigt um den Verbrauchs-Donut herum einen zweiten Ring an, der den Autarkiegrad visualisiert: wie viel des Hausverbrauchs wurde selbst erzeugt (PV + Speicher, grün) und wie viel aus dem Netz bezogen (rot)?",
+    "editor.house_mix_enabled": "Autarkie-Ring aktivieren",
+    "editor.house_mix_period": "Zeitraum",
+    "editor.house_mix_period_day": "Tag",
+    "editor.house_mix_period_month": "Monat",
+    "editor.house_mix_period_year": "Jahr",
+    "editor.house_mix_gap": "Abstand zum Verbrauchs-Donut (px)",
+    "editor.house_mix_thickness": "Ring-Dicke (px)",
+    "editor.house_mix_day_section": "Tages-Sensoren",
+    "editor.house_mix_month_section": "Monats-Sensoren",
+    "editor.house_mix_year_section": "Jahres-Sensoren",
+    "editor.house_mix_self_label": "Eigenversorgung (kWh)",
+    "editor.house_mix_grid_label": "Netzbezug (kWh)",
   }
 };
 const lang_en = {
@@ -797,6 +813,22 @@ const lang_en = {
     "editor.grid_mix_year_section": "Yearly sensors",
     "editor.grid_mix_import_label": "Grid import (kWh)",
     "editor.grid_mix_export_label": "Grid export (kWh)",
+
+    // Phase 5.74: House self-sufficiency (Autarkie) mix ring
+    "editor.house_mix_section": "Self-sufficiency (outer mix ring)",
+    "editor.house_mix_hint": "Adds a second ring around the consumption donut showing the self-sufficiency ratio: how much of the house consumption was self-supplied (PV + battery, green) vs drawn from the grid (red)?",
+    "editor.house_mix_enabled": "Enable self-sufficiency ring",
+    "editor.house_mix_period": "Time period",
+    "editor.house_mix_period_day": "Day",
+    "editor.house_mix_period_month": "Month",
+    "editor.house_mix_period_year": "Year",
+    "editor.house_mix_gap": "Gap from consumption donut (px)",
+    "editor.house_mix_thickness": "Ring thickness (px)",
+    "editor.house_mix_day_section": "Daily sensors",
+    "editor.house_mix_month_section": "Monthly sensors",
+    "editor.house_mix_year_section": "Yearly sensors",
+    "editor.house_mix_self_label": "Self-supply (kWh)",
+    "editor.house_mix_grid_label": "Grid import (kWh)",
   }
 };
 
@@ -974,7 +1006,12 @@ class PowerFluxCardEditor extends LitElement {
                 // Import + Export x 3 periods = 6 keys, plus sparkline override.
                 'grid_mix_import_day', 'grid_mix_import_month', 'grid_mix_import_year',
                 'grid_mix_export_day', 'grid_mix_export_month', 'grid_mix_export_year',
-                'grid_sparkline_entity'
+                'grid_sparkline_entity',
+                // Phase 5.74: House self-sufficiency mix-ring (2 segments) +
+                // sparkline. Self + Grid x 3 periods = 6 keys, plus sparkline.
+                'house_mix_self_day', 'house_mix_self_month', 'house_mix_self_year',
+                'house_mix_grid_day', 'house_mix_grid_month', 'house_mix_grid_year',
+                'house_sparkline_entity'
             ];
 
             let newConfig = { ...this._config };
@@ -2920,6 +2957,164 @@ class PowerFluxCardEditor extends LitElement {
         ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_battery || "", 'donut_today_battery', this._localize('editor.donut_today_battery'))}
         ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_venus || "", 'donut_today_venus', this._localize('editor.donut_today_venus'))}
         ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_grid || "", 'donut_today_grid', this._localize('editor.donut_today_grid'))}
+
+        <div class="separator"></div>
+
+        <!-- Phase 5.74: House self-sufficiency (Autarkie) mix-ring. Second
+             outer ring around the consumption-origin donut. 2 segments:
+             self-supplied (PV+battery) vs grid. -->
+        <div class="group-title">
+            <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
+            ${this._localize('editor.house_mix_section')}
+        </div>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.house_mix_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.house_mix_donut_mode === true}
+                .configValue=${'house_mix_donut_mode'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.house_mix_enabled')}</div>
+        </div>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ select: { mode: "dropdown", options: [
+                { value: "day",   label: this._localize('editor.house_mix_period_day')   },
+                { value: "month", label: this._localize('editor.house_mix_period_month') },
+                { value: "year",  label: this._localize('editor.house_mix_period_year')  }
+            ] } }}
+            .value=${this._config.house_mix_period || 'day'}
+            .configValue=${'house_mix_period'}
+            .label=${this._localize('editor.house_mix_period')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+            .value=${this._config.house_mix_gap !== undefined ? this._config.house_mix_gap : 8}
+            .configValue=${'house_mix_gap'}
+            .label=${this._localize('editor.house_mix_gap')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+            .value=${this._config.house_mix_thickness !== undefined ? this._config.house_mix_thickness : 4}
+            .configValue=${'house_mix_thickness'}
+            .label=${this._localize('editor.house_mix_thickness')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+            ${this._localize('editor.house_mix_day_section')}
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_self_day || "", 'house_mix_self_day', this._localize('editor.house_mix_self_label'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_grid_day || "", 'house_mix_grid_day', this._localize('editor.house_mix_grid_label'))}
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+            ${this._localize('editor.house_mix_month_section')}
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_self_month || "", 'house_mix_self_month', this._localize('editor.house_mix_self_label'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_grid_month || "", 'house_mix_grid_month', this._localize('editor.house_mix_grid_label'))}
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+            ${this._localize('editor.house_mix_year_section')}
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_self_year || "", 'house_mix_self_year', this._localize('editor.house_mix_self_label'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_grid_year || "", 'house_mix_grid_year', this._localize('editor.house_mix_grid_label'))}
+
+        <div class="separator"></div>
+
+        <!-- Phase 5.74: House sparkline. Default sensor is entities.house
+             (the home consumption sensor). Default colour house pink. -->
+        <div class="group-title">
+            <ha-icon icon="mdi:chart-line-variant"></ha-icon>
+            ${this._localize('editor.sparkline_title')}
+        </div>
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+            ${this._localize('editor.sparkline_hint')}
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.house_sparkline === true}
+                .configValue=${'house_sparkline'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+        </div>
+
+        ${this._renderEntitySelector(entitySelectorSchema, entities.house_sparkline_entity || "", 'house_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+            ${this._localize('editor.sparkline_entity_hint')}
+        </div>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ select: { mode: "dropdown", options: [
+                { value: "1h",  label: "1h"  },
+                { value: "6h",  label: "6h"  },
+                { value: "12h", label: "12h" },
+                { value: "24h", label: "24h" }
+            ] } }}
+            .value=${this._config.house_sparkline_period || '24h'}
+            .configValue=${'house_sparkline_period'}
+            .label=${this._localize('editor.sparkline_period')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ select: { mode: "dropdown", options: [
+                { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                { value: "front", label: this._localize('editor.sparkline_layer_front') }
+            ] } }}
+            .value=${this._config.house_sparkline_layer || 'back'}
+            .configValue=${'house_sparkline_layer'}
+            .label=${this._localize('editor.sparkline_layer')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ select: { mode: "dropdown", options: [
+                { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+            ] } }}
+            .value=${this._config.house_sparkline_style || 'area-line'}
+            .configValue=${'house_sparkline_style'}
+            .label=${this._localize('editor.sparkline_style')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
+            .value=${this._config.house_sparkline_opacity !== undefined ? this._config.house_sparkline_opacity : 0.35}
+            .configValue=${'house_sparkline_opacity'}
+            .label=${this._localize('editor.sparkline_opacity')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        ${this._renderColorPicker('house_sparkline_color', this._localize('editor.sparkline_color'), '#ff2d78')}
+
+        <div class="switch-row" style="margin-top: 8px;">
+            <ha-switch
+                .checked=${this._config.house_sparkline_test_mode === true}
+                .configValue=${'house_sparkline_test_mode'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
+        </div>
       `;
     }
 
@@ -6582,7 +6777,8 @@ console.log(
       // Phase 5.71: Venus added alongside battery.
       // Phase 5.72: Solar added.
       // Phase 5.73: Grid added -- ALL 4 SOURCE BUBBLES now covered.
-      for (const prefix of ['battery', 'venus', 'solar', 'grid']) {
+      // Phase 5.74: House added -- now ALL 11 visible bubbles have sparkline.
+      for (const prefix of ['battery', 'venus', 'solar', 'grid', 'house']) {
         if (this.config[`${prefix}_sparkline`] !== true) continue;
         const overrideEntity = this.config[`${prefix}_sparkline_entity`];
         // Phase 5.73-fix: Grid is special -- its primary sensor is usually
@@ -7191,6 +7387,24 @@ console.log(
           background: var(--house-gradient);
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none;
+      }
+
+      /* Phase 5.74: House self-sufficiency (Autarkie) mix-ring. SECOND outer
+         ring around the existing 4-segment consumption-origin donut. The donut
+         already shows WHERE the consumed energy came from (PV/LG/Venus/Grid);
+         this ring shows the simpler self-sufficiency split: how much of the
+         house consumption was self-supplied (PV+battery) vs drawn from grid.
+         2 segments: self (solar/green) + grid (red). */
+      .bubble.house.mix-ring { overflow: visible; }
+      .bubble.house.mix-ring::after {
+          content: ""; position: absolute;
+          inset: calc(-1 * (var(--house-mix-gap, 8px) + var(--house-mix-thickness, 4px)));
+          border-radius: 50%;
+          padding: var(--house-mix-thickness, 4px);
+          background: var(--house-mix-gradient, transparent);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          z-index: -1; pointer-events: none;
       }
 
       .bubble.grid.donut { border: none !important; background: transparent; }
@@ -8711,6 +8925,49 @@ console.log(
         houseTextCol = useColoredValues ? 'var(--neon-pink)' : '';
       }
 
+      // --- House Self-Sufficiency (Autarkie) Mix Ring (Phase 5.74) ---
+      // SECOND ring around the existing consumption-origin donut. Whereas the
+      // donut answers "where did the consumed energy come from" (4 segments),
+      // this answers the higher-level "how autark am I" question: self-supply
+      // (PV direct + LG + Venus) vs grid import. 2 segments.
+      //
+      // Activated by:
+      //   house_mix_donut_mode (editor toggle, off by default)
+      //   house_mix_period ('day' | 'month' | 'year', default 'day')
+      // Reads:
+      //   house_mix_self_{day,month,year}  -- self-supplied kWh
+      //   house_mix_grid_{day,month,year}  -- grid-imported kWh
+      // Renders only if total > 0.
+      let houseMixGradientVal = '';
+      let houseMixActive = false;
+      
+      if (this.config.house_mix_donut_mode === true) {
+        const period = (this.config.house_mix_period === 'month' || this.config.house_mix_period === 'year')
+          ? this.config.house_mix_period
+          : 'day';
+        const readVal = (key) => {
+          const ent = entities[key];
+          if (!ent) return 0;
+          const v = parseFloat(getVal(ent));
+          return (!isNaN(v) && v > 0) ? v : 0;
+        };
+        const self_ = readVal(`house_mix_self_${period}`);
+        const grid  = readVal(`house_mix_grid_${period}`);
+        const total = self_ + grid;
+        if (total > 0) {
+          const pctSelf = (self_ / total) * 100;
+          const pctGrid = (grid  / total) * 100;
+          
+          let stops = [];
+          let cursor = 0;
+          // Self-supply in solar/green colour, grid import in grid red.
+          if (pctSelf > 0) { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctSelf}%`); cursor += pctSelf; }
+          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          houseMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+          houseMixActive = true;
+        }
+      }
+
       const houseTintStyle = showTint
         ? `background: color-mix(in srgb, ${houseDominantColor}, transparent 85%);`
         : '';
@@ -8719,7 +8976,14 @@ console.log(
         ? `box-shadow: 0 0 15px color-mix(in srgb, ${houseDominantColor}, transparent 60%);`
         : `box-shadow: none;`;
 
-      const houseBubbleStyle = `${showDonut ? `--house-gradient: ${houseGradientVal};` : ''} ${houseTintStyle} ${houseGlowStyle}`;
+      // Phase 5.74: optional autarky mix-ring style vars, independent of the
+      // origin donut -- either can be on/off solo or together.
+      const houseMixGap = parseInt(this.config.house_mix_gap !== undefined ? this.config.house_mix_gap : 8, 10);
+      const houseMixThk = parseInt(this.config.house_mix_thickness !== undefined ? this.config.house_mix_thickness : 4, 10);
+      const houseMixStyle = houseMixActive
+        ? `--house-mix-gradient: ${houseMixGradientVal}; --house-mix-gap: ${houseMixGap}px; --house-mix-thickness: ${houseMixThk}px;`
+        : '';
+      const houseBubbleStyle = `${showDonut ? `--house-gradient: ${houseGradientVal};` : ''} ${houseMixStyle} ${houseTintStyle} ${houseGlowStyle}`;
 
       const isSolarActive = Math.round(solarVal) > 0;
       const isGridActive = Math.round(gridImport) > 0 || Math.round(gridExport) > 0;
@@ -10178,9 +10442,10 @@ console.log(
                   </div>`;
                 })() : ''}
                 
-                <div class="bubble house node-house ${showDonut ? 'donut' : ''} ${tintClass}" 
+                <div class="bubble house node-house ${showDonut ? 'donut' : ''} ${houseMixActive ? 'mix-ring' : ''} ${tintClass}" 
                     style="${houseBubbleStyle}"
                     @click=${() => this._handleClick(entities.house)}>
+                    ${this._renderSparklineForSource('house')}
                     ${renderMainIcon('house', 0, this.config.house_icon || null, this.config.color_icon_house ? 'var(--icon-house-color)' : houseDominantColor)}
                     ${renderSecondaryOrLabel(labelHouseText, showLabelHouse, entities.secondary_house, hasSecondaryHouse, 'secondary_house')}
                     <div class="value" style="${houseTextStyle}">${this._formatPower(houseDisplay)}</div>
