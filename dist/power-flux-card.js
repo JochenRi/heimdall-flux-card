@@ -6585,7 +6585,15 @@ console.log(
       for (const prefix of ['battery', 'venus', 'solar', 'grid']) {
         if (this.config[`${prefix}_sparkline`] !== true) continue;
         const overrideEntity = this.config[`${prefix}_sparkline_entity`];
-        const fallbackEntity = this.config?.entities?.[prefix];
+        // Phase 5.73-fix: Grid is special -- its primary sensor is usually
+        // entities.grid_combined (signed), with entities.grid as fallback.
+        // Mirror the same precedence used by _handleClick and the bubble
+        // render. Without this, users who only configured grid_combined
+        // (the common case) get no fallback entity -> sparkline silently
+        // skipped, even in test_mode (which still needs a storage-key entity).
+        const fallbackEntity = (prefix === 'grid')
+          ? (this.config?.entities?.grid_combined || this.config?.entities?.grid)
+          : this.config?.entities?.[prefix];
         const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : fallbackEntity;
         if (!entityId) continue;
         if (this.config[`${prefix}_sparkline_test_mode`] === true) {
@@ -7719,7 +7727,11 @@ console.log(
       if (!this.config) return html``;
       if (this.config[`${prefix}_sparkline`] !== true) return html``;
       const overrideEntity = this.config[`${prefix}_sparkline_entity`];
-      const fallbackEntity = this.config?.entities?.[prefix];
+      // Phase 5.73-fix: Grid primary sensor is grid_combined (signed) with
+      // grid as fallback -- same precedence as the fetch loop and _handleClick.
+      const fallbackEntity = (prefix === 'grid')
+        ? (this.config?.entities?.grid_combined || this.config?.entities?.grid)
+        : this.config?.entities?.[prefix];
       const entityId = (overrideEntity && overrideEntity !== '') ? overrideEntity : fallbackEntity;
       if (!entityId) return html``;
       const data = this._sparklineData?.[entityId];
