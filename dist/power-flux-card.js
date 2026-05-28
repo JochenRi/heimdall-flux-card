@@ -8765,20 +8765,20 @@ console.log(
       return html`
         <svg viewBox="0 0 130 130" width="100%" height="100%" style="position:absolute;top:0;left:0;">
           <line x1="65" y1="14" x2="65" y2="108" stroke="#333" stroke-width="1" stroke-dasharray="3 3"></line>
-          <text x="32" y="13" text-anchor="middle" fill="#9aa" style="font-size:8px;letter-spacing:1px;">AUSSEN</text>
-          <text x="98" y="13" text-anchor="middle" fill="#9aa" style="font-size:8px;letter-spacing:1px;">INNEN</text>
+          <text x="32" y="13" text-anchor="middle" fill="#9aa" style="font-size:8px;letter-spacing:1px;">INNEN</text>
+          <text x="98" y="13" text-anchor="middle" fill="#9aa" style="font-size:8px;letter-spacing:1px;">AUSSEN</text>
 
           <rect x="25" y="${TUBE_TOP}" width="14" height="${TUBE_H}" rx="7" fill="#1a2530"></rect>
-          <rect x="25" y="${outFillY}" width="14" height="${outFillH}" rx="7" fill="${outColor}"></rect>
-          <circle cx="32" cy="100" r="10" fill="${outColor}"></circle>
-          <line x1="41" y1="${fcY}" x2="50" y2="${fcY}" stroke="${markColor}" stroke-width="2.5" opacity="${fcHigh !== null ? 1 : 0}"></line>
+          <rect x="25" y="${inFillY}" width="14" height="${inFillH}" rx="7" fill="${inColor}"></rect>
+          <circle cx="32" cy="100" r="10" fill="${inColor}"></circle>
 
           <rect x="91" y="${TUBE_TOP}" width="14" height="${TUBE_H}" rx="7" fill="#1a2530"></rect>
-          <rect x="91" y="${inFillY}" width="14" height="${inFillH}" rx="7" fill="${inColor}"></rect>
-          <circle cx="98" cy="100" r="10" fill="${inColor}"></circle>
+          <rect x="91" y="${outFillY}" width="14" height="${outFillH}" rx="7" fill="${outColor}"></rect>
+          <circle cx="98" cy="100" r="10" fill="${outColor}"></circle>
+          <line x1="84" y1="${fcY}" x2="89" y2="${fcY}" stroke="${markColor}" stroke-width="2.5" opacity="${fcHigh !== null ? 1 : 0}"></line>
 
-          <text x="32" y="123" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(outVal)}</text>
-          <text x="98" y="123" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(inVal)}</text>
+          <text x="32" y="123" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(inVal)}</text>
+          <text x="98" y="123" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(outVal)}</text>
         </svg>
       `;
     }
