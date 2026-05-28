@@ -2069,6 +2069,76 @@ console.log(
     }
 
     // --- RENDER STANDARD VIEW ---
+    _renderTempPanel() {
+      // Phase 5.79b: split thermometer panel. Two vertical columns:
+      // left = outdoor (current temp as fill level + forecast-high marker),
+      // right = indoor (current temp as fill level). Values + scales come
+      // from config; sensors are read synchronously from hass.states (no
+      // async/history -- this is a live snapshot, same as every other bubble).
+      const e = this.config.entities || {};
+      const readNum = (entId) => {
+        if (!entId || !this.hass || !this.hass.states[entId]) return null;
+        const v = parseFloat(this.hass.states[entId].state);
+        return isNaN(v) ? null : v;
+      };
+
+      const outId      = e.temp_outdoor || this.config.temp_outdoor_entity || 'sensor.sbht_003c_993b_temperature';
+      const inId       = e.temp_indoor  || this.config.temp_indoor_entity  || 'sensor.haus_durchschnittstemperatur';
+      const fcHighId   = e.temp_forecast_high || this.config.temp_forecast_high_entity || 'input_number.aussen_forecast_high_today';
+      const fcLowId    = e.temp_forecast_low  || this.config.temp_forecast_low_entity  || 'input_number.aussen_forecast_low_today';
+
+      const outVal  = readNum(outId);
+      const inVal   = readNum(inId);
+      const fcHigh  = readNum(fcHighId);
+
+      // Editable scales (defaults: outdoor -10..40, indoor 10..30).
+      const outMin = this.config.temp_outdoor_min !== undefined ? parseFloat(this.config.temp_outdoor_min) : -10;
+      const outMax = this.config.temp_outdoor_max !== undefined ? parseFloat(this.config.temp_outdoor_max) : 40;
+      const inMin  = this.config.temp_indoor_min  !== undefined ? parseFloat(this.config.temp_indoor_min)  : 10;
+      const inMax  = this.config.temp_indoor_max  !== undefined ? parseFloat(this.config.temp_indoor_max)  : 30;
+
+      // Map a temperature to a fill fraction (0..1), clamped.
+      const frac = (val, lo, hi) => {
+        if (val === null || hi === lo) return 0;
+        return Math.max(0, Math.min(1, (val - lo) / (hi - lo)));
+      };
+
+      // Column geometry inside the 130px panel. SVG viewBox 130x130.
+      // Tube runs y=24 (top) to y=104 (bottom of stem); bulb at y=112.
+      const TUBE_TOP = 24, TUBE_BOT = 104, TUBE_H = TUBE_BOT - TUBE_TOP;
+      const colY = (fr) => TUBE_BOT - fr * TUBE_H; // higher fraction => higher up
+
+      const outFr = frac(outVal, outMin, outMax);
+      const inFr  = frac(inVal,  inMin,  inMax);
+      const fcFr  = frac(fcHigh, outMin, outMax);
+
+      const outColor = this.config.temp_outdoor_color || '#378ADD';
+      const inColor  = this.config.temp_indoor_color  || '#1D9E75';
+      const markColor = this.config.temp_marker_color || '#D85A30';
+
+      const fmt = (v) => (v === null ? '--' : v.toFixed(1) + '°');
+
+      // Left column x=32 (tube), right column x=98.
+      const tube = (cx, fillTopY, fillColor) => html`
+        <rect x="${cx - 7}" y="${TUBE_TOP}" width="14" height="${TUBE_H}" rx="7" fill="#1a2530"></rect>
+        <rect x="${cx - 7}" y="${fillTopY}" width="14" height="${TUBE_BOT - fillTopY}" rx="7" fill="${fillColor}"></rect>
+        <circle cx="${cx}" cy="112" r="11" fill="${fillColor}"></circle>
+      `;
+
+      return html`
+        <svg viewBox="0 0 130 130" width="100%" height="100%" style="position:absolute;top:0;left:0;">
+          <line x1="65" y1="14" x2="65" y2="120" stroke="#333" stroke-width="1" stroke-dasharray="3 3"></line>
+          <text x="32" y="13" text-anchor="middle" fill="#9aa" style="font-size:8px;letter-spacing:1px;">AUSSEN</text>
+          <text x="98" y="13" text-anchor="middle" fill="#9aa" style="font-size:8px;letter-spacing:1px;">INNEN</text>
+          ${tube(32, colY(outFr), outColor)}
+          ${fcHigh !== null ? html`<line x1="41" y1="${colY(fcFr)}" x2="50" y2="${colY(fcFr)}" stroke="${markColor}" stroke-width="2.5"></line>` : ''}
+          ${tube(98, colY(inFr), inColor)}
+          <text x="32" y="129" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(outVal)}</text>
+          <text x="98" y="129" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(inVal)}</text>
+        </svg>
+      `;
+    }
+
     _renderStandardView(entities) {
       // FIX: Default to hidden unless explicitly set to false
       const hideInactive = this.config.hide_inactive_flows !== false;
@@ -4067,7 +4137,7 @@ console.log(
 
                 ${this.config.temp_enabled === true ? html`
                   <div class="bubble temp node-temp ${tintClass}">
-                      <div class="value" style="font-size: 11px; opacity: 0.7;">Klima</div>
+                      ${this._renderTempPanel()}
                   </div>` : ''}
 
                 ${renderConsumer(showC1, 'c1', 'consumer_1', labelC1, 'car', c1Val, this._getConsumerColor(1))}
