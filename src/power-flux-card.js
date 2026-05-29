@@ -4393,11 +4393,15 @@ console.log(
       const hostW = this._cardWidth || 1200;
       const centerW = Math.max(400, hostW - 2 * panelW - 2 * gap);
       const gridCols = `${panelW}px ${centerW}px ${panelW}px`;
+      // TEMP DIAGNOSTIC (phase-A1.4-debug): show measured sizes + tint the
+      // columns so the real geometry is visible. Removed in the next commit.
+      const dbg = `host=${Math.round(hostW)} | center=${Math.round(centerW)} | panelW=${panelW}`;
       return html`
-        <div class="hf-side-panels-grid" style="grid-template-columns: ${gridCols}; gap: ${gap}px;">
-          <div class="hf-panel hf-panel-left"></div>
+        <div class="hf-side-panels-grid" style="grid-template-columns: ${gridCols}; gap: ${gap}px; position: relative; outline: 2px solid red;">
+          <div style="position:absolute; top:0; left:0; z-index:99999; background:#000; color:#0f0; font:bold 16px monospace; padding:4px 10px; border:1px solid #0f0;">${dbg}</div>
+          <div class="hf-panel hf-panel-left" style="background: rgba(0,255,0,0.18);"></div>
           ${flowBlock}
-          <div class="hf-panel hf-panel-right"></div>
+          <div class="hf-panel hf-panel-right" style="background: rgba(0,128,255,0.18);"></div>
         </div>
       `;
     }
