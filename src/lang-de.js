@@ -235,6 +235,7 @@ export default {
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.compact_view": "Kompakte Ansicht (evcc)",
     "editor.compact_details": "Details für Kompakte Ansicht",
+    "editor.side_panels_enabled": "Seiten-Panels (links/rechts)",
     "editor.hide_inactive": "Inaktive Röhren ausblenden",
     "editor.entity": "Kombinierter Batterie Sensor (W)",
     "editor.label": "Beschriftung",

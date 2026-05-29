@@ -235,6 +235,7 @@ export default {
     "editor.label_toggle": "Show Label in Bubble",
     "editor.compact_view": "Compact View (evcc)",
     "editor.compact_details": "Compact View Details",
+    "editor.side_panels_enabled": "Side panels (left/right)",
     "editor.hide_inactive": "Hide Inactive Pipes",
     "editor.entity": "Combined Battery Sensor (W)",
     "editor.label": "Label",

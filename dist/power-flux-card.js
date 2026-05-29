@@ -240,6 +240,7 @@ const lang_de = {
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.compact_view": "Kompakte Ansicht (evcc)",
     "editor.compact_details": "Details für Kompakte Ansicht",
+    "editor.side_panels_enabled": "Seiten-Panels (links/rechts)",
     "editor.hide_inactive": "Inaktive Röhren ausblenden",
     "editor.entity": "Kombinierter Batterie Sensor (W)",
     "editor.label": "Beschriftung",
@@ -703,6 +704,7 @@ const lang_en = {
     "editor.label_toggle": "Show Label in Bubble",
     "editor.compact_view": "Compact View (evcc)",
     "editor.compact_details": "Compact View Details",
+    "editor.side_panels_enabled": "Side panels (left/right)",
     "editor.hide_inactive": "Hide Inactive Pipes",
     "editor.entity": "Combined Battery Sensor (W)",
     "editor.label": "Label",
@@ -6820,6 +6822,15 @@ class PowerFluxCardEditor extends LitElement {
                 <div class="switch-label">${this._localize('editor.compact_details')}</div>
             </div>
 
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.side_panels_enabled === true}
+                    .configValue=${'side_panels_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.side_panels_enabled')}</div>
+            </div>
+
             <div>
                 <ha-selector
                     .hass=${this.hass}
@@ -7809,6 +7820,24 @@ console.log(
         width: 800px; /* must match SVG viewBox width (phase 5.5 / 5.6) */
         transform-origin: top left; 
         transition: transform 0.1s linear;
+      }
+
+      /* Phase A1: optional side panels. 3-column grid wraps the flow card in
+         the center; left/right tracks hold embedded HA cards (added in A2).
+         Disabled by default -- existing cards render unchanged. */
+      .hf-side-panels-grid {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 12px;
+        align-items: start;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .hf-panel {
+        min-height: 120px;
+        border: 1px dashed var(--divider-color, rgba(255, 255, 255, 0.2));
+        border-radius: 12px;
+        box-sizing: border-box;
       }
 
       .absolute-container {
@@ -11264,11 +11293,25 @@ console.log(
       if (!this.config || !this.hass) return html``;
 
       // SWITCH VIEW BASED ON CONFIG
-      if (this.config.compact_view === true) {
-        return this._renderCompactView(this.config.entities || {});
-      } else {
-        return this._renderStandardView(this.config.entities || {});
+      const inner = this.config.compact_view === true
+        ? this._renderCompactView(this.config.entities || {})
+        : this._renderStandardView(this.config.entities || {});
+
+      // Phase A1: optional side-panels layout. When disabled, the card renders
+      // exactly as before (existing users unaffected). When enabled, the flow
+      // card is wrapped in a 3-column grid with empty placeholder panels left
+      // and right. A2 will fill these panels with embedded HA cards.
+      if (this.config.side_panels_enabled !== true) {
+        return inner;
       }
+
+      return html`
+        <div class="hf-side-panels-grid">
+          <div class="hf-panel hf-panel-left"></div>
+          ${inner}
+          <div class="hf-panel hf-panel-right"></div>
+        </div>
+      `;
     }
   }
 
