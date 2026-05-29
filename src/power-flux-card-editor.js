@@ -2902,6 +2902,18 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_venus_year || "", 'consumer_6_mix_venus_year', this._localize('editor.consumer_6_mix_venus_year'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_grid_year || "", 'consumer_6_mix_grid_year', this._localize('editor.consumer_6_mix_grid_year'))}
 
+            <!-- Phase 5.83: per-segment colors for the c6 mix-ring.
+                 Each defaults to the matching pipe color when unset.
+                 Reuses the consumer_1 color i18n labels (identical PV/LG/Venus/Grid
+                 semantics) -- no new translation keys needed. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('consumer_6_mix_color_pv', this._localize('editor.consumer_1_mix_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('consumer_6_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
+            ${this._renderColorPicker('consumer_6_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
+            ${this._renderColorPicker('consumer_6_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
+
             <!-- Phase 5.65: rotation for Klima bubble -->
             <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
                 <ha-icon icon="mdi:rotate-3d-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
@@ -3289,6 +3301,18 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_lg_year || "", 'consumer_4_mix_lg_year', this._localize('editor.consumer_4_mix_lg_year'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_venus_year || "", 'consumer_4_mix_venus_year', this._localize('editor.consumer_4_mix_venus_year'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_grid_year || "", 'consumer_4_mix_grid_year', this._localize('editor.consumer_4_mix_grid_year'))}
+
+            <!-- Phase 5.83: per-segment colors for the c4 mix-ring.
+                 Each defaults to the matching pipe color when unset.
+                 Reuses the consumer_1 color i18n labels (identical PV/LG/Venus/Grid
+                 semantics) -- no new translation keys needed. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('consumer_4_mix_color_pv', this._localize('editor.consumer_1_mix_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('consumer_4_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
+            ${this._renderColorPicker('consumer_4_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
+            ${this._renderColorPicker('consumer_4_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
 
             <!-- Phase 5.62: rotation for Spüler bubble -->
             <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
@@ -3680,6 +3704,18 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_lg_year || "", 'consumer_3_mix_lg_year', this._localize('editor.consumer_3_mix_lg_year'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_venus_year || "", 'consumer_3_mix_venus_year', this._localize('editor.consumer_3_mix_venus_year'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_grid_year || "", 'consumer_3_mix_grid_year', this._localize('editor.consumer_3_mix_grid_year'))}
+
+            <!-- Phase 5.83: per-segment colors for the c3 mix-ring.
+                 Each defaults to the matching pipe color when unset.
+                 Reuses the consumer_1 color i18n labels (identical PV/LG/Venus/Grid
+                 semantics) -- no new translation keys needed. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('consumer_3_mix_color_pv', this._localize('editor.consumer_1_mix_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('consumer_3_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
+            ${this._renderColorPicker('consumer_3_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
+            ${this._renderColorPicker('consumer_3_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
 
             <!-- Phase 5.59: rotation for Trockner bubble (analog Tesla/BWWP/Pumpe/Waschen) -->
             <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
@@ -4082,6 +4118,18 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_lg_year || "", 'consumer_2_mix_lg_year', this._localize('editor.consumer_2_mix_lg_year'))}
                 ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_venus_year || "", 'consumer_2_mix_venus_year', this._localize('editor.consumer_2_mix_venus_year'))}
                 ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_grid_year || "", 'consumer_2_mix_grid_year', this._localize('editor.consumer_2_mix_grid_year'))}
+
+                <!-- Phase 5.83: per-segment colors for the c2 mix-ring.
+                     Each defaults to the matching pipe color when unset.
+                     Reuses the consumer_1 color i18n labels (identical PV/LG/Venus/Grid
+                     semantics) -- no new translation keys needed. -->
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                    ${this._localize('editor.consumer_1_mix_colors_section')}
+                </div>
+                ${this._renderColorPicker('consumer_2_mix_color_pv', this._localize('editor.consumer_1_mix_color_pv'), '#ffd900')}
+                ${this._renderColorPicker('consumer_2_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
+                ${this._renderColorPicker('consumer_2_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
+                ${this._renderColorPicker('consumer_2_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
             </ha-expansion-panel>
 
             <!-- Phase 5.56/5.82: rotation for Waschen bubble, wrapped in
@@ -4472,6 +4520,18 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_lg_year || "", 'consumer_7_mix_lg_year', this._localize('editor.consumer_7_mix_lg_year'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_venus_year || "", 'consumer_7_mix_venus_year', this._localize('editor.consumer_7_mix_venus_year'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_grid_year || "", 'consumer_7_mix_grid_year', this._localize('editor.consumer_7_mix_grid_year'))}
+
+            <!-- Phase 5.83: per-segment colors for the c7 mix-ring.
+                 Each defaults to the matching pipe color when unset.
+                 Reuses the consumer_1 color i18n labels (identical PV/LG/Venus/Grid
+                 semantics) -- no new translation keys needed. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('consumer_7_mix_color_pv', this._localize('editor.consumer_1_mix_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('consumer_7_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
+            ${this._renderColorPicker('consumer_7_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
+            ${this._renderColorPicker('consumer_7_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
 
             <!-- Phase 5.53: rotation for Pumpe bubble (analog Tesla/BWWP/Battery/Venus) -->
             <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
