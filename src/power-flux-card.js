@@ -190,13 +190,11 @@ console.log(
           }
         }
       });
-      // Phase A1.3: observe the inner .hf-flow-host element (NOT the host), so
-      // the card scales to its ACTUAL available width. In normal mode that is
-      // full width (unchanged behaviour); in side-panels mode it is the center
-      // grid track, so the flow scales into the center automatically -- no
-      // width-reservation hacks. Re-targeted after each render in case the
-      // element is recreated when the layout toggles.
-      this._attachFlowObserver();
+      // Phase A1.4: observe the HOST (stable full width, never circular). In
+      // side-panels mode the center column is given a FIXED px width derived
+      // from this measurement, so the card scales into the center without any
+      // measure->scale->grow feedback loop (the A1.3 mistake).
+      this._resizeObserver.observe(this);
       
       // Phase 5.19: bubble value rotation -- a single shared timer ticks
       // forward; each rotating bubble uses (tick % activeSlots) to pick its
@@ -487,21 +485,8 @@ console.log(
       }
     }
 
-    _attachFlowObserver() {
-      if (!this._resizeObserver || !this.shadowRoot) return;
-      const el = this.shadowRoot.querySelector('.hf-flow-host');
-      if (el && el !== this._observedFlowEl) {
-        if (this._observedFlowEl) this._resizeObserver.unobserve(this._observedFlowEl);
-        this._resizeObserver.observe(el);
-        this._observedFlowEl = el;
-      }
-    }
-
     updated(changedProps) {
       super.updated(changedProps);
-      // Phase A1.3: ensure the resize observer tracks the current flow-host
-      // element (it may be recreated when side-panels toggle on/off).
-      this._attachFlowObserver();
       if (changedProps.has('hass') && this.hass) {
         const isDark = this.hass.themes?.darkMode !== false;
         if (isDark) {
@@ -2613,11 +2598,16 @@ console.log(
       const contentHeight = baseHeight - topShift;
 
       const designWidth = 800;
-      // Phase A1.3: availableWidth is the measured width of .hf-flow-host (via
-      // the resize observer). In side-panels mode that is already the center
-      // column width, so no reservation is needed -- the card scales correctly
-      // by the same code path as normal mode.
-      const availableWidth = this._cardWidth || designWidth;
+      // Phase A1.4: in side-panels mode the center column has a FIXED width =
+      // host - 2*panelW - 2*gap. Subtract the same reserve here so the card
+      // scales to fit the center. _cardWidth is the HOST width (stable, never
+      // circular), so this is a closed calculation: panels + center == host.
+      const measuredWidth = this._cardWidth || designWidth;
+      const sidePanelsOn = this.config.side_panels_enabled === true;
+      const sidePanelWidth = this.config.side_panel_width !== undefined ? this.config.side_panel_width : 320;
+      const sidePanelGap = 12;
+      const sidePanelReserve = sidePanelsOn ? (2 * sidePanelWidth + 2 * sidePanelGap) : 0;
+      const availableWidth = Math.max(designWidth * 0.5, measuredWidth - sidePanelReserve);
       const baseScale = availableWidth / designWidth;
       const userZoom = this.config.zoom !== undefined ? this.config.zoom : 0.9;
       let scale = baseScale * userZoom;
@@ -4389,21 +4379,22 @@ console.log(
         ? this._renderCompactView(this.config.entities || {})
         : this._renderStandardView(this.config.entities || {});
 
-      // Phase A1.3: the flow visualization always lives in .hf-flow-host, the
-      // element the resize observer measures. In normal mode it spans full
-      // width (behaviour unchanged). In side-panels mode it is the center grid
-      // track, so the card scales into the center automatically.
+      // Phase A1.4: the flow lives in .hf-flow-host. In side-panels mode all
+      // three columns are FIXED px so panels + center == host exactly (no
+      // overflow, no feedback loop). center = host - 2*panelW - 2*gap.
       const flowBlock = html`<div class="hf-flow-host">${inner}</div>`;
 
       if (this.config.side_panels_enabled !== true) {
         return flowBlock;
       }
 
-      // Fixed, equal-width side columns -> symmetric dividers by construction.
       const panelW = this.config.side_panel_width !== undefined ? this.config.side_panel_width : 320;
-      const gridCols = `${panelW}px minmax(0, 1fr) ${panelW}px`;
+      const gap = 12;
+      const hostW = this._cardWidth || 1200;
+      const centerW = Math.max(400, hostW - 2 * panelW - 2 * gap);
+      const gridCols = `${panelW}px ${centerW}px ${panelW}px`;
       return html`
-        <div class="hf-side-panels-grid" style="grid-template-columns: ${gridCols};">
+        <div class="hf-side-panels-grid" style="grid-template-columns: ${gridCols}; gap: ${gap}px;">
           <div class="hf-panel hf-panel-left"></div>
           ${flowBlock}
           <div class="hf-panel hf-panel-right"></div>
