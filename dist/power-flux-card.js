@@ -4878,178 +4878,171 @@ class PowerFluxCardEditor extends LitElement {
 
             ${this._renderColorPickerQuint('color_consumer_2', 'color_pipe_consumer_2', 'color_text_consumer_2', 'color_icon_consumer_2', 'color_secondary_consumer_2', '#f97316')}
 
-            <!-- Phase 5.55: configurable donut for Waschen. Generic ratio
-                 visualisation: secondary sensor / max. Use a daily energy
-                 sensor with max=5 kWh for budget, or a remaining-time sensor
-                 with max=120 min, or any other progress indicator. -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:donut-small" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.consumer_2_donut_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.consumer_2_donut_hint')}
-            </div>
+            <!-- Phase 5.55/5.82: configurable donut for Waschen, wrapped in
+                 a collapsible expansion panel. Generic ratio visualisation:
+                 secondary sensor / max. -->
+            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_2_donut_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.consumer_2_donut_hint')}
+                </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_2_soc_donut_mode === true}
-                    .configValue=${'consumer_2_soc_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_2_soc_donut_enable')}</div>
-            </div>
+                <div class="switch-row">
+                    <ha-switch
+                        .checked=${this._config.consumer_2_soc_donut_mode === true}
+                        .configValue=${'consumer_2_soc_donut_mode'}
+                        @change=${this._valueChanged}
+                    ></ha-switch>
+                    <div class="switch-label">${this._localize('editor.consumer_2_soc_donut_enable')}</div>
+                </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
-                .value=${this._config.consumer_2_soc_max !== undefined ? this._config.consumer_2_soc_max : 5}
-                .configValue=${'consumer_2_soc_max'}
-                .label=${this._localize('editor.consumer_2_soc_max')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
+                    .value=${this._config.consumer_2_soc_max !== undefined ? this._config.consumer_2_soc_max : 5}
+                    .configValue=${'consumer_2_soc_max'}
+                    .label=${this._localize('editor.consumer_2_soc_max')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </ha-expansion-panel>
 
-            <!-- Phase 5.57: Charge-mix outer ring for Waschen. Shows where the
-                 bubble's energy came from over the chosen period. -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:circle-multiple-outline" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.consumer_2_mix_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.consumer_2_mix_hint')}
-            </div>
+            <!-- Phase 5.57/5.82: Charge-mix outer ring for Waschen, wrapped
+                 in a collapsible expansion panel. -->
+            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_2_mix_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.consumer_2_mix_hint')}
+                </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_2_mix_donut_mode === true}
-                    .configValue=${'consumer_2_mix_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_2_mix_enable')}</div>
-            </div>
+                <div class="switch-row">
+                    <ha-switch
+                        .checked=${this._config.consumer_2_mix_donut_mode === true}
+                        .configValue=${'consumer_2_mix_donut_mode'}
+                        @change=${this._valueChanged}
+                    ></ha-switch>
+                    <div class="switch-label">${this._localize('editor.consumer_2_mix_enable')}</div>
+                </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
-                    { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
-                    { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
-                ] } }}
-                .value=${this._config.consumer_2_mix_period || 'day'}
-                .configValue=${'consumer_2_mix_period'}
-                .label=${this._localize('editor.consumer_1_mix_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ select: { mode: "dropdown", options: [
+                        { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
+                        { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
+                        { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
+                    ] } }}
+                    .value=${this._config.consumer_2_mix_period || 'day'}
+                    .configValue=${'consumer_2_mix_period'}
+                    .label=${this._localize('editor.consumer_1_mix_period')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_2_mix_ring_gap !== undefined ? this._config.consumer_2_mix_ring_gap : 8}
-                .configValue=${'consumer_2_mix_ring_gap'}
-                .label=${this._localize('editor.consumer_1_mix_ring_gap')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
+                    .value=${this._config.consumer_2_mix_ring_gap !== undefined ? this._config.consumer_2_mix_ring_gap : 8}
+                    .configValue=${'consumer_2_mix_ring_gap'}
+                    .label=${this._localize('editor.consumer_1_mix_ring_gap')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_2_mix_ring_thickness !== undefined ? this._config.consumer_2_mix_ring_thickness : 4}
-                .configValue=${'consumer_2_mix_ring_thickness'}
-                .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
+                    .value=${this._config.consumer_2_mix_ring_thickness !== undefined ? this._config.consumer_2_mix_ring_thickness : 4}
+                    .configValue=${'consumer_2_mix_ring_thickness'}
+                    .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
 
-            <!-- Tag -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_day')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_pv_day || "", 'consumer_2_mix_pv_day', this._localize('editor.consumer_2_mix_pv_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_lg_day || "", 'consumer_2_mix_lg_day', this._localize('editor.consumer_2_mix_lg_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_venus_day || "", 'consumer_2_mix_venus_day', this._localize('editor.consumer_2_mix_venus_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_grid_day || "", 'consumer_2_mix_grid_day', this._localize('editor.consumer_2_mix_grid_day'))}
+                <!-- Tag -->
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                    ${this._localize('editor.consumer_1_mix_period_day')}
+                </div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_pv_day || "", 'consumer_2_mix_pv_day', this._localize('editor.consumer_2_mix_pv_day'))}
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_lg_day || "", 'consumer_2_mix_lg_day', this._localize('editor.consumer_2_mix_lg_day'))}
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_venus_day || "", 'consumer_2_mix_venus_day', this._localize('editor.consumer_2_mix_venus_day'))}
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_grid_day || "", 'consumer_2_mix_grid_day', this._localize('editor.consumer_2_mix_grid_day'))}
 
-            <!-- Monat -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_month')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_pv_month || "", 'consumer_2_mix_pv_month', this._localize('editor.consumer_2_mix_pv_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_lg_month || "", 'consumer_2_mix_lg_month', this._localize('editor.consumer_2_mix_lg_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_venus_month || "", 'consumer_2_mix_venus_month', this._localize('editor.consumer_2_mix_venus_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_grid_month || "", 'consumer_2_mix_grid_month', this._localize('editor.consumer_2_mix_grid_month'))}
+                <!-- Monat -->
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                    ${this._localize('editor.consumer_1_mix_period_month')}
+                </div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_pv_month || "", 'consumer_2_mix_pv_month', this._localize('editor.consumer_2_mix_pv_month'))}
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_lg_month || "", 'consumer_2_mix_lg_month', this._localize('editor.consumer_2_mix_lg_month'))}
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_venus_month || "", 'consumer_2_mix_venus_month', this._localize('editor.consumer_2_mix_venus_month'))}
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_grid_month || "", 'consumer_2_mix_grid_month', this._localize('editor.consumer_2_mix_grid_month'))}
 
-            <!-- Jahr -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_year')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_pv_year || "", 'consumer_2_mix_pv_year', this._localize('editor.consumer_2_mix_pv_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_lg_year || "", 'consumer_2_mix_lg_year', this._localize('editor.consumer_2_mix_lg_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_venus_year || "", 'consumer_2_mix_venus_year', this._localize('editor.consumer_2_mix_venus_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_grid_year || "", 'consumer_2_mix_grid_year', this._localize('editor.consumer_2_mix_grid_year'))}
+                <!-- Jahr -->
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                    ${this._localize('editor.consumer_1_mix_period_year')}
+                </div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_pv_year || "", 'consumer_2_mix_pv_year', this._localize('editor.consumer_2_mix_pv_year'))}
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_lg_year || "", 'consumer_2_mix_lg_year', this._localize('editor.consumer_2_mix_lg_year'))}
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_venus_year || "", 'consumer_2_mix_venus_year', this._localize('editor.consumer_2_mix_venus_year'))}
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_grid_year || "", 'consumer_2_mix_grid_year', this._localize('editor.consumer_2_mix_grid_year'))}
+            </ha-expansion-panel>
 
-            <!-- Phase 5.56: rotation for Waschen bubble (analog Tesla/BWWP/Pumpe) -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:rotate-3d-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.rotation_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.rotation_hint')}
-            </div>
+            <!-- Phase 5.56/5.82: rotation for Waschen bubble, wrapped in
+                 a collapsible expansion panel. -->
+            <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.rotation_hint')}
+                </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_2_rotate_show_live !== false}
-                    .configValue=${'consumer_2_rotate_show_live'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
-            </div>
+                <div class="switch-row">
+                    <ha-switch
+                        .checked=${this._config.consumer_2_rotate_show_live !== false}
+                        .configValue=${'consumer_2_rotate_show_live'}
+                        @change=${this._valueChanged}
+                    ></ha-switch>
+                    <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+                </div>
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_2_rotate_show_daily_1 === true}
-                    .configValue=${'consumer_2_rotate_show_daily_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_rotate_daily_1 || "", 'consumer_2_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-            ${this._renderColorPicker('consumer_2_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+                <div class="separator"></div>
+                <div class="switch-row">
+                    <ha-switch
+                        .checked=${this._config.consumer_2_rotate_show_daily_1 === true}
+                        .configValue=${'consumer_2_rotate_show_daily_1'}
+                        @change=${this._valueChanged}
+                    ></ha-switch>
+                    <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
+                </div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_rotate_daily_1 || "", 'consumer_2_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
+                ${this._renderColorPicker('consumer_2_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_2_rotate_show_daily_2 === true}
-                    .configValue=${'consumer_2_rotate_show_daily_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_rotate_daily_2 || "", 'consumer_2_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-            ${this._renderColorPicker('consumer_2_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+                <div class="separator"></div>
+                <div class="switch-row">
+                    <ha-switch
+                        .checked=${this._config.consumer_2_rotate_show_daily_2 === true}
+                        .configValue=${'consumer_2_rotate_show_daily_2'}
+                        @change=${this._valueChanged}
+                    ></ha-switch>
+                    <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
+                </div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_rotate_daily_2 || "", 'consumer_2_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
+                ${this._renderColorPicker('consumer_2_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_2_rotate_show_daily_3 === true}
-                    .configValue=${'consumer_2_rotate_show_daily_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_rotate_daily_3 || "", 'consumer_2_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-            ${this._renderColorPicker('consumer_2_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+                <div class="separator"></div>
+                <div class="switch-row">
+                    <ha-switch
+                        .checked=${this._config.consumer_2_rotate_show_daily_3 === true}
+                        .configValue=${'consumer_2_rotate_show_daily_3'}
+                        @change=${this._valueChanged}
+                    ></ha-switch>
+                    <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
+                </div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_rotate_daily_3 || "", 'consumer_2_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
+                ${this._renderColorPicker('consumer_2_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+            </ha-expansion-panel>
 
-            <!-- Phase 5.67.8: Sparkline / history graph for Waschen.
-                 Default colour #f97316 (orange, matches the bubble's
-                 default consumer-2 colour). Same control set as Tesla
-                 and Trockner. -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:chart-line-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.sparkline_title')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.sparkline_hint')}
-            </div>
+            <!-- Phase 5.67.8/5.82: Sparkline / history graph for Waschen,
+                 wrapped in a collapsible expansion panel. -->
+            <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.sparkline_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -5133,6 +5126,7 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
             </div>
+            </ha-expansion-panel>
         </div>
         `;
     }
