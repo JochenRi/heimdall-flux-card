@@ -7128,7 +7128,13 @@ console.log(
           }
         }
       });
-      this._resizeObserver.observe(this);
+      // Phase A1.3: observe the inner .hf-flow-host element (NOT the host), so
+      // the card scales to its ACTUAL available width. In normal mode that is
+      // full width (unchanged behaviour); in side-panels mode it is the center
+      // grid track, so the flow scales into the center automatically -- no
+      // width-reservation hacks. Re-targeted after each render in case the
+      // element is recreated when the layout toggles.
+      this._attachFlowObserver();
       
       // Phase 5.19: bubble value rotation -- a single shared timer ticks
       // forward; each rotating bubble uses (tick % activeSlots) to pick its
@@ -7419,8 +7425,21 @@ console.log(
       }
     }
 
+    _attachFlowObserver() {
+      if (!this._resizeObserver || !this.shadowRoot) return;
+      const el = this.shadowRoot.querySelector('.hf-flow-host');
+      if (el && el !== this._observedFlowEl) {
+        if (this._observedFlowEl) this._resizeObserver.unobserve(this._observedFlowEl);
+        this._resizeObserver.observe(el);
+        this._observedFlowEl = el;
+      }
+    }
+
     updated(changedProps) {
       super.updated(changedProps);
+      // Phase A1.3: ensure the resize observer tracks the current flow-host
+      // element (it may be recreated when side-panels toggle on/off).
+      this._attachFlowObserver();
       if (changedProps.has('hass') && this.hass) {
         const isDark = this.hass.themes?.darkMode !== false;
         if (isDark) {
@@ -7822,12 +7841,19 @@ console.log(
         transition: transform 0.1s linear;
       }
 
+      /* Phase A1.3: the flow visualization wrapper. The resize observer measures
+         THIS element, so the card scales to whatever width it gets -- full width
+         in normal mode, the center track in side-panels mode. */
+      .hf-flow-host {
+        width: 100%;
+        min-width: 0;
+      }
       /* Phase A1: optional side panels. 3-column grid wraps the flow card in
          the center; left/right tracks hold embedded HA cards (added in A2).
          Disabled by default -- existing cards render unchanged. */
       .hf-side-panels-grid {
         display: grid;
-        grid-template-columns: 1fr auto 1fr;
+        grid-template-columns: 320px minmax(0, 1fr) 320px;
         gap: 12px;
         align-items: start;
         width: 100%;
@@ -9525,18 +9551,11 @@ console.log(
       const contentHeight = baseHeight - topShift;
 
       const designWidth = 800;
-      // Phase A1.2: in side-panels mode reserve EQUAL fixed width for each
-      // side panel so the flow card scales down into the center. side_panel_width
-      // is the px width PER panel (default 320); the two panels plus their gaps
-      // are subtracted from the measured width. Equal fixed panels guarantee
-      // the divider lines are symmetric by construction, independent of where
-      // the flow card's internal box sits. Editor slider lands in A3.
-      const measuredWidth = this._cardWidth || designWidth;
-      const sidePanelsOn = this.config.side_panels_enabled === true;
-      const sidePanelWidth = this.config.side_panel_width !== undefined ? this.config.side_panel_width : 320;
-      const sidePanelGap = 12;
-      const sidePanelReserve = sidePanelsOn ? (2 * sidePanelWidth + 2 * sidePanelGap) : 0;
-      const availableWidth = Math.max(designWidth * 0.5, measuredWidth - sidePanelReserve);
+      // Phase A1.3: availableWidth is the measured width of .hf-flow-host (via
+      // the resize observer). In side-panels mode that is already the center
+      // column width, so no reservation is needed -- the card scales correctly
+      // by the same code path as normal mode.
+      const availableWidth = this._cardWidth || designWidth;
       const baseScale = availableWidth / designWidth;
       const userZoom = this.config.zoom !== undefined ? this.config.zoom : 0.9;
       let scale = baseScale * userZoom;
@@ -11308,23 +11327,23 @@ console.log(
         ? this._renderCompactView(this.config.entities || {})
         : this._renderStandardView(this.config.entities || {});
 
-      // Phase A1: optional side-panels layout. When disabled, the card renders
-      // exactly as before (existing users unaffected). When enabled, the flow
-      // card is wrapped in a 3-column grid with empty placeholder panels left
-      // and right. A2 will fill these panels with embedded HA cards.
+      // Phase A1.3: the flow visualization always lives in .hf-flow-host, the
+      // element the resize observer measures. In normal mode it spans full
+      // width (behaviour unchanged). In side-panels mode it is the center grid
+      // track, so the card scales into the center automatically.
+      const flowBlock = html`<div class="hf-flow-host">${inner}</div>`;
+
       if (this.config.side_panels_enabled !== true) {
-        return inner;
+        return flowBlock;
       }
 
-      // Phase A1.2: fixed, equal-width side columns guarantee symmetric divider
-      // lines regardless of the flow card's internal box. Center is minmax(0,1fr)
-      // so the flow card (margin:auto) centers in the remaining space.
+      // Fixed, equal-width side columns -> symmetric dividers by construction.
       const panelW = this.config.side_panel_width !== undefined ? this.config.side_panel_width : 320;
       const gridCols = `${panelW}px minmax(0, 1fr) ${panelW}px`;
       return html`
         <div class="hf-side-panels-grid" style="grid-template-columns: ${gridCols};">
           <div class="hf-panel hf-panel-left"></div>
-          ${inner}
+          ${flowBlock}
           <div class="hf-panel hf-panel-right"></div>
         </div>
       `;
