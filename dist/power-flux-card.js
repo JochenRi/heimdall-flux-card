@@ -14,6 +14,9 @@ const lang_de = {
     "editor.venus_section": "Batterie 2",
     "editor.temp_section": "Klima (Temperatur)",
     "editor.temp_enabled": "Klima-Bubble aktivieren",
+    "editor.temp_position_hint": "Position der Kachel verschieben (in Pixeln, Standard = 0).",
+    "editor.temp_offset_x": "Verschiebung X (px, + rechts / − links)",
+    "editor.temp_offset_y": "Verschiebung Y (px, + runter / − hoch)",
     "editor.temp_sensors_hint": "Sensoren für die Thermometer-Säulen. Leer lassen nutzt die Standard-Sensoren.",
     "editor.temp_outdoor": "Außen-Temperatur (ist)",
     "editor.temp_indoor": "Innen-Temperatur (ist)",
@@ -454,6 +457,9 @@ const lang_en = {
     "editor.venus_section": "Battery 2",
     "editor.temp_section": "Climate (Temperature)",
     "editor.temp_enabled": "Enable climate bubble",
+    "editor.temp_position_hint": "Move the panel (in pixels, default = 0).",
+    "editor.temp_offset_x": "Offset X (px, + right / − left)",
+    "editor.temp_offset_y": "Offset Y (px, + down / − up)",
     "editor.temp_sensors_hint": "Sensors for the thermometer columns. Leave empty to use the defaults.",
     "editor.temp_outdoor": "Outdoor temperature (current)",
     "editor.temp_indoor": "Indoor temperature (current)",
@@ -3357,6 +3363,26 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-switch>
             <div class="switch-label">${this._localize('editor.temp_enabled')}</div>
         </div>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
+            ${this._localize('editor.temp_position_hint')}
+        </div>
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
+            .value=${this._config.temp_offset_x !== undefined ? this._config.temp_offset_x : 0}
+            .configValue=${'temp_offset_x'}
+            .label=${this._localize('editor.temp_offset_x')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
+            .value=${this._config.temp_offset_y !== undefined ? this._config.temp_offset_y : 0}
+            .configValue=${'temp_offset_y'}
+            .label=${this._localize('editor.temp_offset_y')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
 
         <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
             ${this._localize('editor.temp_sensors_hint')}
@@ -8115,7 +8141,7 @@ console.log(
       .node-battery { top: 80px; left: 420px; }  
       .node-venus { top: 80px; left: 580px; }   
       .node-house { top: 245px; left: 355px; }   
-      .node-temp { top: 220px; left: 655px; }   /* phase 5.79a-fix9: raised another 5px per user (y 220-350) */
+      .node-temp { top: calc(220px + var(--temp-offset-y, 0px)); left: calc(655px + var(--temp-offset-x, 0px)); }   /* phase 5.84: movable via editor */
       .node-c1 { top: 400px; left: 130px; }
       .node-c2 { top: 400px; left: 355px; }
       .node-c3 { top: 400px; left: 580px; }
@@ -11034,8 +11060,11 @@ console.log(
                   const tEnts = this.config.entities || {};
                   const tInId  = tEnts.temp_indoor  || this.config.temp_indoor_entity  || 'sensor.haus_durchschnittstemperatur';
                   const tOutId = tEnts.temp_outdoor || this.config.temp_outdoor_entity || 'sensor.sbht_003c_993b_temperature';
+                  const tOffX = this.config.temp_offset_x !== undefined ? parseFloat(this.config.temp_offset_x) : 0;
+                  const tOffY = this.config.temp_offset_y !== undefined ? parseFloat(this.config.temp_offset_y) : 0;
                   return html`
-                  <div class="bubble temp node-temp ${tintClass}">
+                  <div class="bubble temp node-temp ${tintClass}"
+                       style="--temp-offset-x: ${tOffX}px; --temp-offset-y: ${tOffY}px;">
                       ${this._renderTempSparkline('indoor')}
                       ${this._renderTempSparkline('outdoor')}
                       ${this._renderTempPanel()}

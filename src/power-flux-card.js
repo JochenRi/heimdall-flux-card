@@ -1337,7 +1337,7 @@ console.log(
       .node-battery { top: 80px; left: 420px; }  
       .node-venus { top: 80px; left: 580px; }   
       .node-house { top: 245px; left: 355px; }   
-      .node-temp { top: 220px; left: 655px; }   /* phase 5.79a-fix9: raised another 5px per user (y 220-350) */
+      .node-temp { top: calc(220px + var(--temp-offset-y, 0px)); left: calc(655px + var(--temp-offset-x, 0px)); }   /* phase 5.84: movable via editor */
       .node-c1 { top: 400px; left: 130px; }
       .node-c2 { top: 400px; left: 355px; }
       .node-c3 { top: 400px; left: 580px; }
@@ -4256,8 +4256,11 @@ console.log(
                   const tEnts = this.config.entities || {};
                   const tInId  = tEnts.temp_indoor  || this.config.temp_indoor_entity  || 'sensor.haus_durchschnittstemperatur';
                   const tOutId = tEnts.temp_outdoor || this.config.temp_outdoor_entity || 'sensor.sbht_003c_993b_temperature';
+                  const tOffX = this.config.temp_offset_x !== undefined ? parseFloat(this.config.temp_offset_x) : 0;
+                  const tOffY = this.config.temp_offset_y !== undefined ? parseFloat(this.config.temp_offset_y) : 0;
                   return html`
-                  <div class="bubble temp node-temp ${tintClass}">
+                  <div class="bubble temp node-temp ${tintClass}"
+                       style="--temp-offset-x: ${tOffX}px; --temp-offset-y: ${tOffY}px;">
                       ${this._renderTempSparkline('indoor')}
                       ${this._renderTempSparkline('outdoor')}
                       ${this._renderTempPanel()}

@@ -2467,6 +2467,26 @@ class PowerFluxCardEditor extends LitElement {
         </div>
 
         <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
+            ${this._localize('editor.temp_position_hint')}
+        </div>
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
+            .value=${this._config.temp_offset_x !== undefined ? this._config.temp_offset_x : 0}
+            .configValue=${'temp_offset_x'}
+            .label=${this._localize('editor.temp_offset_x')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
+            .value=${this._config.temp_offset_y !== undefined ? this._config.temp_offset_y : 0}
+            .configValue=${'temp_offset_y'}
+            .label=${this._localize('editor.temp_offset_y')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
             ${this._localize('editor.temp_sensors_hint')}
         </div>
 
