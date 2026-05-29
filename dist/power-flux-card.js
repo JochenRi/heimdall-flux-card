@@ -1565,11 +1565,8 @@ class PowerFluxCardEditor extends LitElement {
         </div>
 
         <!-- Group: Value rotation -->
-        <div class="option-group">
-            <div class="group-title">
-                <ha-icon icon="mdi:rotate-3d-variant"></ha-icon>
-                ${this._localize('editor.rotation_section')}
-            </div>
+        <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.rotation_hint')}
@@ -1619,14 +1616,11 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_3 || "", 'solar_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
             ${this._renderColorPicker('solar_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
-        </div>
+                </ha-expansion-panel>
 
         <!-- Group: PV donut -->
-        <div class="option-group">
-            <div class="group-title">
-                <ha-icon icon="mdi:donut-small"></ha-icon>
-                ${this._localize('editor.pv_donut_section')}
-            </div>
+        <ha-expansion-panel outlined .header=${this._localize('editor.pv_donut_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.pv_donut_hint')}
@@ -1809,7 +1803,7 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
             </div>
-        </div>
+                </ha-expansion-panel>
       `;
     }
 
@@ -1940,11 +1934,8 @@ class PowerFluxCardEditor extends LitElement {
         </div>
 
         <!-- Group: Value rotation -->
-        <div class="option-group">
-            <div class="group-title">
-                <ha-icon icon="mdi:rotate-3d-variant"></ha-icon>
-                ${this._localize('editor.rotation_section')}
-            </div>
+        <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.rotation_hint')}
@@ -1994,14 +1985,11 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_3 || "", 'grid_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
             ${this._renderColorPicker('grid_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
-        </div>
+                </ha-expansion-panel>
 
         <!-- Group: Grid donut -->
-        <div class="option-group">
-            <div class="group-title">
-                <ha-icon icon="mdi:donut-small"></ha-icon>
-                ${this._localize('editor.grid_donut_section')}
-            </div>
+        <ha-expansion-panel outlined .header=${this._localize('editor.grid_donut_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.grid_donut_hint')}
@@ -2180,7 +2168,7 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
             </div>
-        </div>
+                </ha-expansion-panel>
       `;
     }
 
@@ -2362,11 +2350,8 @@ class PowerFluxCardEditor extends LitElement {
         </div>
 
         <!-- Group: Value rotation -->
-        <div class="option-group">
-            <div class="group-title">
-                <ha-icon icon="mdi:rotate-3d-variant"></ha-icon>
-                ${this._localize('editor.rotation_section')}
-            </div>
+        <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.rotation_hint')}
@@ -2416,14 +2401,11 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_rotate_daily_3 || "", 'battery_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
             ${this._renderColorPicker('battery_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
-        </div>
+                </ha-expansion-panel>
 
         <!-- Group: SoC donut -->
-        <div class="option-group">
-            <div class="group-title">
-                <ha-icon icon="mdi:donut-small"></ha-icon>
-                ${this._localize('editor.battery_soc_donut_section')}
-            </div>
+        <ha-expansion-panel outlined .header=${this._localize('editor.battery_soc_donut_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.battery_soc_donut_hint')}
@@ -2597,7 +2579,7 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
             </div>
-        </div>
+                </ha-expansion-panel>
       `;
     }
 
@@ -2774,11 +2756,8 @@ class PowerFluxCardEditor extends LitElement {
         </div>
 
         <!-- Group: Value rotation -->
-        <div class="option-group">
-            <div class="group-title">
-                <ha-icon icon="mdi:rotate-3d-variant"></ha-icon>
-                ${this._localize('editor.rotation_section')}
-            </div>
+        <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.rotation_hint')}
@@ -2828,14 +2807,11 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.venus_rotate_daily_3 || "", 'venus_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
             ${this._renderColorPicker('venus_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
-        </div>
+                </ha-expansion-panel>
 
         <!-- Group: SoC donut -->
-        <div class="option-group">
-            <div class="group-title">
-                <ha-icon icon="mdi:donut-small"></ha-icon>
-                ${this._localize('editor.venus_soc_donut_section')}
-            </div>
+        <ha-expansion-panel outlined .header=${this._localize('editor.venus_soc_donut_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.venus_soc_donut_hint')}
@@ -3007,7 +2983,7 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
             </div>
-        </div>
+                </ha-expansion-panel>
       `;
     }
 
