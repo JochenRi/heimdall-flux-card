@@ -3698,13 +3698,11 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderColorPickerQuint('color_consumer_6', 'color_pipe_consumer_6', 'color_text_consumer_6', 'color_icon_consumer_6', 'color_secondary_consumer_6', '#14b8a6')}
 
             <!-- Phase 5.64: configurable donut for Klima -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:donut-small" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.consumer_6_donut_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.consumer_6_donut_hint')}
-            </div>
+            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_6_donut_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.consumer_6_donut_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -3725,13 +3723,13 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-selector>
 
             <!-- Phase 5.66: Charge-mix outer ring for Klima -- final mix-ring of the series. -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:circle-multiple-outline" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.consumer_6_mix_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.consumer_6_mix_hint')}
-            </div>
+            </ha-expansion-panel>
+
+            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_6_mix_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.consumer_6_mix_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -3813,13 +3811,13 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderColorPicker('consumer_6_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
 
             <!-- Phase 5.65: rotation for Klima bubble -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:rotate-3d-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.rotation_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.rotation_hint')}
-            </div>
+            </ha-expansion-panel>
+
+            <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.rotation_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -3870,13 +3868,13 @@ class PowerFluxCardEditor extends LitElement {
                  Default colour #14b8a6 (teal, matches the bubble's
                  default consumer-6 colour). Same control set as
                  Tesla / Waschen / Trockner / Spüler / BWWP. -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:chart-line-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.sparkline_title')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.sparkline_hint')}
-            </div>
+            </ha-expansion-panel>
+
+            <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.sparkline_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -3960,6 +3958,7 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
             </div>
+            </ha-expansion-panel>
         </div>
         `;
     }
@@ -4098,13 +4097,11 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderColorPickerQuint('color_consumer_4', 'color_pipe_consumer_4', 'color_text_consumer_4', 'color_icon_consumer_4', 'color_secondary_consumer_4', '#eab308')}
 
             <!-- Phase 5.61: configurable donut for Spüler. Generic ratio -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:donut-small" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.consumer_4_donut_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.consumer_4_donut_hint')}
-            </div>
+            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_4_donut_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.consumer_4_donut_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -4125,13 +4122,13 @@ class PowerFluxCardEditor extends LitElement {
             ></ha-selector>
 
             <!-- Phase 5.63: Charge-mix outer ring for Spüler. -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:circle-multiple-outline" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.consumer_4_mix_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.consumer_4_mix_hint')}
-            </div>
+            </ha-expansion-panel>
+
+            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_4_mix_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.consumer_4_mix_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -4213,13 +4210,13 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderColorPicker('consumer_4_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
 
             <!-- Phase 5.62: rotation for Spüler bubble -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:rotate-3d-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.rotation_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.rotation_hint')}
-            </div>
+            </ha-expansion-panel>
+
+            <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.rotation_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -4270,13 +4267,13 @@ class PowerFluxCardEditor extends LitElement {
                  Default colour #eab308 (yellow, matches the bubble's
                  default consumer-4 colour). Same control set as
                  Tesla / Waschen / Trockner. -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:chart-line-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.sparkline_title')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.sparkline_hint')}
-            </div>
+            </ha-expansion-panel>
+
+            <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.sparkline_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -4360,6 +4357,7 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
             </div>
+            </ha-expansion-panel>
         </div>
         `;
     }
@@ -5315,13 +5313,11 @@ class PowerFluxCardEditor extends LitElement {
             <!-- Phase 5.52: water-level donut ring for Pumpe bubble.
                  Default soc_max = 165 (typical cistern depth in cm). User can
                  change it for deeper/shallower cisterns or other use cases. -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:donut-small" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.consumer_7_donut_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.consumer_7_donut_hint')}
-            </div>
+            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_7_donut_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.consumer_7_donut_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -5343,13 +5339,13 @@ class PowerFluxCardEditor extends LitElement {
 
             <!-- Phase 5.54: Charge-mix outer ring for Pumpe. Shows where the
                  bubble's energy came from over the chosen period. -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:circle-multiple-outline" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.consumer_7_mix_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.consumer_7_mix_hint')}
-            </div>
+            </ha-expansion-panel>
+
+            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_7_mix_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.consumer_7_mix_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -5431,13 +5427,13 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderColorPicker('consumer_7_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
 
             <!-- Phase 5.53: rotation for Pumpe bubble (analog Tesla/BWWP/Battery/Venus) -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:rotate-3d-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.rotation_section')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.rotation_hint')}
-            </div>
+            </ha-expansion-panel>
+
+            <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.rotation_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -5489,13 +5485,13 @@ class PowerFluxCardEditor extends LitElement {
                  Default colour #ec4899 (pink, matches the bubble's
                  default consumer-7 colour). Same control set as all
                  other consumer bubbles. -->
-            <div style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 6px; font-weight: 500;">
-                <ha-icon icon="mdi:chart-line-variant" style="--mdc-icon-size: 18px; vertical-align: middle;"></ha-icon>
-                ${this._localize('editor.sparkline_title')}
-            </div>
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                ${this._localize('editor.sparkline_hint')}
-            </div>
+            </ha-expansion-panel>
+
+            <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
+                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                    ${this._localize('editor.sparkline_hint')}
+                </div>
 
             <div class="switch-row">
                 <ha-switch
@@ -5579,6 +5575,7 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-switch>
                 <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
             </div>
+            </ha-expansion-panel>
         </div>
         `;
     }
