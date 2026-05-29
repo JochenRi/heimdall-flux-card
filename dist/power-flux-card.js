@@ -9525,17 +9525,17 @@ console.log(
       const contentHeight = baseHeight - topShift;
 
       const designWidth = 800;
-      // Phase A1.1: in side-panels mode, reserve horizontal space for the
-      // left/right panels so the flow card scales DOWN into the center column
-      // instead of consuming the full width. Without this the flow card filled
-      // ~90% of the dashboard, leaving the panels too narrow and asymmetric.
-      // side_panel_reserve = total px reserved for both panels + gaps
-      // (default 700 = ~350 each). Editor slider lands in A3.
+      // Phase A1.2: in side-panels mode reserve EQUAL fixed width for each
+      // side panel so the flow card scales down into the center. side_panel_width
+      // is the px width PER panel (default 320); the two panels plus their gaps
+      // are subtracted from the measured width. Equal fixed panels guarantee
+      // the divider lines are symmetric by construction, independent of where
+      // the flow card's internal box sits. Editor slider lands in A3.
       const measuredWidth = this._cardWidth || designWidth;
       const sidePanelsOn = this.config.side_panels_enabled === true;
-      const sidePanelReserve = sidePanelsOn
-        ? (this.config.side_panel_reserve !== undefined ? this.config.side_panel_reserve : 700)
-        : 0;
+      const sidePanelWidth = this.config.side_panel_width !== undefined ? this.config.side_panel_width : 320;
+      const sidePanelGap = 12;
+      const sidePanelReserve = sidePanelsOn ? (2 * sidePanelWidth + 2 * sidePanelGap) : 0;
       const availableWidth = Math.max(designWidth * 0.5, measuredWidth - sidePanelReserve);
       const baseScale = availableWidth / designWidth;
       const userZoom = this.config.zoom !== undefined ? this.config.zoom : 0.9;
@@ -11316,8 +11316,13 @@ console.log(
         return inner;
       }
 
+      // Phase A1.2: fixed, equal-width side columns guarantee symmetric divider
+      // lines regardless of the flow card's internal box. Center is minmax(0,1fr)
+      // so the flow card (margin:auto) centers in the remaining space.
+      const panelW = this.config.side_panel_width !== undefined ? this.config.side_panel_width : 320;
+      const gridCols = `${panelW}px minmax(0, 1fr) ${panelW}px`;
       return html`
-        <div class="hf-side-panels-grid">
+        <div class="hf-side-panels-grid" style="grid-template-columns: ${gridCols};">
           <div class="hf-panel hf-panel-left"></div>
           ${inner}
           <div class="hf-panel hf-panel-right"></div>
