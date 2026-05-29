@@ -2587,7 +2587,18 @@ console.log(
       const contentHeight = baseHeight - topShift;
 
       const designWidth = 800;
-      const availableWidth = this._cardWidth || designWidth;
+      // Phase A1.1: in side-panels mode, reserve horizontal space for the
+      // left/right panels so the flow card scales DOWN into the center column
+      // instead of consuming the full width. Without this the flow card filled
+      // ~90% of the dashboard, leaving the panels too narrow and asymmetric.
+      // side_panel_reserve = total px reserved for both panels + gaps
+      // (default 700 = ~350 each). Editor slider lands in A3.
+      const measuredWidth = this._cardWidth || designWidth;
+      const sidePanelsOn = this.config.side_panels_enabled === true;
+      const sidePanelReserve = sidePanelsOn
+        ? (this.config.side_panel_reserve !== undefined ? this.config.side_panel_reserve : 700)
+        : 0;
+      const availableWidth = Math.max(designWidth * 0.5, measuredWidth - sidePanelReserve);
       const baseScale = availableWidth / designWidth;
       const userZoom = this.config.zoom !== undefined ? this.config.zoom : 0.9;
       let scale = baseScale * userZoom;
