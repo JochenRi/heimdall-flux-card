@@ -183,12 +183,21 @@ console.log(
     }
 
     firstUpdated() {
+      // Phase A1.5: rAF-debounce + 1px threshold. A bare ResizeObserver that
+      // writes _cardWidth on every callback can enter a measure->render->
+      // measure loop (the browser throttles it -> visible flicker), especially
+      // once the card is wide and the scaled visual overflows. Coalescing to one
+      // write per frame and ignoring sub-pixel deltas breaks that loop.
       this._resizeObserver = new ResizeObserver(entries => {
-        for (const entry of entries) {
-          if (entry.contentRect.width > 0) {
-            this._cardWidth = entry.contentRect.width;
+        const w = entries.length ? entries[entries.length - 1].contentRect.width : 0;
+        if (w <= 0 || this._rafPending) return;
+        this._rafPending = true;
+        requestAnimationFrame(() => {
+          this._rafPending = false;
+          if (Math.abs(w - (this._cardWidth || 0)) > 1) {
+            this._cardWidth = w;
           }
-        }
+        });
       });
       // Phase A1.4: observe the HOST (stable full width, never circular). In
       // side-panels mode the center column is given a FIXED px width derived
@@ -2616,6 +2625,17 @@ console.log(
       // the card larger than its container (it will overflow vertically).
       // Lower bound kept at 0.5 to prevent unreadably small layouts.
       if (scale < 0.5) scale = 0.5;
+
+      // Phase A1.5: in side-panels mode the visual MUST fit inside the center
+      // column. If zoom pushes visualWidth past availableWidth, the visual
+      // overflows into the panels and past the viewport edge (-> scrollbar
+      // appears/disappears -> flicker, and the visual is no longer centered).
+      // Cap the scale so visualWidth == availableWidth; centerMarginLeft then
+      // centers it cleanly between the panels.
+      if (sidePanelsOn) {
+        const centerFitScale = availableWidth / designWidth;
+        if (scale > centerFitScale) scale = centerFitScale;
+      }
 
       const finalCardHeightPx = contentHeight * scale;
       const visualWidth = 800 * scale;
