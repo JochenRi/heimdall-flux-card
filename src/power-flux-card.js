@@ -2239,9 +2239,6 @@ console.log(
 
           <text x="32" y="123" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(inVal)}</text>
           <text x="98" y="123" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(outVal)}</text>
-
-          <rect x="0" y="0" width="65" height="130" fill="transparent" style="cursor:pointer;" @click=${() => this._handleClick(inId)}></rect>
-          <rect x="65" y="0" width="65" height="130" fill="transparent" style="cursor:pointer;" @click=${() => this._handleClick(outId)}></rect>
         </svg>
       `;
     }
@@ -4255,12 +4252,21 @@ console.log(
                   </div>`;
                 })()}
 
-                ${this.config.temp_enabled === true ? html`
+                ${this.config.temp_enabled === true ? (() => {
+                  const tEnts = this.config.entities || {};
+                  const tInId  = tEnts.temp_indoor  || this.config.temp_indoor_entity  || 'sensor.haus_durchschnittstemperatur';
+                  const tOutId = tEnts.temp_outdoor || this.config.temp_outdoor_entity || 'sensor.sbht_003c_993b_temperature';
+                  return html`
                   <div class="bubble temp node-temp ${tintClass}">
                       ${this._renderTempSparkline('indoor')}
                       ${this._renderTempSparkline('outdoor')}
                       ${this._renderTempPanel()}
-                  </div>` : ''}
+                      <div style="position:absolute;left:0;top:0;width:50%;height:100%;cursor:pointer;z-index:10;"
+                           @click=${() => this._handleClick(tInId)}></div>
+                      <div style="position:absolute;left:50%;top:0;width:50%;height:100%;cursor:pointer;z-index:10;"
+                           @click=${() => this._handleClick(tOutId)}></div>
+                  </div>`;
+                })() : ''}
 
                 ${renderConsumer(showC1, 'c1', 'consumer_1', labelC1, 'car', c1Val, this._getConsumerColor(1))}
                 ${renderConsumer(showC2, 'c2', 'consumer_2', labelC2, 'heater', c2Val, this._getConsumerColor(2))}
