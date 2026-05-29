@@ -439,5 +439,25 @@ export default {
     "editor.consumer_1_mix_color_lg": "Farbe LG-Anteil",
     "editor.consumer_1_mix_color_venus": "Farbe Venus-Anteil",
     "editor.consumer_1_mix_color_grid": "Farbe Netz-Anteil",
+
+    // Phase 5.84: configurable mix-ring segment colors for source bubbles
+    "editor.source_mix_colors_section": "Ring-Farben pro Segment",
+    // Solar bubble (4 segments: house/lg/venus/grid)
+    "editor.solar_mix_color_house": "Farbe Haus-Anteil",
+    "editor.solar_mix_color_lg":    "Farbe LG-Anteil",
+    "editor.solar_mix_color_venus": "Farbe Venus-Anteil",
+    "editor.solar_mix_color_grid":  "Farbe Netz-Export-Anteil",
+    // Grid bubble (2 segments: import/export)
+    "editor.grid_mix_color_import": "Farbe Bezug-Anteil",
+    "editor.grid_mix_color_export": "Farbe Einspeisung-Anteil",
+    // LG (Battery) bubble (2 segments: pv/grid)
+    "editor.battery_mix_color_pv":   "Farbe PV-Anteil",
+    "editor.battery_mix_color_grid": "Farbe Netz-Anteil",
+    // Venus bubble (2 segments: pv/grid)
+    "editor.venus_mix_color_pv":   "Farbe PV-Anteil",
+    "editor.venus_mix_color_grid": "Farbe Netz-Anteil",
+    // House bubble (2 segments: self/grid)
+    "editor.house_mix_color_self": "Farbe Eigenversorgung",
+    "editor.house_mix_color_grid": "Farbe Netzbezug",
   }
 };

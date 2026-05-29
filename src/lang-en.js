@@ -439,5 +439,25 @@ export default {
     "editor.consumer_1_mix_color_lg": "LG segment color",
     "editor.consumer_1_mix_color_venus": "Venus segment color",
     "editor.consumer_1_mix_color_grid": "Grid segment color",
+
+    // Phase 5.84: configurable mix-ring segment colors for source bubbles
+    "editor.source_mix_colors_section": "Ring colors per segment",
+    // Solar bubble (4 segments: house/lg/venus/grid)
+    "editor.solar_mix_color_house": "House segment color",
+    "editor.solar_mix_color_lg":    "LG segment color",
+    "editor.solar_mix_color_venus": "Venus segment color",
+    "editor.solar_mix_color_grid":  "Grid export segment color",
+    // Grid bubble (2 segments: import/export)
+    "editor.grid_mix_color_import": "Import segment color",
+    "editor.grid_mix_color_export": "Export segment color",
+    // LG (Battery) bubble (2 segments: pv/grid)
+    "editor.battery_mix_color_pv":   "PV segment color",
+    "editor.battery_mix_color_grid": "Grid segment color",
+    // Venus bubble (2 segments: pv/grid)
+    "editor.venus_mix_color_pv":   "PV segment color",
+    "editor.venus_mix_color_grid": "Grid segment color",
+    // House bubble (2 segments: self/grid)
+    "editor.house_mix_color_self": "Self-supply color",
+    "editor.house_mix_color_grid": "Grid import color",
   }
 };

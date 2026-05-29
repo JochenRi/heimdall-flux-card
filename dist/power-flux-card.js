@@ -444,6 +444,26 @@ const lang_de = {
     "editor.consumer_1_mix_color_lg": "Farbe LG-Anteil",
     "editor.consumer_1_mix_color_venus": "Farbe Venus-Anteil",
     "editor.consumer_1_mix_color_grid": "Farbe Netz-Anteil",
+
+    // Phase 5.84: configurable mix-ring segment colors for source bubbles
+    "editor.source_mix_colors_section": "Ring-Farben pro Segment",
+    // Solar bubble (4 segments: house/lg/venus/grid)
+    "editor.solar_mix_color_house": "Farbe Haus-Anteil",
+    "editor.solar_mix_color_lg":    "Farbe LG-Anteil",
+    "editor.solar_mix_color_venus": "Farbe Venus-Anteil",
+    "editor.solar_mix_color_grid":  "Farbe Netz-Export-Anteil",
+    // Grid bubble (2 segments: import/export)
+    "editor.grid_mix_color_import": "Farbe Bezug-Anteil",
+    "editor.grid_mix_color_export": "Farbe Einspeisung-Anteil",
+    // LG (Battery) bubble (2 segments: pv/grid)
+    "editor.battery_mix_color_pv":   "Farbe PV-Anteil",
+    "editor.battery_mix_color_grid": "Farbe Netz-Anteil",
+    // Venus bubble (2 segments: pv/grid)
+    "editor.venus_mix_color_pv":   "Farbe PV-Anteil",
+    "editor.venus_mix_color_grid": "Farbe Netz-Anteil",
+    // House bubble (2 segments: self/grid)
+    "editor.house_mix_color_self": "Farbe Eigenversorgung",
+    "editor.house_mix_color_grid": "Farbe Netzbezug",
   }
 };
 const lang_en = {
@@ -887,6 +907,26 @@ const lang_en = {
     "editor.consumer_1_mix_color_lg": "LG segment color",
     "editor.consumer_1_mix_color_venus": "Venus segment color",
     "editor.consumer_1_mix_color_grid": "Grid segment color",
+
+    // Phase 5.84: configurable mix-ring segment colors for source bubbles
+    "editor.source_mix_colors_section": "Ring colors per segment",
+    // Solar bubble (4 segments: house/lg/venus/grid)
+    "editor.solar_mix_color_house": "House segment color",
+    "editor.solar_mix_color_lg":    "LG segment color",
+    "editor.solar_mix_color_venus": "Venus segment color",
+    "editor.solar_mix_color_grid":  "Grid export segment color",
+    // Grid bubble (2 segments: import/export)
+    "editor.grid_mix_color_import": "Import segment color",
+    "editor.grid_mix_color_export": "Export segment color",
+    // LG (Battery) bubble (2 segments: pv/grid)
+    "editor.battery_mix_color_pv":   "PV segment color",
+    "editor.battery_mix_color_grid": "Grid segment color",
+    // Venus bubble (2 segments: pv/grid)
+    "editor.venus_mix_color_pv":   "PV segment color",
+    "editor.venus_mix_color_grid": "Grid segment color",
+    // House bubble (2 segments: self/grid)
+    "editor.house_mix_color_self": "Self-supply color",
+    "editor.house_mix_color_grid": "Grid import color",
   }
 };
 
@@ -1719,6 +1759,16 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_venus_year || "", 'solar_mix_venus_year', this._localize('editor.solar_mix_venus_label'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_grid_year || "", 'solar_mix_grid_year', this._localize('editor.solar_mix_grid_label'))}
 
+            <!-- Phase 5.84: per-segment colors for the solar mix-ring.
+                 Each defaults to the matching pipe color when unset. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.source_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('solar_mix_color_house', this._localize('editor.solar_mix_color_house'), '#ff2d78')}
+            ${this._renderColorPicker('solar_mix_color_lg', this._localize('editor.solar_mix_color_lg'), '#e100ff')}
+            ${this._renderColorPicker('solar_mix_color_venus', this._localize('editor.solar_mix_color_venus'), '#8d07d5')}
+            ${this._renderColorPicker('solar_mix_color_grid', this._localize('editor.solar_mix_color_grid'), '#ff0040')}
+
             <!-- Phase 5.72: Solar sparkline. Same control set as LG/Venus,
                  driven by solar_sparkline_* keys via _renderSparklineForSource('solar').
                  Default colour matches the solar pipe colour (yellow). -->
@@ -2079,6 +2129,14 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_import_year || "", 'grid_mix_import_year', this._localize('editor.grid_mix_import_label'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_export_year || "", 'grid_mix_export_year', this._localize('editor.grid_mix_export_label'))}
+
+            <!-- Phase 5.84: per-segment colors for the grid mix-ring.
+                 Each defaults to the matching pipe color when unset. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.source_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('grid_mix_color_import', this._localize('editor.grid_mix_color_import'), '#ff0040')}
+            ${this._renderColorPicker('grid_mix_color_export', this._localize('editor.grid_mix_color_export'), '#ffd900')}
 
             <!-- Phase 5.73: Grid sparkline. Default sensor (when override is
                  empty) is the bubble's main entity entities.grid which is
@@ -2494,6 +2552,14 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_year || "", 'battery_mix_pv_year', this._localize('editor.battery_mix_pv_label'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_year || "", 'battery_mix_grid_year', this._localize('editor.battery_mix_grid_label'))}
 
+            <!-- Phase 5.84: per-segment colors for the battery mix-ring.
+                 Each defaults to the matching pipe color when unset. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.source_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('battery_mix_color_pv', this._localize('editor.battery_mix_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('battery_mix_color_grid', this._localize('editor.battery_mix_color_grid'), '#ff0040')}
+
             <!-- Phase 5.69: LG sparkline section. Same control set as the 7
                  consumer sparklines, but driven by source-prefix keys
                  (battery_sparkline_* instead of consumer_X_sparkline_*).
@@ -2898,6 +2964,14 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_pv_year || "", 'venus_mix_pv_year', this._localize('editor.venus_mix_pv_label'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_grid_year || "", 'venus_mix_grid_year', this._localize('editor.venus_mix_grid_label'))}
 
+            <!-- Phase 5.84: per-segment colors for the venus mix-ring.
+                 Each defaults to the matching pipe color when unset. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.source_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('venus_mix_color_pv', this._localize('editor.venus_mix_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('venus_mix_color_grid', this._localize('editor.venus_mix_color_grid'), '#ff0040')}
+
             <!-- Phase 5.71: Venus sparkline. Same control set as LG sparkline
                  (phase 5.69), driven by venus_sparkline_* keys via the
                  _renderSparklineForSource('venus') helper. Default colour matches
@@ -3084,6 +3158,14 @@ class PowerFluxCardEditor extends LitElement {
         </div>
         ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_self_year || "", 'house_mix_self_year', this._localize('editor.house_mix_self_label'))}
         ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_grid_year || "", 'house_mix_grid_year', this._localize('editor.house_mix_grid_label'))}
+
+        <!-- Phase 5.84: per-segment colors for the house mix-ring.
+             Each defaults to the matching pipe color when unset. -->
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+            ${this._localize('editor.source_mix_colors_section')}
+        </div>
+        ${this._renderColorPicker('house_mix_color_self', this._localize('editor.house_mix_color_self'), '#ffd900')}
+        ${this._renderColorPicker('house_mix_color_grid', this._localize('editor.house_mix_color_grid'), '#ff0040')}
 
         <div class="separator"></div>
 
@@ -9579,9 +9661,13 @@ console.log(
           
           let stops = [];
           let cursor = 0;
-          // Self-supply in solar/green colour, grid import in grid red.
-          if (pctSelf > 0) { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctSelf}%`); cursor += pctSelf; }
-          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          // Phase 5.84: per-segment colors editor-configurable.
+          // Defaults match the original look (solar-color for self-supply,
+          // grid-color for grid-import).
+          const colSelf = this.config.house_mix_color_self || 'var(--pipe-solar-color)';
+          const colGrid = this.config.house_mix_color_grid || 'var(--pipe-grid-color)';
+          if (pctSelf > 0) { stops.push(`${colSelf} ${cursor}% ${cursor + pctSelf}%`); cursor += pctSelf; }
+          if (pctGrid > 0) { stops.push(`${colGrid} ${cursor}% 100%`); }
           houseMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           houseMixActive = true;
         }
@@ -9706,12 +9792,12 @@ console.log(
           
           let stops = [];
           let cursor = 0;
-          // Import-Anteil first in grid pipe colour (red), then Export-Anteil
-          // in export/solar colour (green). User can override via colour-text
-          // properties on the bubble but the ring uses pipe colours by design
-          // so it stays consistent with the live-flow Pipes.
-          if (pctImport > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% ${cursor + pctImport}%`); cursor += pctImport; }
-          if (pctExport > 0) { stops.push(`var(--export-color, var(--pipe-solar-color)) ${cursor}% 100%`); }
+          // Phase 5.84: per-segment colors editor-configurable.
+          // Defaults: grid-color for import (red), export-color/solar for export.
+          const colImport = this.config.grid_mix_color_import || 'var(--pipe-grid-color)';
+          const colExport = this.config.grid_mix_color_export || 'var(--export-color, var(--pipe-solar-color))';
+          if (pctImport > 0) { stops.push(`${colImport} ${cursor}% ${cursor + pctImport}%`); cursor += pctImport; }
+          if (pctExport > 0) { stops.push(`${colExport} ${cursor}% 100%`); }
           gridMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           gridMixActive = true;
         }
@@ -9826,15 +9912,20 @@ console.log(
           const pctVenus = (venus / total) * 100;
           const pctGrid  = (grid  / total) * 100;
           
-          // Segment colours match the destination's bubble colour. House
-          // uses --pipe-house-color (falls back to neon-pink as in existing
-          // house bubble CSS). LG = battery, Venus = venus, Grid = grid.
+          // Phase 5.84: per-segment colors editor-configurable.
+          // Defaults match the destination's bubble colour. House uses
+          // --pipe-house-color (falls back to neon-pink). LG = battery,
+          // Venus = venus, Grid = grid.
+          const colHouse = this.config.solar_mix_color_house || 'var(--pipe-house-color, var(--neon-pink))';
+          const colLg    = this.config.solar_mix_color_lg    || 'var(--pipe-battery-color)';
+          const colVenus = this.config.solar_mix_color_venus || 'var(--pipe-venus-color)';
+          const colGrid  = this.config.solar_mix_color_grid  || 'var(--pipe-grid-color)';
           let stops = [];
           let cursor = 0;
-          if (pctHouse > 0) { stops.push(`var(--pipe-house-color, var(--neon-pink)) ${cursor}% ${cursor + pctHouse}%`); cursor += pctHouse; }
-          if (pctLg > 0)    { stops.push(`var(--pipe-battery-color) ${cursor}% ${cursor + pctLg}%`); cursor += pctLg; }
-          if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
-          if (pctGrid > 0)  { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          if (pctHouse > 0) { stops.push(`${colHouse} ${cursor}% ${cursor + pctHouse}%`); cursor += pctHouse; }
+          if (pctLg > 0)    { stops.push(`${colLg} ${cursor}% ${cursor + pctLg}%`); cursor += pctLg; }
+          if (pctVenus > 0) { stops.push(`${colVenus} ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
+          if (pctGrid > 0)  { stops.push(`${colGrid} ${cursor}% 100%`); }
           solarMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           solarMixActive = true;
         }
@@ -9906,8 +9997,12 @@ console.log(
           
           let stops = [];
           let cursor = 0;
-          if (pctPv > 0)   { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`); cursor += pctPv; }
-          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          // Phase 5.84: per-segment colors editor-configurable.
+          // Defaults: solar-color for PV charging, grid-color for grid charging.
+          const colPv   = this.config.battery_mix_color_pv   || 'var(--pipe-solar-color)';
+          const colGrid = this.config.battery_mix_color_grid || 'var(--pipe-grid-color)';
+          if (pctPv > 0)   { stops.push(`${colPv} ${cursor}% ${cursor + pctPv}%`); cursor += pctPv; }
+          if (pctGrid > 0) { stops.push(`${colGrid} ${cursor}% 100%`); }
           batteryMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           batteryMixActive = true;
         }
@@ -9967,8 +10062,12 @@ console.log(
           
           let stops = [];
           let cursor = 0;
-          if (pctPv > 0)   { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`); cursor += pctPv; }
-          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          // Phase 5.84: per-segment colors editor-configurable.
+          // Defaults: solar-color for PV charging, grid-color for grid charging.
+          const colPv   = this.config.venus_mix_color_pv   || 'var(--pipe-solar-color)';
+          const colGrid = this.config.venus_mix_color_grid || 'var(--pipe-grid-color)';
+          if (pctPv > 0)   { stops.push(`${colPv} ${cursor}% ${cursor + pctPv}%`); cursor += pctPv; }
+          if (pctGrid > 0) { stops.push(`${colGrid} ${cursor}% 100%`); }
           venusMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           venusMixActive = true;
         }

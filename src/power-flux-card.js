@@ -2734,9 +2734,13 @@ console.log(
           
           let stops = [];
           let cursor = 0;
-          // Self-supply in solar/green colour, grid import in grid red.
-          if (pctSelf > 0) { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctSelf}%`); cursor += pctSelf; }
-          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          // Phase 5.84: per-segment colors editor-configurable.
+          // Defaults match the original look (solar-color for self-supply,
+          // grid-color for grid-import).
+          const colSelf = this.config.house_mix_color_self || 'var(--pipe-solar-color)';
+          const colGrid = this.config.house_mix_color_grid || 'var(--pipe-grid-color)';
+          if (pctSelf > 0) { stops.push(`${colSelf} ${cursor}% ${cursor + pctSelf}%`); cursor += pctSelf; }
+          if (pctGrid > 0) { stops.push(`${colGrid} ${cursor}% 100%`); }
           houseMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           houseMixActive = true;
         }
@@ -2861,12 +2865,12 @@ console.log(
           
           let stops = [];
           let cursor = 0;
-          // Import-Anteil first in grid pipe colour (red), then Export-Anteil
-          // in export/solar colour (green). User can override via colour-text
-          // properties on the bubble but the ring uses pipe colours by design
-          // so it stays consistent with the live-flow Pipes.
-          if (pctImport > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% ${cursor + pctImport}%`); cursor += pctImport; }
-          if (pctExport > 0) { stops.push(`var(--export-color, var(--pipe-solar-color)) ${cursor}% 100%`); }
+          // Phase 5.84: per-segment colors editor-configurable.
+          // Defaults: grid-color for import (red), export-color/solar for export.
+          const colImport = this.config.grid_mix_color_import || 'var(--pipe-grid-color)';
+          const colExport = this.config.grid_mix_color_export || 'var(--export-color, var(--pipe-solar-color))';
+          if (pctImport > 0) { stops.push(`${colImport} ${cursor}% ${cursor + pctImport}%`); cursor += pctImport; }
+          if (pctExport > 0) { stops.push(`${colExport} ${cursor}% 100%`); }
           gridMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           gridMixActive = true;
         }
@@ -2981,15 +2985,20 @@ console.log(
           const pctVenus = (venus / total) * 100;
           const pctGrid  = (grid  / total) * 100;
           
-          // Segment colours match the destination's bubble colour. House
-          // uses --pipe-house-color (falls back to neon-pink as in existing
-          // house bubble CSS). LG = battery, Venus = venus, Grid = grid.
+          // Phase 5.84: per-segment colors editor-configurable.
+          // Defaults match the destination's bubble colour. House uses
+          // --pipe-house-color (falls back to neon-pink). LG = battery,
+          // Venus = venus, Grid = grid.
+          const colHouse = this.config.solar_mix_color_house || 'var(--pipe-house-color, var(--neon-pink))';
+          const colLg    = this.config.solar_mix_color_lg    || 'var(--pipe-battery-color)';
+          const colVenus = this.config.solar_mix_color_venus || 'var(--pipe-venus-color)';
+          const colGrid  = this.config.solar_mix_color_grid  || 'var(--pipe-grid-color)';
           let stops = [];
           let cursor = 0;
-          if (pctHouse > 0) { stops.push(`var(--pipe-house-color, var(--neon-pink)) ${cursor}% ${cursor + pctHouse}%`); cursor += pctHouse; }
-          if (pctLg > 0)    { stops.push(`var(--pipe-battery-color) ${cursor}% ${cursor + pctLg}%`); cursor += pctLg; }
-          if (pctVenus > 0) { stops.push(`var(--pipe-venus-color) ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
-          if (pctGrid > 0)  { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          if (pctHouse > 0) { stops.push(`${colHouse} ${cursor}% ${cursor + pctHouse}%`); cursor += pctHouse; }
+          if (pctLg > 0)    { stops.push(`${colLg} ${cursor}% ${cursor + pctLg}%`); cursor += pctLg; }
+          if (pctVenus > 0) { stops.push(`${colVenus} ${cursor}% ${cursor + pctVenus}%`); cursor += pctVenus; }
+          if (pctGrid > 0)  { stops.push(`${colGrid} ${cursor}% 100%`); }
           solarMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           solarMixActive = true;
         }
@@ -3061,8 +3070,12 @@ console.log(
           
           let stops = [];
           let cursor = 0;
-          if (pctPv > 0)   { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`); cursor += pctPv; }
-          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          // Phase 5.84: per-segment colors editor-configurable.
+          // Defaults: solar-color for PV charging, grid-color for grid charging.
+          const colPv   = this.config.battery_mix_color_pv   || 'var(--pipe-solar-color)';
+          const colGrid = this.config.battery_mix_color_grid || 'var(--pipe-grid-color)';
+          if (pctPv > 0)   { stops.push(`${colPv} ${cursor}% ${cursor + pctPv}%`); cursor += pctPv; }
+          if (pctGrid > 0) { stops.push(`${colGrid} ${cursor}% 100%`); }
           batteryMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           batteryMixActive = true;
         }
@@ -3122,8 +3135,12 @@ console.log(
           
           let stops = [];
           let cursor = 0;
-          if (pctPv > 0)   { stops.push(`var(--pipe-solar-color) ${cursor}% ${cursor + pctPv}%`); cursor += pctPv; }
-          if (pctGrid > 0) { stops.push(`var(--pipe-grid-color) ${cursor}% 100%`); }
+          // Phase 5.84: per-segment colors editor-configurable.
+          // Defaults: solar-color for PV charging, grid-color for grid charging.
+          const colPv   = this.config.venus_mix_color_pv   || 'var(--pipe-solar-color)';
+          const colGrid = this.config.venus_mix_color_grid || 'var(--pipe-grid-color)';
+          if (pctPv > 0)   { stops.push(`${colPv} ${cursor}% ${cursor + pctPv}%`); cursor += pctPv; }
+          if (pctGrid > 0) { stops.push(`${colGrid} ${cursor}% 100%`); }
           venusMixGradientVal = `conic-gradient(from 0deg, ${stops.join(', ')})`;
           venusMixActive = true;
         }

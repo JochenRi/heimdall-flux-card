@@ -821,6 +821,16 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_venus_year || "", 'solar_mix_venus_year', this._localize('editor.solar_mix_venus_label'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_grid_year || "", 'solar_mix_grid_year', this._localize('editor.solar_mix_grid_label'))}
 
+            <!-- Phase 5.84: per-segment colors for the solar mix-ring.
+                 Each defaults to the matching pipe color when unset. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.source_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('solar_mix_color_house', this._localize('editor.solar_mix_color_house'), '#ff2d78')}
+            ${this._renderColorPicker('solar_mix_color_lg', this._localize('editor.solar_mix_color_lg'), '#e100ff')}
+            ${this._renderColorPicker('solar_mix_color_venus', this._localize('editor.solar_mix_color_venus'), '#8d07d5')}
+            ${this._renderColorPicker('solar_mix_color_grid', this._localize('editor.solar_mix_color_grid'), '#ff0040')}
+
             <!-- Phase 5.72: Solar sparkline. Same control set as LG/Venus,
                  driven by solar_sparkline_* keys via _renderSparklineForSource('solar').
                  Default colour matches the solar pipe colour (yellow). -->
@@ -1181,6 +1191,14 @@ class PowerFluxCardEditor extends LitElement {
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_import_year || "", 'grid_mix_import_year', this._localize('editor.grid_mix_import_label'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_export_year || "", 'grid_mix_export_year', this._localize('editor.grid_mix_export_label'))}
+
+            <!-- Phase 5.84: per-segment colors for the grid mix-ring.
+                 Each defaults to the matching pipe color when unset. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.source_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('grid_mix_color_import', this._localize('editor.grid_mix_color_import'), '#ff0040')}
+            ${this._renderColorPicker('grid_mix_color_export', this._localize('editor.grid_mix_color_export'), '#ffd900')}
 
             <!-- Phase 5.73: Grid sparkline. Default sensor (when override is
                  empty) is the bubble's main entity entities.grid which is
@@ -1596,6 +1614,14 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_year || "", 'battery_mix_pv_year', this._localize('editor.battery_mix_pv_label'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_year || "", 'battery_mix_grid_year', this._localize('editor.battery_mix_grid_label'))}
 
+            <!-- Phase 5.84: per-segment colors for the battery mix-ring.
+                 Each defaults to the matching pipe color when unset. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.source_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('battery_mix_color_pv', this._localize('editor.battery_mix_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('battery_mix_color_grid', this._localize('editor.battery_mix_color_grid'), '#ff0040')}
+
             <!-- Phase 5.69: LG sparkline section. Same control set as the 7
                  consumer sparklines, but driven by source-prefix keys
                  (battery_sparkline_* instead of consumer_X_sparkline_*).
@@ -2000,6 +2026,14 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_pv_year || "", 'venus_mix_pv_year', this._localize('editor.venus_mix_pv_label'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_grid_year || "", 'venus_mix_grid_year', this._localize('editor.venus_mix_grid_label'))}
 
+            <!-- Phase 5.84: per-segment colors for the venus mix-ring.
+                 Each defaults to the matching pipe color when unset. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.source_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('venus_mix_color_pv', this._localize('editor.venus_mix_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('venus_mix_color_grid', this._localize('editor.venus_mix_color_grid'), '#ff0040')}
+
             <!-- Phase 5.71: Venus sparkline. Same control set as LG sparkline
                  (phase 5.69), driven by venus_sparkline_* keys via the
                  _renderSparklineForSource('venus') helper. Default colour matches
@@ -2186,6 +2220,14 @@ class PowerFluxCardEditor extends LitElement {
         </div>
         ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_self_year || "", 'house_mix_self_year', this._localize('editor.house_mix_self_label'))}
         ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_grid_year || "", 'house_mix_grid_year', this._localize('editor.house_mix_grid_label'))}
+
+        <!-- Phase 5.84: per-segment colors for the house mix-ring.
+             Each defaults to the matching pipe color when unset. -->
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+            ${this._localize('editor.source_mix_colors_section')}
+        </div>
+        ${this._renderColorPicker('house_mix_color_self', this._localize('editor.house_mix_color_self'), '#ffd900')}
+        ${this._renderColorPicker('house_mix_color_grid', this._localize('editor.house_mix_color_grid'), '#ff0040')}
 
         <div class="separator"></div>
 
