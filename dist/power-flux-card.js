@@ -7121,27 +7121,32 @@ console.log(
     }
 
     firstUpdated() {
-      // Phase A1.5: rAF-debounce + 1px threshold. A bare ResizeObserver that
-      // writes _cardWidth on every callback can enter a measure->render->
-      // measure loop (the browser throttles it -> visible flicker), especially
-      // once the card is wide and the scaled visual overflows. Coalescing to one
-      // write per frame and ignoring sub-pixel deltas breaks that loop.
-      this._resizeObserver = new ResizeObserver(entries => {
-        const w = entries.length ? entries[entries.length - 1].contentRect.width : 0;
-        if (w <= 0 || this._rafPending) return;
+      // Phase A1.8: the ResizeObserver is only a TRIGGER. The width source is
+      // this.offsetWidth, which was empirically stable (1564) across every
+      // screenshot, whereas entry.contentRect.width intermittently reported 500
+      // (the pre-layout sections-column width) during init -- and the A1.5
+      // ">1px change" guard then froze that stale 500. Read offsetWidth on each
+      // settled frame instead. rAF-debounce + 1px threshold still break the
+      // measure->render->measure loop.
+      const measure = () => {
+        this._rafPending = false;
+        const w = this.offsetWidth;
+        if (w > 0 && Math.abs(w - (this._cardWidth || 0)) > 1) {
+          this._cardWidth = w;
+        }
+      };
+      this._resizeObserver = new ResizeObserver(() => {
+        if (this._rafPending) return;
         this._rafPending = true;
-        requestAnimationFrame(() => {
-          this._rafPending = false;
-          if (Math.abs(w - (this._cardWidth || 0)) > 1) {
-            this._cardWidth = w;
-          }
-        });
+        requestAnimationFrame(measure);
       });
       // Phase A1.4: observe the HOST (stable full width, never circular). In
       // side-panels mode the center column is given a FIXED px width derived
       // from this measurement, so the card scales into the center without any
       // measure->scale->grow feedback loop (the A1.3 mistake).
       this._resizeObserver.observe(this);
+      // Seed the first measurement after initial layout settles.
+      requestAnimationFrame(() => { this._cardWidth = this.offsetWidth || this._cardWidth; });
       
       // Phase 5.19: bubble value rotation -- a single shared timer ticks
       // forward; each rotating bubble uses (tick % activeSlots) to pick its
@@ -7434,6 +7439,15 @@ console.log(
 
     updated(changedProps) {
       super.updated(changedProps);
+      // Phase A1.8: re-measure when config changes (e.g. toggling side panels)
+      // so _cardWidth reflects the new layout instead of a stale value. The
+      // observer may not fire on a pure config change, so seed it here.
+      if (changedProps.has('config')) {
+        requestAnimationFrame(() => {
+          const w = this.offsetWidth;
+          if (w > 0 && Math.abs(w - (this._cardWidth || 0)) > 1) this._cardWidth = w;
+        });
+      }
       if (changedProps.has('hass') && this.hass) {
         const isDark = this.hass.themes?.darkMode !== false;
         if (isDark) {
