@@ -45,7 +45,8 @@ console.log(
         config: {},
         _cardWidth: { state: true },
         _rotationTick: { state: true },
-        _panelLeftEl: { state: true },
+        _panelLeftEls: { state: true },
+        _panelRightEls: { state: true },
       };
     }
 
@@ -231,38 +232,47 @@ console.log(
       this._sparklineData = {};
     }
 
-    // Phase A2.1: side-panel embedding engine. Build an HA card element from a
-    // YAML-style config using the official card helpers (the same path
-    // stack-in-card and others use), then keep its `hass` in sync. For A2.1 a
-    // single hard-coded test card is built into the left slot to prove the
-    // mechanism (render + live hass updates) before going config-driven (A2.2).
+    // Phase A2.2: config-driven side-panel embedding. Each slot is a LIST of
+    // HA card configs (left_panel_cards / right_panel_cards), built via the
+    // official window.loadCardHelpers() -> createCardElement() path (same as
+    // stack-in-card) and stacked vertically. hass is forwarded to every child
+    // on each update so they stay live. Empty/missing list -> empty slot.
     async _buildPanelCards() {
       if (this._panelCardsBuilt) return;
       this._panelCardsBuilt = true;
       try {
         const helpers = await window.loadCardHelpers();
-        // A2.1 test card: an entity card bound to a live, frequently-changing
-        // power sensor. Unlike a markdown {{ now() }} (which is time-based and
-        // never re-renders on a hass change), an entity card updates whenever
-        // its entity's state changes -- a valid proof that hass forwarding works.
-        const testConfig = {
-          type: 'entity',
-          entity: 'sensor.solar_house_consumption_w',
-          name: 'A2.1-VERIFY-XR7 Hausverbrauch',
+        const buildList = (configs) => {
+          if (!Array.isArray(configs)) return [];
+          return configs.map((cardConfig) => {
+            let el;
+            try {
+              el = helpers.createCardElement(cardConfig);
+            } catch (e) {
+              // createCardElement throws only on malformed input; fall back to
+              // a warning element so one bad card never blanks the whole slot.
+              el = helpers.createCardElement({ type: 'markdown', content: `⚠️ ${e && e.message ? e.message : 'card error'}` });
+            }
+            if (this.hass) el.hass = this.hass;
+            // Honour ll-rebuild: a child may ask to be recreated (e.g. when its
+            // own config becomes valid). Rebuild in place and re-render.
+            el.addEventListener('ll-rebuild', () => {
+              try {
+                const rebuilt = helpers.createCardElement(cardConfig);
+                if (this.hass) rebuilt.hass = this.hass;
+                const arrL = this._panelLeftEls || [];
+                const arrR = this._panelRightEls || [];
+                const iL = arrL.indexOf(el);
+                if (iL >= 0) { arrL[iL] = rebuilt; this._panelLeftEls = [...arrL]; }
+                const iR = arrR.indexOf(el);
+                if (iR >= 0) { arrR[iR] = rebuilt; this._panelRightEls = [...arrR]; }
+              } catch (e) { /* leave the existing element in place */ }
+            });
+            return el;
+          });
         };
-        const el = helpers.createCardElement(testConfig);
-        if (this.hass) el.hass = this.hass;
-        // createCardElement may return an element that requests a rebuild via
-        // the ll-rebuild event (e.g. when its own config is invalid). Honour it
-        // by recreating the element in place.
-        el.addEventListener('ll-rebuild', () => {
-          try {
-            const rebuilt = helpers.createCardElement(testConfig);
-            if (this.hass) rebuilt.hass = this.hass;
-            this._panelLeftEl = rebuilt;
-          } catch (e) { /* leave the warning element in place */ }
-        });
-        this._panelLeftEl = el; // triggers re-render; Lit embeds the DOM node
+        this._panelLeftEls = buildList(this.config.left_panel_cards);
+        this._panelRightEls = buildList(this.config.right_panel_cards);
       } catch (e) {
         // loadCardHelpers failed -- leave slots empty rather than crashing.
         console.warn('heimdall-flux-card: panel card build failed', e);
@@ -560,10 +570,11 @@ console.log(
         } else {
           this.setAttribute('data-theme-light', '');
         }
-        // Phase A2.1: forward hass to embedded panel cards on every hass update
-        // so they stay live (the common failure mode is setting hass once and
-        // leaving sub-cards frozen).
-        if (this._panelLeftEl) this._panelLeftEl.hass = this.hass;
+        // Phase A2.2: forward hass to every embedded panel card on each hass
+        // update so they stay live (the common failure mode is setting hass
+        // once and leaving sub-cards frozen).
+        if (this._panelLeftEls) this._panelLeftEls.forEach((el) => { if (el) el.hass = this.hass; });
+        if (this._panelRightEls) this._panelRightEls.forEach((el) => { if (el) el.hass = this.hass; });
         // Phase 5.67.2: kick off the sparkline timer once we have hass.
         // This is the bulletproof trigger -- updated() with changedProps.has('hass')
         // is guaranteed to fire whenever hass becomes available, regardless of
@@ -976,10 +987,14 @@ console.log(
         width: 100%;
         box-sizing: border-box;
       }
+      /* Phase A2.2: panel slots are vertical stacks of embedded HA cards.
+         No placeholder border anymore; gap spaces multiple cards. Empty slots
+         simply take no space. */
       .hf-panel {
-        min-height: 120px;
-        border: 1px dashed var(--divider-color, rgba(255, 255, 255, 0.2));
-        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
         box-sizing: border-box;
       }
 
@@ -4483,9 +4498,9 @@ console.log(
       // is sized so panels + center == host exactly (no overflow, no loop).
       return html`
         <div class="hf-side-panels-grid" style="grid-template-columns: ${gridCols}; gap: ${gap}px;">
-          <div class="hf-panel hf-panel-left">${this._panelLeftEl || ''}</div>
+          <div class="hf-panel hf-panel-left">${this._panelLeftEls || ''}</div>
           ${flowBlock}
-          <div class="hf-panel hf-panel-right"></div>
+          <div class="hf-panel hf-panel-right">${this._panelRightEls || ''}</div>
         </div>
       `;
     }
