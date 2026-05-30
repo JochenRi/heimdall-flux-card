@@ -44,6 +44,12 @@ langsScript = langDefinitions + mergeScript;
 
 const imagesScript = '';
 
+// Process yaml-mini (compact dependency-free YAML parser/dumper for the
+// side-panel card editor). Strip its export so it bundles as plain functions.
+console.log('Processing yaml-mini...');
+let yamlMiniContent = fs.readFileSync(path.join(SRC_DIR, 'yaml-mini.js'), 'utf8');
+yamlMiniContent = yamlMiniContent.replace(/export\s*\{[^}]*\};?/g, '');
+
 // Process Editor
 console.log('Processing editor...');
 let editorContent = fs.readFileSync(path.join(SRC_DIR, 'power-flux-card-editor.js'), 'utf8');
@@ -68,6 +74,8 @@ const finalContent = `
  */
 ${langsScript}
 ${imagesScript}
+
+${yamlMiniContent}
 
 ${editorContent}
 
