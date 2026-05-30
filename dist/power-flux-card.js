@@ -6983,6 +6983,7 @@ console.log(
         config: {},
         _cardWidth: { state: true },
         _rotationTick: { state: true },
+        _panelLeftEl: { state: true },
       };
     }
 
@@ -7166,6 +7167,41 @@ console.log(
       // would impact all 66 prior phases), so we use the equivalent Lit
       // lifecycle hook: `updated(changedProperties)`. See _ensureSparklineInit().
       this._sparklineData = {};
+    }
+
+    // Phase A2.1: side-panel embedding engine. Build an HA card element from a
+    // YAML-style config using the official card helpers (the same path
+    // stack-in-card and others use), then keep its `hass` in sync. For A2.1 a
+    // single hard-coded test card is built into the left slot to prove the
+    // mechanism (render + live hass updates) before going config-driven (A2.2).
+    async _buildPanelCards() {
+      if (this._panelCardsBuilt) return;
+      this._panelCardsBuilt = true;
+      try {
+        const helpers = await window.loadCardHelpers();
+        // A2.1 test card: static markdown, no entity dependency, guaranteed to
+        // render -- isolates the embedding mechanism from sensor-name issues.
+        const testConfig = {
+          type: 'markdown',
+          content: '## Panel-Test\\nEmbedding funktioniert. Zeit: {{ now().strftime("%H:%M:%S") }}',
+        };
+        const el = helpers.createCardElement(testConfig);
+        if (this.hass) el.hass = this.hass;
+        // createCardElement may return an element that requests a rebuild via
+        // the ll-rebuild event (e.g. when its own config is invalid). Honour it
+        // by recreating the element in place.
+        el.addEventListener('ll-rebuild', () => {
+          try {
+            const rebuilt = helpers.createCardElement(testConfig);
+            if (this.hass) rebuilt.hass = this.hass;
+            this._panelLeftEl = rebuilt;
+          } catch (e) { /* leave the warning element in place */ }
+        });
+        this._panelLeftEl = el; // triggers re-render; Lit embeds the DOM node
+      } catch (e) {
+        // loadCardHelpers failed -- leave slots empty rather than crashing.
+        console.warn('heimdall-flux-card: panel card build failed', e);
+      }
     }
 
     _ensureSparklineInit() {
@@ -7447,6 +7483,10 @@ console.log(
           const w = this.offsetWidth;
           if (w > 0 && Math.abs(w - (this._cardWidth || 0)) > 1) this._cardWidth = w;
         });
+        // Phase A2.1: build embedded panel cards once side panels are enabled.
+        if (this.config && this.config.side_panels_enabled === true) {
+          this._buildPanelCards();
+        }
       }
       if (changedProps.has('hass') && this.hass) {
         const isDark = this.hass.themes?.darkMode !== false;
@@ -7455,6 +7495,10 @@ console.log(
         } else {
           this.setAttribute('data-theme-light', '');
         }
+        // Phase A2.1: forward hass to embedded panel cards on every hass update
+        // so they stay live (the common failure mode is setting hass once and
+        // leaving sub-cards frozen).
+        if (this._panelLeftEl) this._panelLeftEl.hass = this.hass;
         // Phase 5.67.2: kick off the sparkline timer once we have hass.
         // This is the bulletproof trigger -- updated() with changedProps.has('hass')
         // is guaranteed to fire whenever hass becomes available, regardless of
@@ -11374,7 +11418,7 @@ console.log(
       // is sized so panels + center == host exactly (no overflow, no loop).
       return html`
         <div class="hf-side-panels-grid" style="grid-template-columns: ${gridCols}; gap: ${gap}px;">
-          <div class="hf-panel hf-panel-left"></div>
+          <div class="hf-panel hf-panel-left">${this._panelLeftEl || ''}</div>
           ${flowBlock}
           <div class="hf-panel hf-panel-right"></div>
         </div>
