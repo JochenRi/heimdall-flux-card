@@ -587,6 +587,8 @@ class PowerFluxCardEditor extends LitElement {
             <h2>${this._localize('editor.side_panels_section')}</h2>
         </div>
 
+        ${this._renderPickerAvailabilityDiag()}
+
         <div class="option-group">
             <div class="switch-row">
                 <ha-switch
@@ -632,6 +634,40 @@ class PowerFluxCardEditor extends LitElement {
     // Phase A3.2a: render one panel column's card list with reorder/remove and
     // an add button. The add button currently appends a default card (A3.2a);
     // it becomes the graphical card picker in A3.2b.
+    // Phase A3.2b-1: TEMP diagnostic. Verify whether the internal HA editor
+    // components needed for the graphical picker are registered in this running
+    // frontend, and whether loadCardHelpers() "wakes" them (they are lazy
+    // loaded). Result is shown inline. Removed once A3.2b is wired up.
+    _renderPickerAvailabilityDiag() {
+        const check = () => ({
+            picker: !!customElements.get('hui-card-picker'),
+            editor: !!customElements.get('hui-card-element-editor'),
+        });
+        const before = check();
+        // Attempt to wake the lazy-loaded editor components, then re-check after
+        // the microtask resolves and trigger a re-render with the new state.
+        if (!before.picker || !before.editor) {
+            if (window.loadCardHelpers) {
+                window.loadCardHelpers().then(() => {
+                    // Some HA versions only register these once the card editor
+                    // dialog has been opened; loadCardHelpers may or may not
+                    // pull them in. Re-render to reflect the post-wake state.
+                    this.requestUpdate();
+                });
+            }
+        }
+        const after = check();
+        const mark = (b) => b ? '✅' : '❌';
+        return html`
+        <div style="margin:8px 0; padding:8px 10px; border:1px solid var(--divider-color, rgba(255,255,255,0.2)); border-radius:8px; font-family:monospace; font-size:0.8em; background:rgba(0,0,0,0.2);">
+            <div style="font-weight:bold; margin-bottom:4px;">A3.2b-1 Picker-Verfügbarkeit</div>
+            <div>hui-card-picker: ${mark(after.picker)}</div>
+            <div>hui-card-element-editor: ${mark(after.editor)}</div>
+            <div style="margin-top:4px; color:var(--secondary-text-color);">loadCardHelpers: ${window.loadCardHelpers ? 'vorhanden' : 'fehlt'}</div>
+        </div>
+        `;
+    }
+
     _renderPanelCardList(side) {
         const key = this._panelKey(side);
         const list = Array.isArray(this._config[key]) ? this._config[key] : [];
