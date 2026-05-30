@@ -523,6 +523,54 @@ class PowerFluxCardEditor extends LitElement {
 
     // --- SUBVIEW RENDERING ---
 
+    _renderSidePanelsView() {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._localize('editor.side_panels_section')}</h2>
+        </div>
+
+        <div class="option-group">
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.side_panels_enabled === true}
+                    .configValue=${'side_panels_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.side_panels_enabled')}</div>
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 8px 0 12px 0;">
+                ${this._localize('editor.side_panels_hint')}
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 150, max: 500, step: 10, mode: "slider" } }}
+                    .value=${this._config.side_panel_width !== undefined ? this._config.side_panel_width : 320}
+                    .configValue=${'side_panel_width'}
+                    .label=${this._localize('editor.side_panel_width')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 120, step: 4, mode: "slider" } }}
+                    .value=${this._config.side_panel_gap !== undefined ? this._config.side_panel_gap : 40}
+                    .configValue=${'side_panel_gap'}
+                    .label=${this._localize('editor.side_panel_gap')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+        </div>
+        `;
+    }
+
     _renderSolarView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
         <div class="header">
@@ -5563,6 +5611,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'temp') return this._renderTempView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'donut') return this._renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'side_panels') return this._renderSidePanelsView();
 
 
         // MAIN MENU VIEW
@@ -5642,6 +5691,11 @@ class PowerFluxCardEditor extends LitElement {
         </div>
 
         <div class="section-title">${this._localize('editor.options_section')}</div>
+
+        <div class="menu-item" @click=${() => this._goSubView('side_panels')}>
+            <div class="menu-icon"><ha-icon icon="mdi:view-split-vertical"></ha-icon> ${this._localize('editor.side_panels_section')}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
 
         <!-- Group: Sizing & position -->
         <div class="option-group">

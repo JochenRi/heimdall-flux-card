@@ -177,6 +177,11 @@ const lang_de = {
     "editor.consumer_1_mix_venus_year": "Batterie 2-Anteil Jahr (kWh)",
     "editor.consumer_1_mix_grid_year": "Netz-Anteil Jahr (kWh)",
     "editor.options_section": "Darstellung & Optionen",
+    "editor.side_panels_section": "Seiten-Panels",
+    "editor.side_panels_enabled": "Seiten-Panels aktivieren",
+    "editor.side_panels_hint": "Bettet beliebige HA-Karten links und rechts neben der Visualisierung ein. Benötigt eine breite Karte (volle Spaltenbreite oder Panel-Modus).",
+    "editor.side_panel_width": "Panel-Breite (px)",
+    "editor.side_panel_gap": "Abstand zwischen Panel und Mitte (px)",
     "editor.group_sizing": "Größen & Position",
     "editor.background_padding_section": "Hintergrund-Padding (manuell)",
     "editor.background_padding_top": "Hintergrund-Padding oben (px)",
@@ -641,6 +646,11 @@ const lang_en = {
     "editor.consumer_1_mix_venus_year": "Battery 2 share year (kWh)",
     "editor.consumer_1_mix_grid_year": "Grid share year (kWh)",
     "editor.options_section": "Appearance & Options",
+    "editor.side_panels_section": "Side panels",
+    "editor.side_panels_enabled": "Enable side panels",
+    "editor.side_panels_hint": "Embeds arbitrary HA cards to the left and right of the visualization. Requires a wide card (full column width or panel mode).",
+    "editor.side_panel_width": "Panel width (px)",
+    "editor.side_panel_gap": "Gap between panel and center (px)",
     "editor.group_sizing": "Size & Position",
     "editor.background_padding_section": "Background padding (manual)",
     "editor.background_padding_top": "Background padding top (px)",
@@ -1462,6 +1472,54 @@ class PowerFluxCardEditor extends LitElement {
     }
 
     // --- SUBVIEW RENDERING ---
+
+    _renderSidePanelsView() {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._localize('editor.side_panels_section')}</h2>
+        </div>
+
+        <div class="option-group">
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.side_panels_enabled === true}
+                    .configValue=${'side_panels_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.side_panels_enabled')}</div>
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 8px 0 12px 0;">
+                ${this._localize('editor.side_panels_hint')}
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 150, max: 500, step: 10, mode: "slider" } }}
+                    .value=${this._config.side_panel_width !== undefined ? this._config.side_panel_width : 320}
+                    .configValue=${'side_panel_width'}
+                    .label=${this._localize('editor.side_panel_width')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 120, step: 4, mode: "slider" } }}
+                    .value=${this._config.side_panel_gap !== undefined ? this._config.side_panel_gap : 40}
+                    .configValue=${'side_panel_gap'}
+                    .label=${this._localize('editor.side_panel_gap')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+        </div>
+        `;
+    }
 
     _renderSolarView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
@@ -6503,6 +6561,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'temp') return this._renderTempView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'donut') return this._renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'side_panels') return this._renderSidePanelsView();
 
 
         // MAIN MENU VIEW
@@ -6582,6 +6641,11 @@ class PowerFluxCardEditor extends LitElement {
         </div>
 
         <div class="section-title">${this._localize('editor.options_section')}</div>
+
+        <div class="menu-item" @click=${() => this._goSubView('side_panels')}>
+            <div class="menu-icon"><ha-icon icon="mdi:view-split-vertical"></ha-icon> ${this._localize('editor.side_panels_section')}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
 
         <!-- Group: Sizing & position -->
         <div class="option-group">
