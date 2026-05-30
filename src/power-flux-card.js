@@ -241,11 +241,14 @@ console.log(
       this._panelCardsBuilt = true;
       try {
         const helpers = await window.loadCardHelpers();
-        // A2.1 test card: static markdown, no entity dependency, guaranteed to
-        // render -- isolates the embedding mechanism from sensor-name issues.
+        // A2.1 test card: an entity card bound to a live, frequently-changing
+        // power sensor. Unlike a markdown {{ now() }} (which is time-based and
+        // never re-renders on a hass change), an entity card updates whenever
+        // its entity's state changes -- a valid proof that hass forwarding works.
         const testConfig = {
-          type: 'markdown',
-          content: '## Panel-Test\\nEmbedding funktioniert. Zeit: {{ now().strftime("%H:%M:%S") }}',
+          type: 'entity',
+          entity: 'sensor.solar_house_consumption_w',
+          name: 'Panel-Test (Hausverbrauch)',
         };
         const el = helpers.createCardElement(testConfig);
         if (this.hass) el.hass = this.hass;
