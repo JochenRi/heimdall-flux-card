@@ -9569,21 +9569,25 @@ console.log(
       const sidePanelGap = this.config.side_panel_gap !== undefined ? this.config.side_panel_gap : 40;
       const sidePanelReserve = sidePanelsOn ? (2 * sidePanelWidth + 2 * sidePanelGap) : 0;
       const availableWidth = Math.max(designWidth * 0.5, measuredWidth - sidePanelReserve);
-      const baseScale = availableWidth / designWidth;
       const userZoom = this.config.zoom !== undefined ? this.config.zoom : 0.9;
-      let scale = baseScale * userZoom;
+      // Phase A1.9: zoom is now a DIRECT scale factor with one stable meaning in
+      // BOTH modes: zoom 1.0 == design surface 1:1 (the 800px layout renders at
+      // 800px on screen). Previously scale = baseScale * zoom, where baseScale
+      // (availableWidth/800) auto-inflated the layout to fill the container and
+      // zoom only corrected afterwards -- so the same visual size needed
+      // different zoom values with vs. without panels (verified: 0.5 vs 1.0 for
+      // this user). Decoupling baseScale makes zoom predictable and portable.
+      // NOTE: full-bleed dashboards tuned to the old behaviour need a one-time
+      // zoom adjustment (old 0.5 ~= new 1.0).
+      let scale = userZoom;
 
-      // Phase 5.16: smart-cap removed -- user can choose zoom > 1.0 to make
-      // the card larger than its container (it will overflow vertically).
       // Lower bound kept at 0.5 to prevent unreadably small layouts.
       if (scale < 0.5) scale = 0.5;
 
-      // Phase A1.5: in side-panels mode the visual MUST fit inside the center
-      // column. If zoom pushes visualWidth past availableWidth, the visual
-      // overflows into the panels and past the viewport edge (-> scrollbar
-      // appears/disappears -> flicker, and the visual is no longer centered).
-      // Cap the scale so visualWidth == availableWidth; centerMarginLeft then
-      // centers it cleanly between the panels.
+      // Phase A1.5/A1.9: in side-panels mode the visual MUST fit inside the
+      // center column. Cap scale so visualWidth <= availableWidth; the visual
+      // then centers cleanly via centerMarginLeft. (No-panels mode is uncapped,
+      // so zoom > 1.0 can intentionally overflow vertically as before.)
       if (sidePanelsOn) {
         const centerFitScale = availableWidth / designWidth;
         if (scale > centerFitScale) scale = centerFitScale;
