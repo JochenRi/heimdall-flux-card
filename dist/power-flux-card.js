@@ -182,6 +182,10 @@ const lang_de = {
     "editor.side_panels_hint": "Bettet beliebige HA-Karten links und rechts neben der Visualisierung ein. Benötigt eine breite Karte (volle Spaltenbreite oder Panel-Modus).",
     "editor.side_panel_width": "Panel-Breite (px)",
     "editor.side_panel_gap": "Abstand zwischen Panel und Mitte (px)",
+    "editor.side_panel_left_title": "Linke Spalte – Karten",
+    "editor.side_panel_right_title": "Rechte Spalte – Karten",
+    "editor.side_panel_add_card": "Karte hinzufügen",
+    "editor.side_panel_no_cards": "Noch keine Karten",
     "editor.group_sizing": "Größen & Position",
     "editor.background_padding_section": "Hintergrund-Padding (manuell)",
     "editor.background_padding_top": "Hintergrund-Padding oben (px)",
@@ -651,6 +655,10 @@ const lang_en = {
     "editor.side_panels_hint": "Embeds arbitrary HA cards to the left and right of the visualization. Requires a wide card (full column width or panel mode).",
     "editor.side_panel_width": "Panel width (px)",
     "editor.side_panel_gap": "Gap between panel and center (px)",
+    "editor.side_panel_left_title": "Left column – cards",
+    "editor.side_panel_right_title": "Right column – cards",
+    "editor.side_panel_add_card": "Add card",
+    "editor.side_panel_no_cards": "No cards yet",
     "editor.group_sizing": "Size & Position",
     "editor.background_padding_section": "Background padding (manual)",
     "editor.background_padding_top": "Background padding top (px)",
@@ -1178,6 +1186,61 @@ class PowerFluxCardEditor extends LitElement {
         fireEvent(this, "config-changed", { config: this._config });
     }
 
+    // Phase A3.2a: side-panel card-list management. Each panel is an array under
+    // left_panel_cards / right_panel_cards. These helpers add/remove/reorder
+    // entries immutably and fire config-changed, following the same pattern as
+    // _colorChanged/_clearEntity above. The graphical picker (A3.2b) and the
+    // per-card editor (A3.2c) build on top of this.
+    _panelKey(side) {
+        return side === 'left' ? 'left_panel_cards' : 'right_panel_cards';
+    }
+
+    _panelAddCard(side) {
+        const key = this._panelKey(side);
+        const list = Array.isArray(this._config[key]) ? [...this._config[key]] : [];
+        // A3.2a default: a minimal, valid card the user can refine. Replaced by
+        // the real card picker in A3.2b.
+        list.push({ type: 'entities', entities: [] });
+        const newConfig = { ...this._config, [key]: list };
+        this._config = newConfig;
+        fireEvent(this, "config-changed", { config: this._config });
+    }
+
+    _panelRemoveCard(side, index) {
+        const key = this._panelKey(side);
+        if (!Array.isArray(this._config[key])) return;
+        const list = this._config[key].filter((_, i) => i !== index);
+        const newConfig = { ...this._config, [key]: list };
+        this._config = newConfig;
+        fireEvent(this, "config-changed", { config: this._config });
+    }
+
+    _panelMoveCard(side, index, dir) {
+        const key = this._panelKey(side);
+        if (!Array.isArray(this._config[key])) return;
+        const list = [...this._config[key]];
+        const target = index + dir;
+        if (target < 0 || target >= list.length) return;
+        [list[index], list[target]] = [list[target], list[index]];
+        const newConfig = { ...this._config, [key]: list };
+        this._config = newConfig;
+        fireEvent(this, "config-changed", { config: this._config });
+    }
+
+    // Compact human-readable label for a card config in the list.
+    _panelCardLabel(cardConfig) {
+        if (!cardConfig || typeof cardConfig !== 'object') return '?';
+        const type = (cardConfig.type || '?').replace('custom:', '');
+        const ref = cardConfig.entity
+            || (Array.isArray(cardConfig.entities) && cardConfig.entities.length
+                ? (cardConfig.entities[0].entity || cardConfig.entities[0])
+                : null)
+            || cardConfig.camera_image
+            || cardConfig.title
+            || cardConfig.name;
+        return ref ? `${type}: ${ref}` : type;
+    }
+
     _renderEntitySelector(entitySelectorSchema, value, configValue, label) {
         const val = value || "";
             return html`
@@ -1516,6 +1579,53 @@ class PowerFluxCardEditor extends LitElement {
                     .label=${this._localize('editor.side_panel_gap')}
                     @value-changed=${this._valueChanged}
                 ></ha-selector>
+            </div>
+        </div>
+
+        ${this._renderPanelCardList('left')}
+        ${this._renderPanelCardList('right')}
+        `;
+    }
+
+    // Phase A3.2a: render one panel column's card list with reorder/remove and
+    // an add button. The add button currently appends a default card (A3.2a);
+    // it becomes the graphical card picker in A3.2b.
+    _renderPanelCardList(side) {
+        const key = this._panelKey(side);
+        const list = Array.isArray(this._config[key]) ? this._config[key] : [];
+        const title = side === 'left'
+            ? this._localize('editor.side_panel_left_title')
+            : this._localize('editor.side_panel_right_title');
+        return html`
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon=${side === 'left' ? 'mdi:dock-left' : 'mdi:dock-right'}></ha-icon>
+                ${title}
+            </div>
+
+            ${list.length === 0
+                ? html`<div style="font-size: 0.85em; color: var(--secondary-text-color); padding: 4px 0;">${this._localize('editor.side_panel_no_cards')}</div>`
+                : list.map((cardConfig, index) => html`
+                    <div class="panel-card-row" style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--divider-color, rgba(255,255,255,0.1));">
+                        <ha-icon icon="mdi:card-outline" style="--mdc-icon-size:18px; color:var(--secondary-text-color);"></ha-icon>
+                        <span style="flex:1; font-size:0.9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._panelCardLabel(cardConfig)}</span>
+                        <ha-icon-button .disabled=${index === 0} @click=${() => this._panelMoveCard(side, index, -1)} title="↑">
+                            <ha-icon icon="mdi:arrow-up"></ha-icon>
+                        </ha-icon-button>
+                        <ha-icon-button .disabled=${index === list.length - 1} @click=${() => this._panelMoveCard(side, index, 1)} title="↓">
+                            <ha-icon icon="mdi:arrow-down"></ha-icon>
+                        </ha-icon-button>
+                        <ha-icon-button @click=${() => this._panelRemoveCard(side, index)} title="✕">
+                            <ha-icon icon="mdi:delete" style="color:var(--error-color, #db4437);"></ha-icon>
+                        </ha-icon-button>
+                    </div>
+                `)}
+
+            <div style="margin-top:10px;">
+                <ha-button @click=${() => this._panelAddCard(side)}>
+                    <ha-icon icon="mdi:plus" slot="icon"></ha-icon>
+                    ${this._localize('editor.side_panel_add_card')}
+                </ha-button>
             </div>
         </div>
         `;
