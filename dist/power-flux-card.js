@@ -9552,7 +9552,7 @@ console.log(
       const measuredWidth = this._cardWidth || designWidth;
       const sidePanelsOn = this.config.side_panels_enabled === true;
       const sidePanelWidth = this.config.side_panel_width !== undefined ? this.config.side_panel_width : 320;
-      const sidePanelGap = 12;
+      const sidePanelGap = this.config.side_panel_gap !== undefined ? this.config.side_panel_gap : 40;
       const sidePanelReserve = sidePanelsOn ? (2 * sidePanelWidth + 2 * sidePanelGap) : 0;
       const availableWidth = Math.max(designWidth * 0.5, measuredWidth - sidePanelReserve);
       const baseScale = availableWidth / designWidth;
@@ -11347,7 +11347,7 @@ console.log(
       }
 
       const panelW = this.config.side_panel_width !== undefined ? this.config.side_panel_width : 320;
-      const gap = 12;
+      const gap = this.config.side_panel_gap !== undefined ? this.config.side_panel_gap : 40;
       const hostW = this._cardWidth || 1200;
       const centerW = Math.max(400, hostW - 2 * panelW - 2 * gap);
       const gridCols = `${panelW}px ${centerW}px ${panelW}px`;
