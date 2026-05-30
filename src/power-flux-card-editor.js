@@ -269,6 +269,42 @@ class PowerFluxCardEditor extends LitElement {
         fireEvent(this, "config-changed", { config: this._config });
     }
 
+    // Phase A3.2b: apply edited YAML for one card. Parsed only on value-changed
+    // (fires when the textarea commits, not per keystroke). Invalid YAML leaves
+    // the existing config untouched and records an error to show inline -- a bad
+    // paste must never destroy the config. State is kept per-side+index.
+    _panelCardYamlChanged(side, index, ev) {
+        const text = ev && ev.detail && 'value' in ev.detail ? ev.detail.value : (ev.target ? ev.target.value : '');
+        const errKey = `${side}:${index}`;
+        if (!this._panelYamlErrors) this._panelYamlErrors = {};
+        let parsed;
+        try {
+            parsed = yamlMiniParse(text);
+        } catch (e) {
+            this._panelYamlErrors = { ...this._panelYamlErrors, [errKey]: (e && e.message) ? e.message : 'YAML-Fehler' };
+            this.requestUpdate();
+            return;
+        }
+        if (parsed === null || parsed === undefined || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            this._panelYamlErrors = { ...this._panelYamlErrors, [errKey]: 'Eine Karte muss ein YAML-Mapping mit "type:" sein.' };
+            this.requestUpdate();
+            return;
+        }
+        // valid: clear any prior error and write the card back into the list
+        if (this._panelYamlErrors[errKey]) {
+            const cleared = { ...this._panelYamlErrors };
+            delete cleared[errKey];
+            this._panelYamlErrors = cleared;
+        }
+        const key = this._panelKey(side);
+        if (!Array.isArray(this._config[key])) return;
+        const list = [...this._config[key]];
+        list[index] = parsed;
+        const newConfig = { ...this._config, [key]: list };
+        this._config = newConfig;
+        fireEvent(this, "config-changed", { config: this._config });
+    }
+
     // Compact human-readable label for a card config in the list.
     _panelCardLabel(cardConfig) {
         if (!cardConfig || typeof cardConfig !== 'object') return '?';
@@ -647,21 +683,35 @@ class PowerFluxCardEditor extends LitElement {
 
             ${list.length === 0
                 ? html`<div style="font-size: 0.85em; color: var(--secondary-text-color); padding: 4px 0;">${this._localize('editor.side_panel_no_cards')}</div>`
-                : list.map((cardConfig, index) => html`
-                    <div class="panel-card-row" style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--divider-color, rgba(255,255,255,0.1));">
-                        <ha-icon icon="mdi:card-outline" style="--mdc-icon-size:18px; color:var(--secondary-text-color);"></ha-icon>
-                        <span style="flex:1; font-size:0.9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._panelCardLabel(cardConfig)}</span>
-                        <ha-icon-button .disabled=${index === 0} @click=${() => this._panelMoveCard(side, index, -1)} title="↑">
-                            <ha-icon icon="mdi:arrow-up"></ha-icon>
-                        </ha-icon-button>
-                        <ha-icon-button .disabled=${index === list.length - 1} @click=${() => this._panelMoveCard(side, index, 1)} title="↓">
-                            <ha-icon icon="mdi:arrow-down"></ha-icon>
-                        </ha-icon-button>
-                        <ha-icon-button @click=${() => this._panelRemoveCard(side, index)} title="✕">
-                            <ha-icon icon="mdi:delete" style="color:var(--error-color, #db4437);"></ha-icon>
-                        </ha-icon-button>
-                    </div>
-                `)}
+                : list.map((cardConfig, index) => {
+                    const errKey = `${side}:${index}`;
+                    const err = this._panelYamlErrors ? this._panelYamlErrors[errKey] : null;
+                    let yamlText = '';
+                    try { yamlText = yamlMiniDump(cardConfig); } catch (e) { yamlText = ''; }
+                    return html`
+                    <ha-expansion-panel outlined .header=${this._panelCardLabel(cardConfig)}>
+                        <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                            <span style="flex:1; font-size:0.85em; color:var(--secondary-text-color);">${this._localize('editor.side_panel_card_yaml')}</span>
+                            <ha-icon-button .disabled=${index === 0} @click=${() => this._panelMoveCard(side, index, -1)} title="↑">
+                                <ha-icon icon="mdi:arrow-up"></ha-icon>
+                            </ha-icon-button>
+                            <ha-icon-button .disabled=${index === list.length - 1} @click=${() => this._panelMoveCard(side, index, 1)} title="↓">
+                                <ha-icon icon="mdi:arrow-down"></ha-icon>
+                            </ha-icon-button>
+                            <ha-icon-button @click=${() => this._panelRemoveCard(side, index)} title="✕">
+                                <ha-icon icon="mdi:delete" style="color:var(--error-color, #db4437);"></ha-icon>
+                            </ha-icon-button>
+                        </div>
+                        <ha-selector
+                            .hass=${this.hass}
+                            .selector=${{ text: { multiline: true } }}
+                            .value=${yamlText}
+                            @value-changed=${(ev) => this._panelCardYamlChanged(side, index, ev)}
+                        ></ha-selector>
+                        ${err ? html`<div style="color:var(--error-color, #db4437); font-size:0.8em; margin-top:6px;">⚠️ ${err}</div>` : ''}
+                    </ha-expansion-panel>
+                    `;
+                })}
 
             <div style="margin-top:10px;">
                 <ha-button @click=${() => this._panelAddCard(side)}>

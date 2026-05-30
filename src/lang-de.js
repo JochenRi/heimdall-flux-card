@@ -181,6 +181,7 @@ export default {
     "editor.side_panel_right_title": "Rechte Spalte – Karten",
     "editor.side_panel_add_card": "Karte hinzufügen",
     "editor.side_panel_no_cards": "Noch keine Karten",
+    "editor.side_panel_card_yaml": "Karten-Konfiguration (YAML)",
     "editor.group_sizing": "Größen & Position",
     "editor.background_padding_section": "Hintergrund-Padding (manuell)",
     "editor.background_padding_top": "Hintergrund-Padding oben (px)",

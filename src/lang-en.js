@@ -181,6 +181,7 @@ export default {
     "editor.side_panel_right_title": "Right column – cards",
     "editor.side_panel_add_card": "Add card",
     "editor.side_panel_no_cards": "No cards yet",
+    "editor.side_panel_card_yaml": "Card configuration (YAML)",
     "editor.group_sizing": "Size & Position",
     "editor.background_padding_section": "Background padding (manual)",
     "editor.background_padding_top": "Background padding top (px)",
