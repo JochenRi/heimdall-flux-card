@@ -7186,7 +7186,7 @@ console.log(
         const testConfig = {
           type: 'entity',
           entity: 'sensor.solar_house_consumption_w',
-          name: 'Panel-Test (Hausverbrauch)',
+          name: 'A2.1-VERIFY-XR7 Hausverbrauch',
         };
         const el = helpers.createCardElement(testConfig);
         if (this.hass) el.hass = this.hass;
