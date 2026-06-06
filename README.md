@@ -147,18 +147,6 @@ show_neon_glow: true
 
 ---
 
-## Documentation
-
-Full documentation lives in [`docs/`](docs/index.md), organized the
-[Diátaxis](https://diataxis.fr/) way:
-
-- [Getting started](docs/getting-started.md) — set the card up step by step
-- [Installation](docs/installation.md) — HACS and manual
-- [Configuration reference](docs/configuration.md) — every option
-- [Features explained](docs/features.md) — what each element means
-- [Troubleshooting](docs/troubleshooting.md) — common fixes
-- [Development](docs/development.md) — architecture and build
-
 ## Screenshots
 
 The card in its full three-column layout, with optional side panels for weather, a camera, and entity tiles. On narrow screens the side panels collapse into a single stacked column for mobile use.
