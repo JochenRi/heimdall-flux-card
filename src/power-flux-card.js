@@ -2280,8 +2280,18 @@ console.log(
       const sidePanelsOn = this.config.side_panels_enabled === true;
       const sidePanelWidth = this.config.side_panel_width !== undefined ? this.config.side_panel_width : 320;
       const sidePanelGap = this.config.side_panel_gap !== undefined ? this.config.side_panel_gap : 40;
-      const sidePanelReserve = sidePanelsOn ? (2 * sidePanelWidth + 2 * sidePanelGap) : 0;
-      const availableWidth = Math.max(designWidth * 0.5, measuredWidth - sidePanelReserve);
+      // Responsive collapse: when the two panels + a usable center (>= half the
+      // design width) no longer fit the host, stack panels full-width instead of
+      // forcing a 3-column grid that overflows on mobile. Same threshold as the
+      // render() grid so layout and scale always agree. Stacked -> no reserve,
+      // the flow fills the full width.
+      const sidePanelsStacked = sidePanelsOn && ((this._cardWidth || 1200) - (2 * sidePanelWidth + 2 * sidePanelGap) < designWidth * 0.5);
+      const sidePanelReserve = (sidePanelsOn && !sidePanelsStacked) ? (2 * sidePanelWidth + 2 * sidePanelGap) : 0;
+      // Stacked: the flow owns the full width, so fit it exactly (no 0.5-floor,
+      // which would otherwise force 400px and overflow a ~380px phone by 20px).
+      const availableWidth = sidePanelsStacked
+        ? measuredWidth
+        : Math.max(designWidth * 0.5, measuredWidth - sidePanelReserve);
       const userZoom = this.config.zoom !== undefined ? this.config.zoom : 0.9;
       // Phase A1.9: zoom is now a DIRECT scale factor with one stable meaning in
       // BOTH modes: zoom 1.0 == design surface 1:1 (the 800px layout renders at
@@ -4085,10 +4095,12 @@ console.log(
       const gap = this.config.side_panel_gap !== undefined ? this.config.side_panel_gap : 40;
       const hostW = this._cardWidth || 1200;
       const centerW = Math.max(400, hostW - 2 * panelW - 2 * gap);
-      const gridCols = `${panelW}px ${centerW}px ${panelW}px`;
-      // Phase A1: fixed 3-column grid (panel | center | panel). Slots are empty
-      // for now; phase A2 fills them with embedded HA cards. The center column
-      // is sized so panels + center == host exactly (no overflow, no loop).
+      // Responsive collapse: below the width where panels + a usable center fit,
+      // stack everything into a single full-width column (panels above/below the
+      // flow) instead of a 3-column grid that overflows on mobile. Same threshold
+      // as the scale calc (sidePanelsStacked) so layout and scale agree.
+      const stacked = (hostW - 2 * panelW - 2 * gap) < 400;
+      const gridCols = stacked ? '1fr' : `${panelW}px ${centerW}px ${panelW}px`;
       return html`
         <div class="hf-side-panels-grid" style="grid-template-columns: ${gridCols}; gap: ${gap}px;">
           <div class="hf-panel hf-panel-left">${this._panelLeftEls || ''}</div>
