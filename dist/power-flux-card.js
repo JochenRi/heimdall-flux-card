@@ -9802,13 +9802,20 @@ console.log(
       // Lower bound kept at 0.5 to prevent unreadably small layouts.
       if (scale < 0.5) scale = 0.5;
 
-      // Phase A1.5/A1.9: in side-panels mode the visual MUST fit inside the
-      // center column. Cap scale so visualWidth <= availableWidth; the visual
-      // then centers cleanly via centerMarginLeft. (No-panels mode is uncapped,
-      // so zoom > 1.0 can intentionally overflow vertically as before.)
       if (sidePanelsOn) {
+        // Phase A1.5/A1.9: in side-panels mode the visual MUST fit inside the
+        // center column. Cap scale so visualWidth <= availableWidth.
         const centerFitScale = availableWidth / designWidth;
         if (scale > centerFitScale) scale = centerFitScale;
+      } else {
+        // No-panels: fit the visual to the real host width so a wide 800px
+        // layout never overflows a narrow cell (mobile). Shrink below the zoom
+        // floor only as far as needed to fit; never inflate above the user's
+        // zoom on wide screens (so zoom>1 vertical overflow is preserved). No
+        // horizontal scroll is introduced, so ha-card overflow:visible (used by
+        // the mix-rings extending beyond bubbles) stays intact.
+        const fitScale = measuredWidth / designWidth;
+        if (fitScale < scale) scale = fitScale;
       }
 
       const finalCardHeightPx = contentHeight * scale;
