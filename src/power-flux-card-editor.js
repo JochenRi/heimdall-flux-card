@@ -6072,24 +6072,6 @@ class PowerFluxCardEditor extends LitElement {
 
             <div class="switch-row">
                 <ha-switch
-                    .checked=${this._config.compact_view === true}
-                    .configValue=${'compact_view'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.compact_view')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.compact_details === true}
-                    .configValue=${'compact_details'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.compact_details')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
                     .checked=${this._config.side_panels_enabled === true}
                     .configValue=${'side_panels_enabled'}
                     @change=${this._valueChanged}
