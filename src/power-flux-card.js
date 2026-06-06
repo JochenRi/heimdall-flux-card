@@ -43,22 +43,11 @@ console.log(
       return {
         hass: {},
         config: {},
-        preview: { type: Boolean },
-        editMode: { type: Boolean },
         _cardWidth: { state: true },
         _rotationTick: { state: true },
         _panelLeftEls: { state: true },
         _panelRightEls: { state: true },
       };
-    }
-
-    // True while the card is rendered inside the card editor preview pane
-    // (this.preview) or while the dashboard is in edit mode (this.editMode).
-    // Used to suppress the side panels there, since the narrow editor column
-    // squeezes the full-width 3-column layout. On a live dashboard both are
-    // undefined, so this is false and the normal layout is preserved.
-    get _inEditor() {
-      return this.preview === true || this.editMode === true;
     }
 
     _localize(key) {
@@ -2288,7 +2277,7 @@ console.log(
       // scales to fit the center. _cardWidth is the HOST width (stable, never
       // circular), so this is a closed calculation: panels + center == host.
       const measuredWidth = this._cardWidth || designWidth;
-      const sidePanelsOn = this.config.side_panels_enabled === true && !this._inEditor;
+      const sidePanelsOn = this.config.side_panels_enabled === true;
       const sidePanelWidth = this.config.side_panel_width !== undefined ? this.config.side_panel_width : 320;
       const sidePanelGap = this.config.side_panel_gap !== undefined ? this.config.side_panel_gap : 40;
       // Responsive collapse: when the two panels + a usable center (>= half the
@@ -4098,7 +4087,7 @@ console.log(
       // overflow, no feedback loop). center = host - 2*panelW - 2*gap.
       const flowBlock = html`<div class="hf-flow-host">${inner}</div>`;
 
-      if (this.config.side_panels_enabled !== true || this._inEditor) {
+      if (this.config.side_panels_enabled !== true) {
         return flowBlock;
       }
 
