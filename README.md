@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/github/license/JochenRi/heimdall-flux-card?style=flat-square)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/JochenRi/heimdall-flux-card?style=flat-square)](https://github.com/JochenRi/heimdall-flux-card/commits/main)
 [![Support the original author](https://img.shields.io/badge/support%20the%20original%20author-PayPal-ff5e5b?style=flat-square)](https://www.paypal.me/quadFlyerFW)
+[![Support this fork](https://img.shields.io/badge/support%20this%20fork-PayPal-607d8b?style=flat-square)](https://paypal.me/JohannesRichter06)
 
 An animated power-flow card for Home Assistant, adapted for **dual-battery energy systems** with many tracked consumers.
 
@@ -153,6 +154,19 @@ The card in its full three-column layout, with optional side panels for weather,
 <p align="center">
   <img src="docs/images/heimdall-flux-card-overview.png" alt="Three-column overview with side panels" width="900">
 </p>
+
+---
+
+## Support
+
+This card is built entirely on the original Power Flux Card. **If you find it useful, please support the original author first** — the upstream project is the foundation for everything here:
+
+- ⭐ Star [Power Flux Card](https://github.com/jayjojayson/power-flux-card)
+- ☕ Support **@jayjojayson** (original author): https://www.paypal.me/quadFlyerFW
+
+If you would *additionally* like to support the ongoing upkeep of **this dual-battery fork**, that is very welcome — but entirely optional, and never instead of the original:
+
+- ☕ Support this fork's upkeep: https://paypal.me/JohannesRichter06
 
 ---
 

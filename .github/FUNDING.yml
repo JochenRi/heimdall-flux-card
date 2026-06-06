@@ -1,3 +1,7 @@
----
+# Sponsor-button funding links for this repository.
+# The original author (jayjojayson) is listed first, on purpose: this is a
+# fork, and the upstream Power Flux Card is the foundation for everything here.
 ko_fi: jayjojayson
-custom: ["https://www.paypal.me/quadFlyerFW"]
+custom:
+  - "https://www.paypal.me/quadFlyerFW"    # original author of Power Flux Card
+  - "https://paypal.me/JohannesRichter06"  # upkeep of this dual-battery fork
