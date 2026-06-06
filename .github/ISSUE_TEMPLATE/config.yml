@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Universal / single-battery power flow card
+    url: https://github.com/jayjojayson/power-flux-card
+    about: This is a personal dual-battery fork. For a universal, single-battery card, please use and support the original Power Flux Card.
+  - name: HACS installation help
+    url: https://hacs.xyz/docs/faq/custom_repositories/
+    about: How to add and install a custom repository in HACS.
+  - name: Home Assistant Community
+    url: https://community.home-assistant.io/
+    about: General Home Assistant questions are best asked in the community forum.

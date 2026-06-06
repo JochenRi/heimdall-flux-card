@@ -1,0 +1,48 @@
+name: Bug report
+description: Report a problem specific to the HEIMDALL Flux Card (dual-battery fork)
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a report. This is a personal
+        dual-battery fork of Power Flux Card; for the universal card, please
+        use the original. Please fill in the fields below so the issue can be
+        reproduced.
+  - type: input
+    id: card_version
+    attributes:
+      label: Card version
+      description: HEIMDALL Flux Card version (e.g. v1.0.0) or the HACS commit hash.
+    validations:
+      required: true
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      description: e.g. 2026.6.0
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: Browser / app
+      description: e.g. Chrome 126, or Home Assistant Companion App (Android/iOS)
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened?
+      description: What did you expect to happen, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Card configuration (YAML)
+      description: Paste the card YAML. Redact sensitive entity names if needed.
+      render: yaml
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag-and-drop screenshots if they help illustrate the problem.
