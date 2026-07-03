@@ -2212,7 +2212,14 @@ console.log(
       // Venus charge via house toggle (mirrors battery_charge_via_house)
       const venusChargeViaHouse = this.config.venus_charge_via_house === true;
 
-      if (hasVenus && venusCharge > 0) {
+      // Venus D topology: dedicated PV-charge sensor (MPPT inputs sit BEHIND the
+      // storage, so PV charge is invisible in the AC-side venus register).
+      // Takes precedence over the register-based calculation below.
+      const hasVenusPvSensor = !!(entities.venus_pv_charge && entities.venus_pv_charge !== "");
+      if (hasVenusPvSensor) {
+        solarToVenus = Math.min(solarVal, Math.max(0, getVal(entities.venus_pv_charge)));
+        gridToVenus = 0;
+      } else if (hasVenus && venusCharge > 0) {
         if (venusChargeViaHouse) {
           // Venus charges via house: no direct solar→venus or grid→venus pipes
           solarToVenus = 0;
@@ -2230,7 +2237,7 @@ console.log(
         }
       }
 
-      let solarToHouse = Math.max(0, solarVal - solarToBatt - gridExport);
+      let solarToHouse = Math.max(0, solarVal - solarToBatt - solarToVenus - gridExport);
       let gridToHouse = Math.max(0, gridImport - gridToBatt);
       const house = solarToHouse + gridToHouse + batteryDischarge + venusDischarge;
 
