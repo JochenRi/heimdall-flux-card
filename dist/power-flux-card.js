@@ -11290,11 +11290,13 @@ console.log(
       // Phase BKW-3: pass-through path. Physically the energy still travels
       // through the venus, but drawing it straight to the house is what makes
       // the garden readable as a producer -- same treatment the roof gets.
-      // Phase BKW-4: swings left immediately instead of dropping vertically.
-      // The climate bubble sits at 680/219 as an HTML element ABOVE the svg,
-      // so a vertical run at x=705 was hidden behind it. This curve clears
-      // x=680 while still at y<185, well above the climate bubble's top edge.
-      const pathBkwHouse = "M 700 172 Q 605 245 450 308";
+      // Phase BKW-5: follows the house-path idiom used everywhere else --
+      // drop vertically, then sweep horizontally with the control point in the
+      // corner. Anchored at x=670 (the bubble's left edge) rather than its
+      // centre, because the climate bubble occupies x>=680 as an HTML element
+      // ABOVE the svg and would hide a stroke running behind it. Ends 12px
+      // below pathVenusHouse so the two stay readable side by side.
+      const pathBkwHouse = "M 670 172 Q 670 302 450 302";
       const pathHouseToVenus = "M 445 290 Q 565 290 565 170";
       // Phase 5.9: restore curved pipe aesthetic from phase 5.5 for c1-c5
       // (matches the visual style of the upstream card). For c6/c7 the
