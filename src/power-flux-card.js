@@ -2723,6 +2723,51 @@ console.log(
         // else: both essentially zero -> donut off, normal yellow border.
       }
 
+      // Phase BKW-6: production ring for the garden plant. Deliberately mirrors
+      // the solar donut above, INCLUDING its semantics: the forecast entity
+      // carries what is STILL expected today, not the daily total. Feeding a
+      // daily total in here would show ~50% remaining at dusk on a finished
+      // day. Use a "*_remaining"-style sensor.
+      let bkwGradientVal = '';
+      let bkwDonutActive = false;
+
+      const bkwDonutMode = this.config.bkw_donut_today_mode === true;
+      const bkwProducedEnt = entities.bkw_donut_produced_today;
+      const bkwForecastEnt = entities.bkw_donut_forecast_today;
+      const hasBkwDonutSensors = !!((bkwProducedEnt && bkwProducedEnt !== "") && (bkwForecastEnt && bkwForecastEnt !== ""));
+
+      if (hasBkw && bkwDonutMode && hasBkwDonutSensors) {
+        const safeReadBkw = (ent) => {
+          if (!ent || ent === "") return 0;
+          const v = parseFloat(getVal(ent));
+          return isNaN(v) || v < 0 ? 0 : v;
+        };
+        const bkwProduced = safeReadBkw(bkwProducedEnt);
+        const bkwRemaining = safeReadBkw(bkwForecastEnt);
+        const bkwTotal = bkwProduced + bkwRemaining;
+
+        const BKW_PRODUCED_MIN_KWH = 0.1;
+        const BKW_REMAINING_MIN_KWH = 0.05;
+
+        if (bkwTotal >= BKW_PRODUCED_MIN_KWH) {
+          if (bkwRemaining >= BKW_REMAINING_MIN_KWH) {
+            const bkwRemainingPct = (bkwRemaining / bkwTotal) * 100;
+            const bkwHarvestedPct = 100 - bkwRemainingPct;
+            let bkwStops = [];
+            let bkwCurrent = 0;
+            if (bkwRemainingPct > 0) { bkwStops.push(`var(--pipe-solar-color) ${bkwCurrent}% ${bkwCurrent + bkwRemainingPct}%`); bkwCurrent += bkwRemainingPct; }
+            if (bkwHarvestedPct > 0) { bkwStops.push(`var(--solar-donut-rest-color, rgba(160, 160, 160, 0.7)) ${bkwCurrent}% 100%`); }
+            bkwGradientVal = `conic-gradient(from 330deg, ${bkwStops.join(', ')})`;
+            bkwDonutActive = true;
+          }
+          // else: day essentially done -> ring off, plain border.
+        } else if (bkwRemaining >= BKW_REMAINING_MIN_KWH) {
+          // Pre-sunrise: nothing harvested yet, whole day still ahead.
+          bkwGradientVal = 'var(--pipe-solar-color)';
+          bkwDonutActive = true;
+        }
+      }
+
       // --- Solar PV-Distribution Mix Ring (Phase 5.72) ---
       // SECOND ring around the PV-forecast donut. Unlike LG/Venus mix-rings
       // (which answer "where did my stored energy come from?", 2 segments
@@ -4073,7 +4118,8 @@ console.log(
                      sparkline follow in later phases once the position is
                      confirmed on screen. */ ''}
                 ${hasBkw ? html`
-                  <div class="bubble solar node-bkw ${tintClass} ${glowClass}"
+                  <div class="bubble solar node-bkw ${bkwDonutActive ? 'donut' : ''} ${tintClass} ${glowClass}"
+                      style="${bkwDonutActive ? `--solar-gradient: ${bkwGradientVal};` : ''}"
                       @click=${() => this._handleClick(entities.bkw)}>
                       ${renderMainIcon('solar', bkwVal, this.config.bkw_icon || 'mdi:solar-panel')}
                       ${renderLabel(this.config.bkw_label || 'BKW', this.config.show_label_bkw !== false)}
