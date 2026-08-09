@@ -2249,7 +2249,21 @@ console.log(
 
       let solarToHouse = Math.max(0, solarVal - solarToBatt - solarToVenus - gridExport);
       let gridToHouse = Math.max(0, gridImport - gridToBatt);
-      const house = solarToHouse + gridToHouse + batteryDischarge + venusDischarge;
+
+      // Phase BKW-3: split the garden output the way the roof is split.
+      // The panels sit on the venus DC bus, so whatever the venus pushes out
+      // on AC is served from the garden FIRST -- only the remainder is a real
+      // battery discharge. Anything the garden produces beyond the AC output
+      // is what charges the battery.
+      //
+      // venusDischarge is reduced by the pass-through share and bkwToHouse is
+      // added to the house sum instead, so the total is unchanged and nothing
+      // is counted twice.
+      let bkwToHouse = Math.min(bkwVal, venusDischarge);
+      let bkwToVenus = Math.max(0, bkwVal - bkwToHouse);
+      venusDischarge = Math.max(0, venusDischarge - bkwToHouse);
+
+      const house = solarToHouse + gridToHouse + batteryDischarge + venusDischarge + bkwToHouse;
 
       // Demo mode: override all pipe flow values to 1000W for testing/positioning labels.
       // Bubble main values (solar/grid/battery/venus/SoC) remain real - only pipe flows are faked.
@@ -3768,6 +3782,11 @@ console.log(
       // Phase BKW-1: short link from the garden plant into the venus. Runs on
       // bubble centre height; the ends tuck under both bubbles by design.
       const pathBkwVenus = "M 660 125 L 595 125";
+      // Phase BKW-3: pass-through path. Physically the energy still travels
+      // through the venus, but drawing it straight to the house is what makes
+      // the garden readable as a producer -- same treatment the roof gets.
+      // Offset slightly from pathVenusHouse so both stay distinguishable.
+      const pathBkwHouse = "M 705 175 Q 705 302 448 302";
       const pathHouseToVenus = "M 445 290 Q 565 290 565 170";
       // Phase 5.9: restore curved pipe aesthetic from phase 5.5 for c1-c5
       // (matches the visual style of the upstream card). For c6/c7 the
@@ -3840,7 +3859,8 @@ console.log(
 
                     <path class="bg-path bg-venus" d="${pathSolarVenus}" style="${getPipeStyle(solarToVenus, '--pipe-solar-opacity', 'solar')} ${styleSolarVenus}" />
                     <path class="bg-path bg-venus" d="${pathVenusHouse}" style="${getPipeStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
-                    <path class="bg-path bg-solar" d="${pathBkwVenus}" style="${getPipeStyle(bkwVal, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="bg-path bg-solar" d="${pathBkwVenus}" style="${getPipeStyle(bkwToVenus, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="bg-path bg-solar" d="${pathBkwHouse}" style="${getPipeStyle(bkwToHouse, '--pipe-solar-opacity', 'solar')}" />
                     <path class="bg-path bg-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getPipeStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path d="${pathHouseC1}" fill="none" stroke="${this._getConsumerPipeColor(1)}" stroke-width="6" style="${getConsumerPipeStyle(c1PipeActive, c1Val, 1)}" />
@@ -3863,7 +3883,8 @@ console.log(
 
                     <path class="flow-line flow-venus" d="${pathSolarVenus}" style="${getAnimStyle(solarToVenus, '--pipe-solar-opacity', 'solar')} ${styleSolarVenus}" />
                     <path class="flow-line flow-venus" d="${pathVenusHouse}" style="${getAnimStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
-                    <path class="flow-line flow-solar" d="${pathBkwVenus}" style="${getAnimStyle(bkwVal, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="flow-line flow-solar" d="${pathBkwVenus}" style="${getAnimStyle(bkwToVenus, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="flow-line flow-solar" d="${pathBkwHouse}" style="${getAnimStyle(bkwToHouse, '--pipe-solar-opacity', 'solar')}" />
                     <path class="flow-line flow-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getAnimStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path class="flow-line" d="${pathHouseC1}" stroke="${this._getConsumerPipeColor(1)}" style="${getConsumerAnimStyle(c1PipeActive, c1Val, 1)}" />
