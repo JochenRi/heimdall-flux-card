@@ -1336,6 +1336,7 @@ console.log(
       .node-grid { top: 80px; left: 260px; }     
       .node-battery { top: 80px; left: 420px; }  
       .node-venus { top: 80px; left: 580px; }   
+      .node-bkw { top: 80px; left: 700px; }   /* phase BKW-1: garden plant, feeds the venus */
       .node-house { top: 245px; left: 355px; }   
       .node-temp { top: calc(220px + var(--temp-offset-y, 0px)); left: calc(655px + var(--temp-offset-x, 0px)); }   /* phase 5.84: movable via editor */
       .node-c1 { top: 400px; left: 130px; }
@@ -2147,6 +2148,15 @@ console.log(
         venus *= -1;
       }
       const venusSoc = (hasVenus && entities.venus_soc) ? getVal(entities.venus_soc) : 0;
+
+      // Phase BKW-1: balcony plant (garden PV) as an INDEPENDENT source.
+      // The panels feed DC straight into the Venus MPPT inputs, so this energy
+      // never passes through entities.solar (which reads the roof-side Shelly).
+      // It is therefore deliberately NOT subtracted from solarVal -- unlike the
+      // venus_pv_charge path above, which assumes the PV is part of the solar
+      // reading and would double-count it here.
+      const hasBkw = !!(entities.bkw && entities.bkw !== "") && this.config.bkw_enabled !== false;
+      const bkwVal = hasBkw ? Math.max(0, getValKw(entities.bkw, this.config.bkw_unit_kw === true)) : 0;
 
       const solarVal = Math.max(0, solar);
 
@@ -3755,6 +3765,9 @@ console.log(
       // Venus pipes (mirrors battery pattern, geometrically distinct from LG paths)
       const pathSolarVenus = "M 145 80 Q 385 15 625 80";
       const pathVenusHouse = "M 625 170 Q 625 290 445 290";
+      // Phase BKW-1: short link from the garden plant into the venus. Runs on
+      // bubble centre height; the ends tuck under both bubbles by design.
+      const pathBkwVenus = "M 700 125 L 655 125";
       const pathHouseToVenus = "M 445 290 Q 625 290 625 170";
       // Phase 5.9: restore curved pipe aesthetic from phase 5.5 for c1-c5
       // (matches the visual style of the upstream card). For c6/c7 the
@@ -3827,6 +3840,7 @@ console.log(
 
                     <path class="bg-path bg-venus" d="${pathSolarVenus}" style="${getPipeStyle(solarToVenus, '--pipe-solar-opacity', 'solar')} ${styleSolarVenus}" />
                     <path class="bg-path bg-venus" d="${pathVenusHouse}" style="${getPipeStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
+                    <path class="bg-path bg-solar" d="${pathBkwVenus}" style="${getPipeStyle(bkwVal, '--pipe-solar-opacity', 'solar')}" />
                     <path class="bg-path bg-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getPipeStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path d="${pathHouseC1}" fill="none" stroke="${this._getConsumerPipeColor(1)}" stroke-width="6" style="${getConsumerPipeStyle(c1PipeActive, c1Val, 1)}" />
@@ -3849,6 +3863,7 @@ console.log(
 
                     <path class="flow-line flow-venus" d="${pathSolarVenus}" style="${getAnimStyle(solarToVenus, '--pipe-solar-opacity', 'solar')} ${styleSolarVenus}" />
                     <path class="flow-line flow-venus" d="${pathVenusHouse}" style="${getAnimStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
+                    <path class="flow-line flow-solar" d="${pathBkwVenus}" style="${getAnimStyle(bkwVal, '--pipe-solar-opacity', 'solar')}" />
                     <path class="flow-line flow-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getAnimStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path class="flow-line" d="${pathHouseC1}" stroke="${this._getConsumerPipeColor(1)}" style="${getConsumerAnimStyle(c1PipeActive, c1Val, 1)}" />
@@ -4026,6 +4041,18 @@ console.log(
                       <div class="value rotating-value" style="color: ${rot.color};">${rot.text}</div>
                   </div>`;
                 })() : ''}
+
+                ${/* Phase BKW-1: garden balcony plant. Minimal first pass --
+                     icon, label and live power only. Ring, rotation and
+                     sparkline follow in later phases once the position is
+                     confirmed on screen. */ ''}
+                ${hasBkw ? html`
+                  <div class="bubble solar node-bkw ${tintClass} ${glowClass}"
+                      @click=${() => this._handleClick(entities.bkw)}>
+                      ${renderMainIcon('solar', bkwVal, this.config.bkw_icon || 'mdi:solar-panel')}
+                      ${renderLabel(this.config.bkw_label || 'BKW', this.config.show_label_bkw !== false)}
+                      <div class="value">${this._formatPower(bkwVal)}</div>
+                  </div>` : ''}
                 
                 ${(() => {
                   // Phase 5.77: house bubble wrapped in an IIFE returning a
