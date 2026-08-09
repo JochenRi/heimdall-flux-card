@@ -86,6 +86,9 @@ class PowerFluxCardEditor extends LitElement {
                 'grid_donut_import_today', 'grid_donut_export_today',
                 'solar_rotate_daily_1', 'solar_rotate_daily_2', 'solar_rotate_daily_3',
                 'pv_donut_produced_today', 'pv_donut_forecast_today',
+                'bkw', 'bkw_sparkline_entity',
+                'bkw_rotate_daily_1', 'bkw_rotate_daily_2', 'bkw_rotate_daily_3',
+                'bkw_donut_produced_today', 'bkw_donut_forecast_today',
                 'battery_rotate_daily_1', 'battery_rotate_daily_2', 'battery_rotate_daily_3',
                 'venus_rotate_daily_1', 'venus_rotate_daily_2', 'venus_rotate_daily_3',
                 'consumer_1_rotate_daily_1', 'consumer_1_rotate_daily_2', 'consumer_1_rotate_daily_3',
@@ -1909,6 +1912,248 @@ class PowerFluxCardEditor extends LitElement {
             </div>
                 </ha-expansion-panel>
       `;
+    }
+
+    _renderBkwView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._localize('editor.bkw_section')}</h2>
+        </div>
+
+        <!-- Group: Sensors & display -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:tune"></ha-icon>
+                ${this._localize('editor.group_sensors_display')}
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.bkw || "", 'bkw', this._localize('editor.entity'))}
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${textSelectorSchema}
+                .value=${this._config.bkw_label}
+                .configValue=${'bkw_label'}
+                .label=${this._localize('editor.label') + " (Optional)"}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            <ha-selector
+                .hass=${this.hass}
+                .selector=${iconSelectorSchema}
+                .value=${this._config.bkw_icon}
+                .configValue=${'bkw_icon'}
+                .label=${this._localize('editor.icon') + " (Optional)"}
+                @value-changed=${this._valueChanged}
+            ></ha-selector>
+
+            ${this._renderColorPicker('color_bkw', this._localize('editor.bkw_color_bubble'), '#ffdd00')}
+            ${this._renderColorPicker('color_pipe_bkw', this._localize('editor.bkw_color_pipe'), '#ffdd00')}
+            ${this._renderColorPicker('color_text_bkw', this._localize('editor.bkw_color_text'), '#ffdd00')}
+            ${this._renderColorPicker('color_icon_bkw', this._localize('editor.bkw_color_icon'), '#ffffff')}
+        </div>
+
+        <!-- Group: Behavior -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:cog"></ha-icon>
+                ${this._localize('editor.group_behavior')}
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.bkw_enabled !== false}
+                    .configValue=${'bkw_enabled'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.bkw_enabled')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_label_bkw !== false}
+                    .configValue=${'show_label_bkw'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.label_toggle')}</div>
+            </div>
+
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.bkw_unit_kw === true}
+                    .configValue=${'bkw_unit_kw'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.bkw_unit_kw')}</div>
+            </div>
+
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
+                    .value=${this._config.bkw_animation_threshold !== undefined ? this._config.bkw_animation_threshold : 1}
+                    .configValue=${'bkw_animation_threshold'}
+                    .label=${this._localize('editor.bubble_animation_threshold')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+        </div>
+
+        <!-- Group: Pipe label positions -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:arrow-all"></ha-icon>
+                ${this._localize('editor.group_label_positions')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
+                ${this._localize('editor.bkw_label_pos_house')}
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
+                    .value=${this._config.bkw_house_label_offset_x !== undefined ? this._config.bkw_house_label_offset_x : 0}
+                    .configValue=${'bkw_house_label_offset_x'}
+                    .label=${"X"}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
+                    .value=${this._config.bkw_house_label_offset_y !== undefined ? this._config.bkw_house_label_offset_y : 0}
+                    .configValue=${'bkw_house_label_offset_y'}
+                    .label=${"Y"}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
+                ${this._localize('editor.bkw_label_pos_venus')}
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
+                    .value=${this._config.bkw_venus_label_offset_x !== undefined ? this._config.bkw_venus_label_offset_x : 0}
+                    .configValue=${'bkw_venus_label_offset_x'}
+                    .label=${"X"}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
+                    .value=${this._config.bkw_venus_label_offset_y !== undefined ? this._config.bkw_venus_label_offset_y : 0}
+                    .configValue=${'bkw_venus_label_offset_y'}
+                    .label=${"Y"}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+        </div>
+
+        <!-- Rotation -->
+        <ha-expansion-panel outlined>
+            <div slot="header" class="panel-header">
+                <ha-icon icon="mdi:rotate-right"></ha-icon>
+                ${this._localize('editor.rotation_section')}
+            </div>
+            <div class="panel-content">
+                <div class="switch-row">
+                    <ha-switch
+                        .checked=${this._config.bkw_rotate_show_live !== false}
+                        .configValue=${'bkw_rotate_show_live'}
+                        @change=${this._valueChanged}
+                    ></ha-switch>
+                    <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+                </div>
+
+                ${[1, 2, 3].map((n) => html`
+                    <div class="switch-row">
+                        <ha-switch
+                            .checked=${this._config[`bkw_rotate_show_daily_${n}`] === true}
+                            .configValue=${`bkw_rotate_show_daily_${n}`}
+                            @change=${this._valueChanged}
+                        ></ha-switch>
+                        <div class="switch-label">${this._localize(`editor.rotation_show_slot_${n}`)}</div>
+                    </div>
+                    ${this._renderEntitySelector(entitySelectorSchema, entities[`bkw_rotate_daily_${n}`] || "", `bkw_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                    ${this._renderColorPicker(`bkw_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), '#f7e364')}
+                `)}
+            </div>
+        </ha-expansion-panel>
+
+        <!-- Production ring -->
+        <ha-expansion-panel outlined>
+            <div slot="header" class="panel-header">
+                <ha-icon icon="mdi:chart-donut"></ha-icon>
+                ${this._localize('editor.bkw_donut_section')}
+            </div>
+            <div class="panel-content">
+                <div class="switch-row">
+                    <ha-switch
+                        .checked=${this._config.bkw_donut_today_mode === true}
+                        .configValue=${'bkw_donut_today_mode'}
+                        @change=${this._valueChanged}
+                    ></ha-switch>
+                    <div class="switch-label">${this._localize('editor.bkw_donut_enabled')}</div>
+                </div>
+
+                <div class="hint">${this._localize('editor.bkw_donut_hint')}</div>
+
+                ${this._renderEntitySelector(entitySelectorSchema, entities.bkw_donut_produced_today || "", 'bkw_donut_produced_today', this._localize('editor.bkw_donut_produced'))}
+                ${this._renderEntitySelector(entitySelectorSchema, entities.bkw_donut_forecast_today || "", 'bkw_donut_forecast_today', this._localize('editor.bkw_donut_forecast'))}
+            </div>
+        </ha-expansion-panel>
+
+        <!-- Sparkline -->
+        <ha-expansion-panel outlined>
+            <div slot="header" class="panel-header">
+                <ha-icon icon="mdi:chart-line"></ha-icon>
+                ${this._localize('editor.sparkline_title')}
+            </div>
+            <div class="panel-content">
+                <div class="switch-row">
+                    <ha-switch
+                        .checked=${this._config.bkw_sparkline === true}
+                        .configValue=${'bkw_sparkline'}
+                        @change=${this._valueChanged}
+                    ></ha-switch>
+                    <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+                </div>
+
+                ${this._renderEntitySelector(entitySelectorSchema, entities.bkw_sparkline_entity || "", 'bkw_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${textSelectorSchema}
+                    .value=${this._config.bkw_sparkline_period}
+                    .configValue=${'bkw_sparkline_period'}
+                    .label=${this._localize('editor.sparkline_period')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+
+                <div>
+                    <ha-selector
+                        .hass=${this.hass}
+                        .selector=${{ number: { min: 0.05, max: 1, step: 0.05, mode: "slider" } }}
+                        .value=${this._config.bkw_sparkline_opacity !== undefined ? this._config.bkw_sparkline_opacity : 0.35}
+                        .configValue=${'bkw_sparkline_opacity'}
+                        .label=${this._localize('editor.sparkline_opacity')}
+                        @value-changed=${this._valueChanged}
+                    ></ha-selector>
+                </div>
+
+                ${this._renderColorPicker('bkw_sparkline_color', this._localize('editor.sparkline_color'), '#ffdd00')}
+            </div>
+        </ha-expansion-panel>
+        `;
     }
 
     _renderVenusView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
@@ -5753,6 +5998,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'grid') return this._renderGridView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'battery') return this._renderBatteryView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'venus') return this._renderVenusView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'bkw') return this._renderBkwView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_1') return this._renderConsumer1View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_2') return this._renderConsumer2View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_3') return this._renderConsumer3View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
@@ -5792,6 +6038,11 @@ class PowerFluxCardEditor extends LitElement {
             <ha-icon icon="mdi:chevron-right"></ha-icon>
         </div>
         
+        <div class="menu-item" @click=${() => this._goSubView('bkw')}>
+            <div class="menu-icon"><ha-icon icon="mdi:solar-panel"></ha-icon> ${this._localize('editor.bkw_section')}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+
         <div class="menu-item" @click=${() => this._goSubView('consumer_1')}>
             <div class="menu-icon"><ha-icon icon="${this._consumerMenuIcon(1)}"></ha-icon> ${this._consumerMenuLabel(1)}</div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
