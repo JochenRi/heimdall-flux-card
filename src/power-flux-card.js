@@ -331,7 +331,8 @@ console.log(
       // Phase 5.72: Solar added.
       // Phase 5.73: Grid added -- ALL 4 SOURCE BUBBLES now covered.
       // Phase 5.74: House added -- now ALL 11 visible bubbles have sparkline.
-      for (const prefix of ['battery', 'venus', 'solar', 'grid', 'house']) {
+      // Phase BKW-8: bkw joins the source sparkline loop.
+      for (const prefix of ['battery', 'venus', 'solar', 'grid', 'house', 'bkw']) {
         if (this.config[`${prefix}_sparkline`] !== true) continue;
         const overrideEntity = this.config[`${prefix}_sparkline_entity`];
         // Phase 5.73-fix: Grid is special -- its primary sensor is usually
@@ -595,6 +596,8 @@ console.log(
           'color_consumer_5': '--consumer-5-color',
           'color_consumer_6': '--consumer-6-color',
           'color_consumer_7': '--consumer-7-color',
+          'color_bkw': '--bkw-color',
+          'color_pipe_bkw': '--pipe-bkw-color',
           'color_pipe_solar': '--pipe-solar-color',
           'color_pipe_grid': '--pipe-grid-color',
           'color_pipe_battery': '--pipe-battery-color',
@@ -607,6 +610,7 @@ console.log(
           'color_pipe_consumer_6': '--pipe-consumer-6-color',
           'color_pipe_consumer_7': '--pipe-consumer-7-color',
           'color_house': '--neon-pink',
+          'color_icon_bkw': '--icon-bkw-color',
           'color_icon_solar': '--icon-solar-color',
           'color_icon_grid': '--icon-grid-color',
           'color_icon_battery': '--icon-battery-color',
@@ -619,6 +623,7 @@ console.log(
           'color_icon_consumer_5': '--icon-consumer-5-color',
           'color_icon_consumer_6': '--icon-consumer-6-color',
           'color_icon_consumer_7': '--icon-consumer-7-color',
+          'color_text_bkw': '--text-bkw-color',
           'color_text_solar': '--text-solar-color',
           'color_text_grid': '--text-grid-color',
           'color_text_battery': '--text-battery-color',
@@ -670,6 +675,8 @@ console.log(
         --neon-green: #00ff88;
         --neon-cyan: #06b6d4;
         --venus-color: var(--neon-cyan);
+        --bkw-color: var(--neon-yellow);
+        --pipe-bkw-color: var(--neon-yellow);
         --neon-pink: #ff0080;
         --neon-red: #ff3333;
         --export-purple: #a855f7;
@@ -736,6 +743,8 @@ console.log(
         --neon-green: #059669;
         --neon-cyan: #0891b2;
         --venus-color: var(--neon-cyan);
+        --bkw-color: var(--neon-yellow);
+        --pipe-bkw-color: var(--neon-yellow);
         --neon-pink: #db2777;
         --neon-red: #dc2626;
         --export-purple: #7c3aed;
@@ -4121,18 +4130,27 @@ console.log(
                   </div>`;
                 })() : ''}
 
-                ${/* Phase BKW-1: garden balcony plant. Minimal first pass --
-                     icon, label and live power only. Ring, rotation and
-                     sparkline follow in later phases once the position is
-                     confirmed on screen. */ ''}
-                ${hasBkw ? html`
+                ${/* Phase BKW-1: garden balcony plant.
+                     Phase BKW-8: rotation and sparkline wired up. Both helpers
+                     are prefix-driven, so 'bkw' works without touching them --
+                     bkw_rotate_show_live, bkw_rotate_daily_1..3 and
+                     bkw_sparkline_* behave exactly like their solar twins. */ ''}
+                ${hasBkw ? (() => {
+                  const bkwLiveText = this._formatPower(bkwVal);
+                  const bkwLiveColor = this.config.color_text_bkw
+                    ? 'var(--text-bkw-color)'
+                    : 'var(--bkw-color)';
+                  const bkwRot = this._getBubbleRotationDisplay('bkw', bkwLiveText, bkwLiveColor);
+                  return html`
                   <div class="bubble solar node-bkw ${bkwDonutActive ? 'donut' : ''} ${tintClass} ${glowClass}"
                       style="${bkwDonutActive ? `--solar-gradient: ${bkwGradientVal};` : ''}"
                       @click=${() => this._handleClick(entities.bkw)}>
+                      ${this._renderSparklineForSource('bkw')}
                       ${renderMainIcon('solar', bkwVal, this.config.bkw_icon || 'mdi:solar-panel')}
                       ${renderLabel(this.config.bkw_label || 'BKW', this.config.show_label_bkw !== false)}
-                      <div class="value">${this._formatPower(bkwVal)}</div>
-                  </div>` : ''}
+                      <div class="value rotating-value" style="color: ${bkwRot.color};">${bkwRot.text}</div>
+                  </div>`;
+                })() : ''}
                 
                 ${(() => {
                   // Phase 5.77: house bubble wrapped in an IIFE returning a
