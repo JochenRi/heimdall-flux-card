@@ -675,8 +675,13 @@ console.log(
         --neon-green: #00ff88;
         --neon-cyan: #06b6d4;
         --venus-color: var(--neon-cyan);
-        --bkw-color: var(--neon-yellow);
-        --pipe-bkw-color: var(--neon-yellow);
+        /* Phase BKW-9: the garden bubble tracks the solar bubble by default,
+           so a colour change on the PV side carries over. Each var can still
+           be overridden individually via color_bkw / color_pipe_bkw / ... */
+        --bkw-color: var(--pipe-solar-color);
+        --pipe-bkw-color: var(--pipe-solar-color);
+        --icon-bkw-color: var(--icon-solar-color);
+        --text-bkw-color: var(--text-solar-color);
         --neon-pink: #ff0080;
         --neon-red: #ff3333;
         --export-purple: #a855f7;
@@ -743,8 +748,13 @@ console.log(
         --neon-green: #059669;
         --neon-cyan: #0891b2;
         --venus-color: var(--neon-cyan);
-        --bkw-color: var(--neon-yellow);
-        --pipe-bkw-color: var(--neon-yellow);
+        /* Phase BKW-9: the garden bubble tracks the solar bubble by default,
+           so a colour change on the PV side carries over. Each var can still
+           be overridden individually via color_bkw / color_pipe_bkw / ... */
+        --bkw-color: var(--pipe-solar-color);
+        --pipe-bkw-color: var(--pipe-solar-color);
+        --icon-bkw-color: var(--icon-solar-color);
+        --text-bkw-color: var(--text-solar-color);
         --neon-pink: #db2777;
         --neon-red: #dc2626;
         --export-purple: #7c3aed;
