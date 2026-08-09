@@ -1351,11 +1351,11 @@ console.log(
       .glow.c6 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-6-color), transparent 60%); }
       .glow.c7 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-7-color), transparent 60%); }
 
-      .node-solar { top: 80px; left: 100px; }     
-      .node-grid { top: 80px; left: 240px; }     
-      .node-battery { top: 80px; left: 380px; }  
-      .node-venus { top: 80px; left: 520px; }   
-      .node-bkw { top: 80px; left: 660px; }   /* phase BKW-1: garden plant, feeds the venus */
+      .node-solar { top: 80px; left: 75px; }     
+      .node-grid { top: 80px; left: 215px; }     
+      .node-battery { top: 80px; left: 355px; }  
+      .node-venus { top: 80px; left: 495px; }   
+      .node-bkw { top: 80px; left: 635px; }   /* phase BKW-1: garden plant, feeds the venus */
       .node-house { top: 245px; left: 355px; }   
       .node-temp { top: calc(220px + var(--temp-offset-y, 0px)); left: calc(655px + var(--temp-offset-x, 0px)); }   /* phase 5.84: movable via editor */
       .node-c1 { top: 400px; left: 130px; }
@@ -3828,24 +3828,24 @@ console.log(
         return getAnimStyle(val, idx ? `--pipe-consumer-${idx}-opacity` : null, type);
       };
 
-      const pathSolarHouse = "M 145 170 Q 145 290 355 290";
-      const pathSolarBatt = "M 145 80 Q 285 35 425 80";
-      const pathGridImport = "M 285 170 Q 285 290 355 290";
-      const pathGridExport = "M 190 125 Q 215 155 240 125";
+      const pathSolarHouse = "M 120 170 Q 120 290 355 290";
+      const pathSolarBatt = "M 120 80 Q 260 35 400 80";
+      const pathGridImport = "M 260 170 Q 260 290 355 290";
+      const pathGridExport = "M 165 125 Q 190 155 215 125";
       const activeExportPath = pathGridExport;
       // Phase 5.34: PV→Grid (export) label is now positionable just like
       // the other primary labels. Defaults preserve the previous hardcoded
       // position so existing dashboards don't visually shift.
-      const exportTextX = 230 + (this.config.solar_export_label_offset_x !== undefined ? this.config.solar_export_label_offset_x : 0);
+      const exportTextX = 205 + (this.config.solar_export_label_offset_x !== undefined ? this.config.solar_export_label_offset_x : 0);
       const exportTextY = 160 + (this.config.solar_export_label_offset_y !== undefined ? this.config.solar_export_label_offset_y : 0);
-      const pathBattHouse = "M 425 170 Q 425 290 445 290";
-      const pathHouseToBatt = "M 445 290 Q 425 290 425 170";
+      const pathBattHouse = "M 400 170 Q 400 250 400 250";
+      const pathHouseToBatt = "M 400 250 Q 400 250 400 170";
       // Venus pipes (mirrors battery pattern, geometrically distinct from LG paths)
-      const pathSolarVenus = "M 145 80 Q 355 15 565 80";
-      const pathVenusHouse = "M 565 170 Q 565 290 445 290";
+      const pathSolarVenus = "M 120 80 Q 330 15 540 80";
+      const pathVenusHouse = "M 540 170 Q 540 290 445 290";
       // Phase BKW-1: short link from the garden plant into the venus. Runs on
       // bubble centre height; the ends tuck under both bubbles by design.
-      const pathBkwVenus = "M 660 125 L 595 125";
+      const pathBkwVenus = "M 635 125 L 570 125";
       // Phase BKW-3: pass-through path. Physically the energy still travels
       // through the venus, but drawing it straight to the house is what makes
       // the garden readable as a producer -- same treatment the roof gets.
@@ -3855,8 +3855,8 @@ console.log(
       // centre, because the climate bubble occupies x>=680 as an HTML element
       // ABOVE the svg and would hide a stroke running behind it. Ends 12px
       // below pathVenusHouse so the two stay readable side by side.
-      const pathBkwHouse = "M 670 172 Q 670 302 450 302";
-      const pathHouseToVenus = "M 445 290 Q 565 290 565 170";
+      const pathBkwHouse = "M 645 172 Q 645 302 450 302";
+      const pathHouseToVenus = "M 445 290 Q 540 290 540 170";
       // Phase 5.9: restore curved pipe aesthetic from phase 5.5 for c1-c5
       // (matches the visual style of the upstream card). For c6/c7 the
       // outer pipes are routed horizontally first then bent down at the
@@ -3963,27 +3963,27 @@ console.log(
                     <path class="flow-line" d="${pathHouseC5}" stroke="${this._getConsumerPipeColor(5)}" style="${getConsumerAnimStyle(c5PipeActive, c5Val, 5)}" />
                     <path class="flow-line" d="${pathHouseC6}" stroke="${this._getConsumerPipeColor(6)}" style="${getConsumerAnimStyle(c6PipeActive, c6Val, 6)}" />
                     <path class="flow-line" d="${pathHouseC7}" stroke="${this._getConsumerPipeColor(7)}" style="${getConsumerAnimStyle(c7PipeActive, c7Val, 7)}" />
-                    <text x="${190 + (this.config.solar_label_offset_x !== undefined ? this.config.solar_label_offset_x : 0)}" y="${235 + (this.config.solar_label_offset_y !== undefined ? this.config.solar_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(solarToHouse, 'solar')} ${styleSolar}">${this._formatPower(solarToHouse)}</text>
-                    <text x="285" y="45" class="${textClass} text-solar" style="${getTextStyle(solarToBatt, 'solar')} ${styleSolarBatt}">${this._formatPower(solarToBatt)}</text>
+                    <text x="${165 + (this.config.solar_label_offset_x !== undefined ? this.config.solar_label_offset_x : 0)}" y="${235 + (this.config.solar_label_offset_y !== undefined ? this.config.solar_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(solarToHouse, 'solar')} ${styleSolar}">${this._formatPower(solarToHouse)}</text>
+                    <text x="260" y="45" class="${textClass} text-solar" style="${getTextStyle(solarToBatt, 'solar')} ${styleSolarBatt}">${this._formatPower(solarToBatt)}</text>
                     
-                    <text x="${315 + (this.config.grid_label_offset_x !== undefined ? this.config.grid_label_offset_x : 0)}" y="${255 + (this.config.grid_label_offset_y !== undefined ? this.config.grid_label_offset_y : 0)}" class="${textClass} text-grid" style="${getTextStyle(gridToHouse, 'grid')} ${styleGrid}">${this._formatPower(gridToHouse)}</text>
+                    <text x="${290 + (this.config.grid_label_offset_x !== undefined ? this.config.grid_label_offset_x : 0)}" y="${255 + (this.config.grid_label_offset_y !== undefined ? this.config.grid_label_offset_y : 0)}" class="${textClass} text-grid" style="${getTextStyle(gridToHouse, 'grid')} ${styleGrid}">${this._formatPower(gridToHouse)}</text>
                     <text x="${exportTextX}" y="${exportTextY}" class="${textClass} text-export" style="${getTextStyle(gridExport, 'grid')} ${styleGrid}">${this._formatPower(gridExport)}</text>
                     
-                    <text x="${370 + (this.config.battery_label_offset_x !== undefined ? this.config.battery_label_offset_x : 0)}" y="${235 + (this.config.battery_label_offset_y !== undefined ? this.config.battery_label_offset_y : 0)}" class="${textClass} text-battery" style="${getTextStyle(batteryDischarge, 'battery')} ${styleBattery}">${this._formatPower(batteryDischarge)}</text>
+                    <text x="${345 + (this.config.battery_label_offset_x !== undefined ? this.config.battery_label_offset_x : 0)}" y="${235 + (this.config.battery_label_offset_y !== undefined ? this.config.battery_label_offset_y : 0)}" class="${textClass} text-battery" style="${getTextStyle(batteryDischarge, 'battery')} ${styleBattery}">${this._formatPower(batteryDischarge)}</text>
 
-                    <text x="${370 + (this.config.battery_label_offset_x !== undefined ? this.config.battery_label_offset_x : 0)}" y="${235 + (this.config.battery_label_offset_y !== undefined ? this.config.battery_label_offset_y : 0)}" class="${textClass} text-battery" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getTextStyle(batteryCharge, 'battery') + ' ' + styleBattery : 'display:none;'}">${this._formatPower(batteryCharge)}</text>
+                    <text x="${345 + (this.config.battery_label_offset_x !== undefined ? this.config.battery_label_offset_x : 0)}" y="${235 + (this.config.battery_label_offset_y !== undefined ? this.config.battery_label_offset_y : 0)}" class="${textClass} text-battery" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getTextStyle(batteryCharge, 'battery') + ' ' + styleBattery : 'display:none;'}">${this._formatPower(batteryCharge)}</text>
 
-                    <text x="355" y="40" class="${textClass} text-solar" style="${getTextStyle(solarToVenus, 'solar')} ${styleSolarVenus}">${this._formatPower(solarToVenus)}</text>
-                    <text x="${480 + (this.config.venus_label_offset_x !== undefined ? this.config.venus_label_offset_x : 0)}" y="${235 + (this.config.venus_label_offset_y !== undefined ? this.config.venus_label_offset_y : 0)}" class="${textClass} text-venus" style="${getTextStyle(venusDischarge, 'venus')} ${styleVenus}">${this._formatPower(venusDischarge)}</text>
-                    <text x="${480 + (this.config.venus_label_offset_x !== undefined ? this.config.venus_label_offset_x : 0)}" y="${235 + (this.config.venus_label_offset_y !== undefined ? this.config.venus_label_offset_y : 0)}" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
+                    <text x="330" y="40" class="${textClass} text-solar" style="${getTextStyle(solarToVenus, 'solar')} ${styleSolarVenus}">${this._formatPower(solarToVenus)}</text>
+                    <text x="${455 + (this.config.venus_label_offset_x !== undefined ? this.config.venus_label_offset_x : 0)}" y="${235 + (this.config.venus_label_offset_y !== undefined ? this.config.venus_label_offset_y : 0)}" class="${textClass} text-venus" style="${getTextStyle(venusDischarge, 'venus')} ${styleVenus}">${this._formatPower(venusDischarge)}</text>
+                    <text x="${455 + (this.config.venus_label_offset_x !== undefined ? this.config.venus_label_offset_x : 0)}" y="${235 + (this.config.venus_label_offset_y !== undefined ? this.config.venus_label_offset_y : 0)}" class="${textClass} text-venus" style="${(venusChargeViaHouse && venusCharge > 0) ? getTextStyle(venusCharge, 'venus') + ' ' + styleVenus : 'display:none;'}">${this._formatPower(venusCharge)}</text>
 
                     ${/* Phase BKW-7: pipe labels for the garden plant. Same
                          offset idiom as every other pipe label so they can be
                          nudged from the editor. Defaults put the house label
                          left of its vertical run and the venus label just
                          above the short link. */ ''}
-                    <text x="${600 + (this.config.bkw_house_label_offset_x !== undefined ? this.config.bkw_house_label_offset_x : 0)}" y="${250 + (this.config.bkw_house_label_offset_y !== undefined ? this.config.bkw_house_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(bkwToHouse, 'solar')}">${this._formatPower(bkwToHouse)}</text>
-                    <text x="${615 + (this.config.bkw_venus_label_offset_x !== undefined ? this.config.bkw_venus_label_offset_x : 0)}" y="${108 + (this.config.bkw_venus_label_offset_y !== undefined ? this.config.bkw_venus_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(bkwToVenus, 'solar')}">${this._formatPower(bkwToVenus)}</text>
+                    <text x="${575 + (this.config.bkw_house_label_offset_x !== undefined ? this.config.bkw_house_label_offset_x : 0)}" y="${250 + (this.config.bkw_house_label_offset_y !== undefined ? this.config.bkw_house_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(bkwToHouse, 'solar')}">${this._formatPower(bkwToHouse)}</text>
+                    <text x="${590 + (this.config.bkw_venus_label_offset_x !== undefined ? this.config.bkw_venus_label_offset_x : 0)}" y="${108 + (this.config.bkw_venus_label_offset_y !== undefined ? this.config.bkw_venus_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(bkwToVenus, 'solar')}">${this._formatPower(bkwToVenus)}</text>
 
                     <text x="${220 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}">${this._formatPower(c1Val)}</text>
                     <text x="${400 + (this.config.consumer_2_label_offset_x !== undefined ? this.config.consumer_2_label_offset_x : 0)}" y="${367 + (this.config.consumer_2_label_offset_y !== undefined ? this.config.consumer_2_label_offset_y : -25)}" class="${textClass} text-consumer-2" style="${getTextStyle(c2Val, 'consumer_2')}">${this._formatPower(c2Val)}</text>
