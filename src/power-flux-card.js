@@ -3982,8 +3982,8 @@ console.log(
                          nudged from the editor. Defaults put the house label
                          left of its vertical run and the venus label just
                          above the short link. */ ''}
-                    <text x="${575 + (this.config.bkw_house_label_offset_x !== undefined ? this.config.bkw_house_label_offset_x : 0)}" y="${250 + (this.config.bkw_house_label_offset_y !== undefined ? this.config.bkw_house_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(bkwToHouse, 'solar')}">${this._formatPower(bkwToHouse)}</text>
-                    <text x="${590 + (this.config.bkw_venus_label_offset_x !== undefined ? this.config.bkw_venus_label_offset_x : 0)}" y="${108 + (this.config.bkw_venus_label_offset_y !== undefined ? this.config.bkw_venus_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(bkwToVenus, 'solar')}">${this._formatPower(bkwToVenus)}</text>
+                    <text x="${575 + (this.config.bkw_house_label_offset_x !== undefined ? this.config.bkw_house_label_offset_x : 0)}" y="${250 + (this.config.bkw_house_label_offset_y !== undefined ? this.config.bkw_house_label_offset_y : 0)}" class="${textClass} text-solar" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToHouse, 'solar')}">${this._formatPower(bkwToHouse)}</text>
+                    <text x="${590 + (this.config.bkw_venus_label_offset_x !== undefined ? this.config.bkw_venus_label_offset_x : 0)}" y="${108 + (this.config.bkw_venus_label_offset_y !== undefined ? this.config.bkw_venus_label_offset_y : 0)}" class="${textClass} text-solar" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToVenus, 'solar')}">${this._formatPower(bkwToVenus)}</text>
 
                     <text x="${220 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}">${this._formatPower(c1Val)}</text>
                     <text x="${400 + (this.config.consumer_2_label_offset_x !== undefined ? this.config.consumer_2_label_offset_x : 0)}" y="${367 + (this.config.consumer_2_label_offset_y !== undefined ? this.config.consumer_2_label_offset_y : -25)}" class="${textClass} text-consumer-2" style="${getTextStyle(c2Val, 'consumer_2')}">${this._formatPower(c2Val)}</text>
@@ -4151,8 +4151,16 @@ console.log(
                     ? 'var(--text-bkw-color)'
                     : 'var(--bkw-color)';
                   const bkwRot = this._getBubbleRotationDisplay('bkw', bkwLiveText, bkwLiveColor);
+                  // Phase BKW-12: greys out when idle, mirroring the solar
+                  // bubble. Previously the active class was hard-wired, so the
+                  // garden bubble would have stayed lit at night for anyone who
+                  // turns always_color_bubbles off.
+                  const bkwThreshold = this.config.bkw_animation_threshold !== undefined ? this.config.bkw_animation_threshold : 1;
+                  const isBkwActive = bkwVal > bkwThreshold;
+                  const bkwStateClass = (isBkwActive || bkwDonutActive || alwaysColor) ? 'solar' : 'inactive';
+                  const bkwGlowOnState = (isBkwActive || bkwDonutActive || alwaysColor) ? glowClass : '';
                   return html`
-                  <div class="bubble solar node-bkw ${bkwDonutActive ? 'donut' : ''} ${tintClass} ${glowClass}"
+                  <div class="bubble ${bkwStateClass} node-bkw ${bkwDonutActive ? 'donut' : ''} ${tintClass} ${bkwGlowOnState}"
                       style="${bkwDonutActive ? `--solar-gradient: ${bkwGradientVal};` : ''}"
                       @click=${() => this._handleClick(entities.bkw)}>
                       ${this._renderSparklineForSource('bkw')}

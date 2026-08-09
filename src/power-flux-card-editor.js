@@ -1990,6 +1990,15 @@ class PowerFluxCardEditor extends LitElement {
                 <div class="switch-label">${this._localize('editor.bkw_unit_kw')}</div>
             </div>
 
+            <div class="switch-row">
+                <ha-switch
+                    .checked=${this._config.show_flow_rate_bkw !== false}
+                    .configValue=${'show_flow_rate_bkw'}
+                    @change=${this._valueChanged}
+                ></ha-switch>
+                <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
+            </div>
+
             <div>
                 <ha-selector
                     .hass=${this.hass}
@@ -2136,6 +2145,32 @@ class PowerFluxCardEditor extends LitElement {
                     .value=${this._config.bkw_sparkline_period}
                     .configValue=${'bkw_sparkline_period'}
                     .label=${this._localize('editor.sparkline_period')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ select: { mode: "dropdown", options: [
+                        { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
+                        { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
+                        { value: "front", label: this._localize('editor.sparkline_layer_front') }
+                    ] } }}
+                    .value=${this._config.bkw_sparkline_layer || 'back'}
+                    .configValue=${'bkw_sparkline_layer'}
+                    .label=${this._localize('editor.sparkline_layer')}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ select: { mode: "dropdown", options: [
+                        { value: "area",      label: this._localize('editor.sparkline_style_area')     },
+                        { value: "line",      label: this._localize('editor.sparkline_style_line')     },
+                        { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
+                    ] } }}
+                    .value=${this._config.bkw_sparkline_style || 'area-line'}
+                    .configValue=${'bkw_sparkline_style'}
+                    .label=${this._localize('editor.sparkline_style')}
                     @value-changed=${this._valueChanged}
                 ></ha-selector>
 
