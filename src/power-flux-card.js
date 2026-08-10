@@ -2304,7 +2304,7 @@ console.log(
       let bkwToGrid = 0;
       let bkwToHouse = bkwPassThrough;
       if (bkwPassThrough > 0 && gridExport > 0) {
-        const houseMeasured = (hasHouse && entities.house) ? Math.max(0, getVal(entities.house)) : null;
+        const houseMeasured = (entities.house && entities.house !== "") ? Math.max(0, getVal(entities.house)) : null;
         if (houseMeasured !== null) {
           bkwToHouse = Math.min(bkwPassThrough, houseMeasured);
           bkwToGrid = Math.max(0, bkwPassThrough - bkwToHouse);
