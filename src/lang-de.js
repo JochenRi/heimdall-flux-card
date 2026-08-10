@@ -11,6 +11,7 @@ export default {
     "editor.bkw_color_text": "Farbe Wert",
     "editor.bkw_color_icon": "Farbe Icon",
     "editor.bkw_label_pos_house": "Watt-Label: BKW → Haus",
+    "editor.bkw_label_pos_grid": "Watt-Label: BKW → Netz",
     "editor.bkw_label_pos_venus": "Watt-Label: BKW → Venus",
     "editor.bkw_donut_section": "Ertragsring",
     "editor.bkw_donut_enabled": "Ertragsring anzeigen",

@@ -16,6 +16,7 @@ const lang_de = {
     "editor.bkw_color_text": "Farbe Wert",
     "editor.bkw_color_icon": "Farbe Icon",
     "editor.bkw_label_pos_house": "Watt-Label: BKW → Haus",
+    "editor.bkw_label_pos_grid": "Watt-Label: BKW → Netz",
     "editor.bkw_label_pos_venus": "Watt-Label: BKW → Venus",
     "editor.bkw_donut_section": "Ertragsring",
     "editor.bkw_donut_enabled": "Ertragsring anzeigen",
@@ -502,6 +503,7 @@ const lang_en = {
     "editor.bkw_color_text": "Value colour",
     "editor.bkw_color_icon": "Icon colour",
     "editor.bkw_label_pos_house": "Watt label: BKW → house",
+    "editor.bkw_label_pos_grid": "Watt label: BKW → grid",
     "editor.bkw_label_pos_venus": "Watt label: BKW → venus",
     "editor.bkw_donut_section": "Production ring",
     "editor.bkw_donut_enabled": "Show production ring",
@@ -3408,6 +3410,30 @@ class PowerFluxCardEditor extends LitElement {
                     .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
                     .value=${this._config.bkw_venus_label_offset_y !== undefined ? this._config.bkw_venus_label_offset_y : 0}
                     .configValue=${'bkw_venus_label_offset_y'}
+                    .label=${"Y"}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
+                ${this._localize('editor.bkw_label_pos_grid')}
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
+                    .value=${this._config.bkw_grid_label_offset_x !== undefined ? this._config.bkw_grid_label_offset_x : 0}
+                    .configValue=${'bkw_grid_label_offset_x'}
+                    .label=${"X"}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
+                    .value=${this._config.bkw_grid_label_offset_y !== undefined ? this._config.bkw_grid_label_offset_y : 0}
+                    .configValue=${'bkw_grid_label_offset_y'}
                     .label=${"Y"}
                     @value-changed=${this._valueChanged}
                 ></ha-selector>

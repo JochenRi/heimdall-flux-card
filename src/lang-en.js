@@ -11,6 +11,7 @@ export default {
     "editor.bkw_color_text": "Value colour",
     "editor.bkw_color_icon": "Icon colour",
     "editor.bkw_label_pos_house": "Watt label: BKW → house",
+    "editor.bkw_label_pos_grid": "Watt label: BKW → grid",
     "editor.bkw_label_pos_venus": "Watt label: BKW → venus",
     "editor.bkw_donut_section": "Production ring",
     "editor.bkw_donut_enabled": "Show production ring",

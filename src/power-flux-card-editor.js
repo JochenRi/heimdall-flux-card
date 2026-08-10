@@ -2065,6 +2065,30 @@ class PowerFluxCardEditor extends LitElement {
                     @value-changed=${this._valueChanged}
                 ></ha-selector>
             </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
+                ${this._localize('editor.bkw_label_pos_grid')}
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
+                    .value=${this._config.bkw_grid_label_offset_x !== undefined ? this._config.bkw_grid_label_offset_x : 0}
+                    .configValue=${'bkw_grid_label_offset_x'}
+                    .label=${"X"}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
+            <div>
+                <ha-selector
+                    .hass=${this.hass}
+                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
+                    .value=${this._config.bkw_grid_label_offset_y !== undefined ? this._config.bkw_grid_label_offset_y : 0}
+                    .configValue=${'bkw_grid_label_offset_y'}
+                    .label=${"Y"}
+                    @value-changed=${this._valueChanged}
+                ></ha-selector>
+            </div>
         </div>
 
         <!-- Rotation -->
