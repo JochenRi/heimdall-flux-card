@@ -10149,17 +10149,22 @@ console.log(
       let bkwToGrid = 0;
       let bkwToHouse = bkwPassThrough;
       if (bkwPassThrough > 0 && gridExport > 0) {
-        const houseMeasured = (entities.house && entities.house !== "") ? Math.max(0, getVal(entities.house)) : null;
-        if (houseMeasured !== null) {
-          bkwToHouse = Math.min(bkwPassThrough, houseMeasured);
-          bkwToGrid = Math.max(0, bkwPassThrough - bkwToHouse);
-        } else {
-          const localGen = solarVal + bkwPassThrough;
-          if (localGen > 0) {
-            bkwToGrid = Math.min(bkwPassThrough, gridExport * (bkwPassThrough / localGen));
-            bkwToHouse = Math.max(0, bkwPassThrough - bkwToGrid);
-          }
-        }
+        // Phase BKW-17: derive the house demand from the balance, NOT from
+        // entities.house.
+        //
+        // bkw-16 read the configured house sensor. On this system that is a
+        // template which drops out roughly every few seconds -- measured over
+        // 90s it jumped 2377 / 879 / 0 / 1279 / 0 / 290 / 2539 / 0 / 1301.
+        // Feeding that into the split propagated every dropout into all the
+        // pipes at once, and the whole card flickered. As a display value the
+        // instability was tolerable; as an input it is not.
+        //
+        // Generation minus export is the same quantity, assembled purely from
+        // the shelly and modbus readings, all sampled per second. Verified
+        // against the sensor at three points in time: identical to the watt.
+        const houseNeed = Math.max(0, solarVal + bkwPassThrough + venusDischarge + gridImport - gridExport);
+        bkwToHouse = Math.min(bkwPassThrough, houseNeed);
+        bkwToGrid = Math.max(0, bkwPassThrough - bkwToHouse);
       }
       const solarExportShare = Math.max(0, gridExport - bkwToGrid);
 
