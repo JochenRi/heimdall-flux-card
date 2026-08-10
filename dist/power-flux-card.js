@@ -11743,11 +11743,13 @@ console.log(
       // the garden readable as a producer -- same treatment the roof gets.
       // Phase BKW-5: follows the house-path idiom used everywhere else --
       // drop vertically, then sweep horizontally with the control point in the
-      // corner. Anchored at x=670 (the bubble's left edge) rather than its
-      // centre, because the climate bubble occupies x>=680 as an HTML element
-      // ABOVE the svg and would hide a stroke running behind it. Ends 12px
-      // below pathVenusHouse so the two stay readable side by side.
-      const pathBkwHouse = "M 645 172 Q 645 302 450 302";
+      // corner.
+      // Phase BKW-18: leaves from the bubble centre (680) instead of off to
+      // the left. The earlier offset guarded against the climate bubble at
+      // x>=680, y>=219 -- but sampling shows the curve is already past x=680
+      // at y=173, a clear 46px above its top edge, so the guard was not
+      // needed. Ends 12px below pathVenusHouse so both stay readable.
+      const pathBkwHouse = "M 680 172 Q 680 302 450 302";
       // Phase BKW-14: garden surplus heading for the grid. Arcs above the whole
       // row -- there is no other clear line from the far right to the grid
       // bubble. Kept higher than pathSolarVenus so the two do not collide.
