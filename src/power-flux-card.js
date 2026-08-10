@@ -2266,21 +2266,36 @@ console.log(
         }
       }
 
-      let solarToHouse = Math.max(0, solarVal - solarToBatt - solarToVenus - gridExport);
-      let gridToHouse = Math.max(0, gridImport - gridToBatt);
-
-      // Phase BKW-3: split the garden output the way the roof is split.
-      // The panels sit on the venus DC bus, so whatever the venus pushes out
-      // on AC is served from the garden FIRST -- only the remainder is a real
-      // battery discharge. Anything the garden produces beyond the AC output
-      // is what charges the battery.
+      // Phase BKW-14: split the garden output BEFORE the solar figures, because
+      // the export share depends on it.
       //
-      // venusDischarge is reduced by the pass-through share and bkwToHouse is
-      // added to the house sum instead, so the total is unchanged and nothing
-      // is counted twice.
-      let bkwToHouse = Math.min(bkwVal, venusDischarge);
-      let bkwToVenus = Math.max(0, bkwVal - bkwToHouse);
-      venusDischarge = Math.max(0, venusDischarge - bkwToHouse);
+      // The original line subtracted the whole measured gridExport from
+      // solarVal, which silently assumes the roof is the only thing that can
+      // export. Once the venus pushes garden energy onto the same AC bus that
+      // breaks: at 17:00 the roof made 5269 W, the garden 909 W, the house drew
+      // 548 W and 5630 W went to the grid -- yet the card drew 0 W from the
+      // roof and 909 W from the garden into a house needing 548 W.
+      //
+      // Apportion the measured export across both producers by their share of
+      // local generation. Neither is "the" exporter; electricity carries no
+      // label. Without export this is a no-op and every figure stays as before.
+      let bkwPassThrough = Math.min(bkwVal, venusDischarge);
+      let bkwToVenus = Math.max(0, bkwVal - bkwPassThrough);
+      venusDischarge = Math.max(0, venusDischarge - bkwPassThrough);
+
+      let bkwToGrid = 0;
+      let bkwToHouse = bkwPassThrough;
+      if (bkwPassThrough > 0 && gridExport > 0) {
+        const localGen = solarVal + bkwPassThrough;
+        if (localGen > 0) {
+          bkwToGrid = Math.min(bkwPassThrough, gridExport * (bkwPassThrough / localGen));
+          bkwToHouse = Math.max(0, bkwPassThrough - bkwToGrid);
+        }
+      }
+      const solarExportShare = Math.max(0, gridExport - bkwToGrid);
+
+      let solarToHouse = Math.max(0, solarVal - solarToBatt - solarToVenus - solarExportShare);
+      let gridToHouse = Math.max(0, gridImport - gridToBatt);
 
       const house = solarToHouse + gridToHouse + batteryDischarge + venusDischarge + bkwToHouse;
 
@@ -3859,6 +3874,10 @@ console.log(
       // ABOVE the svg and would hide a stroke running behind it. Ends 12px
       // below pathVenusHouse so the two stay readable side by side.
       const pathBkwHouse = "M 645 172 Q 645 302 450 302";
+      // Phase BKW-14: garden surplus heading for the grid. Arcs above the whole
+      // row -- there is no other clear line from the far right to the grid
+      // bubble. Kept higher than pathSolarVenus so the two do not collide.
+      const pathBkwGrid = "M 685 78 Q 440 -45 265 78";
       const pathHouseToVenus = "M 445 290 Q 540 290 540 170";
       // Phase 5.9: restore curved pipe aesthetic from phase 5.5 for c1-c5
       // (matches the visual style of the upstream card). For c6/c7 the
@@ -3933,6 +3952,7 @@ console.log(
                     <path class="bg-path bg-venus" d="${pathVenusHouse}" style="${getPipeStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
                     <path class="bg-path bg-solar" d="${pathBkwVenus}" style="${getPipeStyle(bkwToVenus, '--pipe-solar-opacity', 'solar')}" />
                     <path class="bg-path bg-solar" d="${pathBkwHouse}" style="${getPipeStyle(bkwToHouse, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="bg-path bg-solar" d="${pathBkwGrid}" style="${getPipeStyle(bkwToGrid, '--pipe-solar-opacity', 'solar')}" />
                     <path class="bg-path bg-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getPipeStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path d="${pathHouseC1}" fill="none" stroke="${this._getConsumerPipeColor(1)}" stroke-width="6" style="${getConsumerPipeStyle(c1PipeActive, c1Val, 1)}" />
@@ -3957,6 +3977,7 @@ console.log(
                     <path class="flow-line flow-venus" d="${pathVenusHouse}" style="${getAnimStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
                     <path class="flow-line flow-solar" d="${pathBkwVenus}" style="${getAnimStyle(bkwToVenus, '--pipe-solar-opacity', 'solar')}" />
                     <path class="flow-line flow-solar" d="${pathBkwHouse}" style="${getAnimStyle(bkwToHouse, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="flow-line flow-solar" d="${pathBkwGrid}" style="${getAnimStyle(bkwToGrid, '--pipe-solar-opacity', 'solar')}" />
                     <path class="flow-line flow-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getAnimStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path class="flow-line" d="${pathHouseC1}" stroke="${this._getConsumerPipeColor(1)}" style="${getConsumerAnimStyle(c1PipeActive, c1Val, 1)}" />
@@ -3986,6 +4007,7 @@ console.log(
                          left of its vertical run and the venus label just
                          above the short link. */ ''}
                     <text x="${575 + (this.config.bkw_house_label_offset_x !== undefined ? this.config.bkw_house_label_offset_x : 0)}" y="${250 + (this.config.bkw_house_label_offset_y !== undefined ? this.config.bkw_house_label_offset_y : 0)}" class="${textClass} text-solar" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToHouse, 'solar')}">${this._formatPower(bkwToHouse)}</text>
+                    <text x="${470 + (this.config.bkw_grid_label_offset_x !== undefined ? this.config.bkw_grid_label_offset_x : 0)}" y="${18 + (this.config.bkw_grid_label_offset_y !== undefined ? this.config.bkw_grid_label_offset_y : 0)}" class="${textClass} text-solar" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToGrid, 'solar')}">${this._formatPower(bkwToGrid)}</text>
                     <text x="${615 + (this.config.bkw_venus_label_offset_x !== undefined ? this.config.bkw_venus_label_offset_x : 0)}" y="${28 + (this.config.bkw_venus_label_offset_y !== undefined ? this.config.bkw_venus_label_offset_y : 0)}" class="${textClass} text-solar" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToVenus, 'solar')}">${this._formatPower(bkwToVenus)}</text>
 
                     <text x="${220 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}">${this._formatPower(c1Val)}</text>
