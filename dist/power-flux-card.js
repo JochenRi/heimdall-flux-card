@@ -11662,9 +11662,12 @@ console.log(
       // Venus pipes (mirrors battery pattern, geometrically distinct from LG paths)
       const pathSolarVenus = "M 120 80 Q 330 15 540 80";
       const pathVenusHouse = "M 540 170 Q 540 290 445 290";
-      // Phase BKW-1: short link from the garden plant into the venus. Runs on
-      // bubble centre height; the ends tuck under both bubbles by design.
-      const pathBkwVenus = "M 635 125 L 570 125";
+      // Phase BKW-1: link from the garden plant into the venus.
+      // Phase BKW-13: arcs over the top instead of running straight across.
+      // The two bubbles are only 40px apart at bubble_size 100, so a
+      // horizontal segment left barely a dash or two of the animation
+      // visible. Same over-the-top idiom pathSolarVenus already uses.
+      const pathBkwVenus = "M 685 80 Q 640 30 545 80";
       // Phase BKW-3: pass-through path. Physically the energy still travels
       // through the venus, but drawing it straight to the house is what makes
       // the garden readable as a producer -- same treatment the roof gets.
@@ -11802,7 +11805,7 @@ console.log(
                          left of its vertical run and the venus label just
                          above the short link. */ ''}
                     <text x="${575 + (this.config.bkw_house_label_offset_x !== undefined ? this.config.bkw_house_label_offset_x : 0)}" y="${250 + (this.config.bkw_house_label_offset_y !== undefined ? this.config.bkw_house_label_offset_y : 0)}" class="${textClass} text-solar" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToHouse, 'solar')}">${this._formatPower(bkwToHouse)}</text>
-                    <text x="${590 + (this.config.bkw_venus_label_offset_x !== undefined ? this.config.bkw_venus_label_offset_x : 0)}" y="${108 + (this.config.bkw_venus_label_offset_y !== undefined ? this.config.bkw_venus_label_offset_y : 0)}" class="${textClass} text-solar" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToVenus, 'solar')}">${this._formatPower(bkwToVenus)}</text>
+                    <text x="${615 + (this.config.bkw_venus_label_offset_x !== undefined ? this.config.bkw_venus_label_offset_x : 0)}" y="${28 + (this.config.bkw_venus_label_offset_y !== undefined ? this.config.bkw_venus_label_offset_y : 0)}" class="${textClass} text-solar" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToVenus, 'solar')}">${this._formatPower(bkwToVenus)}</text>
 
                     <text x="${220 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}">${this._formatPower(c1Val)}</text>
                     <text x="${400 + (this.config.consumer_2_label_offset_x !== undefined ? this.config.consumer_2_label_offset_x : 0)}" y="${367 + (this.config.consumer_2_label_offset_y !== undefined ? this.config.consumer_2_label_offset_y : -25)}" class="${textClass} text-consumer-2" style="${getTextStyle(c2Val, 'consumer_2')}">${this._formatPower(c2Val)}</text>
