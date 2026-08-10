@@ -10128,13 +10128,37 @@ console.log(
       let bkwToVenus = Math.max(0, bkwVal - bkwPassThrough);
       venusDischarge = Math.max(0, venusDischarge - bkwPassThrough);
 
+      // Phase BKW-16: the venus-side feed covers the house FIRST.
+      //
+      // bkw-14 apportioned the measured export across both producers by their
+      // share of generation. That balanced correctly but assigned the wrong
+      // roles: at 17:08 it claimed the roof supplied 507 W to a house drawing
+      // 594 W while the garden sent 745 W to the grid.
+      //
+      // The topology says otherwise. The venus feeds in on the house side,
+      // behind the meter, so its energy reaches the loads before anything
+      // else; the roof inverter feeds centrally and exports the surplus.
+      // SolarEdge confirms it from its own vantage point -- with the house
+      // drawing 594 W it reports "load 0.00 kW", because the venus has already
+      // covered that draw before it reaches the meter.
+      //
+      // So: pass-through covers the house up to what the house actually draws,
+      // the remainder goes to the grid, and the roof carries what is left of
+      // the export. Falls back to the previous proportional split when no
+      // house sensor is configured.
       let bkwToGrid = 0;
       let bkwToHouse = bkwPassThrough;
       if (bkwPassThrough > 0 && gridExport > 0) {
-        const localGen = solarVal + bkwPassThrough;
-        if (localGen > 0) {
-          bkwToGrid = Math.min(bkwPassThrough, gridExport * (bkwPassThrough / localGen));
-          bkwToHouse = Math.max(0, bkwPassThrough - bkwToGrid);
+        const houseMeasured = (hasHouse && entities.house) ? Math.max(0, getVal(entities.house)) : null;
+        if (houseMeasured !== null) {
+          bkwToHouse = Math.min(bkwPassThrough, houseMeasured);
+          bkwToGrid = Math.max(0, bkwPassThrough - bkwToHouse);
+        } else {
+          const localGen = solarVal + bkwPassThrough;
+          if (localGen > 0) {
+            bkwToGrid = Math.min(bkwPassThrough, gridExport * (bkwPassThrough / localGen));
+            bkwToHouse = Math.max(0, bkwPassThrough - bkwToGrid);
+          }
         }
       }
       const solarExportShare = Math.max(0, gridExport - bkwToGrid);
