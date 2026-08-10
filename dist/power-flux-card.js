@@ -11828,7 +11828,7 @@ console.log(
                     <path class="bg-path bg-venus" d="${pathVenusHouse}" style="${getPipeStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
                     <path class="bg-path bg-solar" d="${pathBkwVenus}" style="${getPipeStyle(bkwToVenus, '--pipe-solar-opacity', 'solar')}" />
                     <path class="bg-path bg-solar" d="${pathBkwHouse}" style="${getPipeStyle(bkwToHouse, '--pipe-solar-opacity', 'solar')}" />
-                    <path class="bg-path bg-solar" d="${pathBkwGrid}" style="${getPipeStyle(bkwToGrid, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="bg-path bg-export" d="${pathBkwGrid}" style="${getPipeStyle(bkwToGrid, '--pipe-grid-opacity', 'grid')}" />
                     <path class="bg-path bg-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getPipeStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path d="${pathHouseC1}" fill="none" stroke="${this._getConsumerPipeColor(1)}" stroke-width="6" style="${getConsumerPipeStyle(c1PipeActive, c1Val, 1)}" />
@@ -11853,7 +11853,7 @@ console.log(
                     <path class="flow-line flow-venus" d="${pathVenusHouse}" style="${getAnimStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
                     <path class="flow-line flow-solar" d="${pathBkwVenus}" style="${getAnimStyle(bkwToVenus, '--pipe-solar-opacity', 'solar')}" />
                     <path class="flow-line flow-solar" d="${pathBkwHouse}" style="${getAnimStyle(bkwToHouse, '--pipe-solar-opacity', 'solar')}" />
-                    <path class="flow-line flow-solar" d="${pathBkwGrid}" style="${getAnimStyle(bkwToGrid, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="flow-line flow-export" d="${pathBkwGrid}" style="${getAnimStyle(bkwToGrid, '--pipe-grid-opacity', 'grid')}" />
                     <path class="flow-line flow-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getAnimStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
                     <path class="flow-line" d="${pathHouseC1}" stroke="${this._getConsumerPipeColor(1)}" style="${getConsumerAnimStyle(c1PipeActive, c1Val, 1)}" />
@@ -11883,7 +11883,7 @@ console.log(
                          left of its vertical run and the venus label just
                          above the short link. */ ''}
                     <text x="${575 + (this.config.bkw_house_label_offset_x !== undefined ? this.config.bkw_house_label_offset_x : 0)}" y="${250 + (this.config.bkw_house_label_offset_y !== undefined ? this.config.bkw_house_label_offset_y : 0)}" class="${textClass} text-solar" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToHouse, 'solar')}">${this._formatPower(bkwToHouse)}</text>
-                    <text x="${470 + (this.config.bkw_grid_label_offset_x !== undefined ? this.config.bkw_grid_label_offset_x : 0)}" y="${18 + (this.config.bkw_grid_label_offset_y !== undefined ? this.config.bkw_grid_label_offset_y : 0)}" class="${textClass} text-solar" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToGrid, 'solar')}">${this._formatPower(bkwToGrid)}</text>
+                    <text x="${470 + (this.config.bkw_grid_label_offset_x !== undefined ? this.config.bkw_grid_label_offset_x : 0)}" y="${18 + (this.config.bkw_grid_label_offset_y !== undefined ? this.config.bkw_grid_label_offset_y : 0)}" class="${textClass} text-export" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToGrid, 'grid')}">${this._formatPower(bkwToGrid)}</text>
                     <text x="${615 + (this.config.bkw_venus_label_offset_x !== undefined ? this.config.bkw_venus_label_offset_x : 0)}" y="${28 + (this.config.bkw_venus_label_offset_y !== undefined ? this.config.bkw_venus_label_offset_y : 0)}" class="${textClass} text-solar" style="${this.config.show_flow_rate_bkw === false ? 'display:none;' : getTextStyle(bkwToVenus, 'solar')}">${this._formatPower(bkwToVenus)}</text>
 
                     <text x="${220 + (this.config.consumer_1_label_offset_x !== undefined ? this.config.consumer_1_label_offset_x : 0)}" y="${320 + (this.config.consumer_1_label_offset_y !== undefined ? this.config.consumer_1_label_offset_y : -25)}" class="${textClass} text-consumer-1" style="${getTextStyle(c1Val, 'consumer_1')}">${this._formatPower(c1Val)}</text>
