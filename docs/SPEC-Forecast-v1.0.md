@@ -45,11 +45,12 @@ Drei String-Konfigurationen (aus den bestehenden Forecast.Solar-Configs übernom
 
 | String | Lat | Lon | Azimut HA-Konvention | Tilt | kWp |
 |---|---|---|---|---|---|
-| OST | 52.43 | 9.19 | 90° (Ost) | 25° | 2.4 |
-| SÜD | 52.43 | 9.19 | 180° (Süd) | 25° | 4.8 |
-| WEST | 52.43 | 9.19 | 270° (West) | 25° | 2.4 |
+| OST | `<lat>` | `<lon>` | 90° (Ost) | 25° | 2.4 |
+| SÜD | `<lat>` | `<lon>` | 180° (Süd) | 25° | 4.8 |
+| WEST | `<lat>` | `<lon>` | 270° (West) | 25° | 2.4 |
 
-Lat/Lon = HA-Standort (`zone.home`). Alle drei Strings am selben Ort.
+Lat/Lon werden zur Laufzeit aus `zone.home` gelesen und sind hier bewusst nicht
+ausgeschrieben. Alle drei Strings stehen am selben Ort.
 
 Rate-Limit-Budget: 3 Calls pro Stunde × 24 h = 72/Tag. Open-Meteo Free Tier 10.000/Tag. Faktor 138 Reserve.
 
