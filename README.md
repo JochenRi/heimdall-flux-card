@@ -184,7 +184,8 @@ entities:
   venus: sensor.battery_2_ac_power         # AC side, NOT a net sensor
   bkw_donut_produced_today: sensor.garden_pv_energy_today
   bkw_donut_forecast_today: sensor.garden_pv_forecast_remaining
-invert_venus: true                         # positive = feeding the house
+invert_venus: true                         # set when that sensor reads
+                                           # positive while feeding the house
 bkw_donut_today_mode: true
 ```
 
