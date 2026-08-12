@@ -32,6 +32,7 @@ An animated power-flow card for Home Assistant, adapted for **dual-battery energ
   - an outer **charge-mix ring** showing the energy-source split (PV / LG / Venus / Grid) over a day, month, or year, with configurable segment colors,
   - a **value rotation** between up to three daily sensors,
   - an inline **sparkline** history.
+- **A fifth source bubble for a balcony plant / behind-the-meter PV** whose panels feed a battery's DC inputs directly, and which therefore never appears in the main solar reading — see [Behind-the-meter PV](#behind-the-meter-pv-bkw).
 - **Separate Solar→Battery 1 and Solar→Battery 2 pipes**, routed as two distinct paths that never overlap.
 - **Signed-power logic per battery** (positive = charging, negative = discharging) with a sign-mode selector.
 - **Animated backgrounds** (Aurora, Slow Flow), respecting `prefers-reduced-motion`.
@@ -120,6 +121,9 @@ All sensors are assigned in the editor; none are hard-coded.
 | `battery_charge` / `battery_discharge` | Alternative split charge / discharge entities |
 | `venus` | Battery 2 (Venus) power, signed |
 | `venus_soc` | Battery 2 state of charge (%) |
+| `bkw` | Balcony-plant power, DC-coupled to Battery 2 — see [Behind-the-meter PV](#behind-the-meter-pv-bkw) |
+| `bkw_donut_produced_today` | Balcony plant: energy harvested today (kWh) |
+| `bkw_donut_forecast_today` | Balcony plant: energy **still expected** today (kWh) — a remaining value, not a daily total |
 | `house` | Total house consumption |
 | `consumer_1` … `consumer_7` | Power of each consumer bubble |
 
@@ -144,6 +148,84 @@ battery_enabled: true
 venus_enabled: true
 show_neon_glow: true
 ```
+
+---
+
+## Behind-the-meter PV (BKW)
+
+Some PV arrays never show up in the inverter reading at all. A balcony plant
+wired straight into a battery's MPPT inputs sits **behind** the storage unit:
+its energy reaches the house through the battery's AC output, so the meter that
+watches the roof inverter never sees it. Point `entities.solar` at that meter
+and the array is simply invisible — and every attempt to add it there
+double-counts, because the roof reading never contained it in the first place.
+
+The `bkw` bubble models such an array as an **independent source** that is
+deliberately not subtracted from the solar figure. Its output is split three
+ways, each drawn as its own pipe:
+
+| Pipe | Meaning |
+| --- | --- |
+| BKW → Battery 2 | Surplus the battery absorbs |
+| BKW → House | Pass-through covering actual house demand |
+| BKW → Grid | What is left over, exported |
+
+### Required setup
+
+The battery entity **must report its AC side**, not a net figure that already
+contains the array. A common trap is a template sensor along the lines of
+`pv_power − battery_ac_power`: with the array's energy already netted out
+there, the card cannot separate the two flows and will draw a phantom
+house→battery flow that never physically existed.
+
+```yaml
+entities:
+  bkw: sensor.garden_pv_power              # the array's own DC/MPPT reading
+  venus: sensor.battery_2_ac_power         # AC side, NOT a net sensor
+  bkw_donut_produced_today: sensor.garden_pv_energy_today
+  bkw_donut_forecast_today: sensor.garden_pv_forecast_remaining
+invert_venus: true                         # positive = feeding the house
+bkw_donut_today_mode: true
+```
+
+### The production ring
+
+The ring compares what has been harvested against what is **still expected
+today**, so `bkw_donut_forecast_today` has to be a *remaining* value. Feeding a
+daily total in there shows roughly 50 % left at dusk on a finished day. With
+Forecast.Solar, use the `energy_production_today_remaining_*` entities rather
+than `energy_production_today_*`.
+
+### In practice
+
+Morning — the battery has room, so the entire output charges it and nothing
+reaches the house:
+
+<p align="center">
+  <img src="docs/images/bkw-to-battery.png" alt="Balcony plant charging the battery" width="800">
+</p>
+
+Afternoon — the battery is nearly full, so the array covers the house demand
+exactly and exports the rest, while the roof feeds the grid untouched:
+
+<p align="center">
+  <img src="docs/images/bkw-all-flows.png" alt="All three balcony-plant flows active" width="800">
+</p>
+
+Night — no production; the battery discharges into the house on its own:
+
+<p align="center">
+  <img src="docs/images/bkw-night.png" alt="No production, battery discharging" width="800">
+</p>
+
+### Known limitation
+
+Forecast.Solar's free tier models a clear horizon. On a shaded plot the real
+curve is narrower and taller than the forecast — noticeably more around midday,
+less at either end of the day. Raising `modules_power` calibrates the daily
+total, but it cannot correct the shape, and the evening damping factor is the
+wrong tool for it: it thins out the whole second half of the day, including the
+hours that are already underestimated.
 
 ---
 
