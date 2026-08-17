@@ -2317,7 +2317,24 @@ console.log(
         // Generation minus export is the same quantity, assembled purely from
         // the shelly and modbus readings, all sampled per second. Verified
         // against the sensor at three points in time: identical to the watt.
-        const houseNeed = Math.max(0, solarVal + bkwPassThrough + venusDischarge + gridImport - gridExport);
+        // Phase BKW-18: subtract the generation that is diverted into storage.
+        //
+        // bkw-17 read solarVal raw. That is correct only while entities.solar
+        // reports the inverter's AC OUTPUT -- there the battery charge is
+        // already netted out by the meter. As soon as entities.solar reports
+        // the actual roof PRODUCTION, the charge is still contained in it and
+        // houseNeed comes out too high by exactly the charging power.
+        //
+        // Simulated against the extracted block: roof 5269 W, LG charging
+        // 1000 W, garden 909 W, export 4630 W, house 548 W. Raw solarVal gave
+        // houseNeed 1548 W, so bkwToHouse became 909 W instead of 548 W and
+        // the pipe sum claimed 909 W against a 548 W house bubble -- a 361 W
+        // contradiction inside one card. With the two terms subtracted the
+        // figure is 548 W and the split is 548 W house / 361 W grid.
+        //
+        // Verified as a no-op for the AC-output configuration across seven
+        // operating states, so this can ship ahead of any entity change.
+        const houseNeed = Math.max(0, solarVal - solarToBatt - solarToVenus + bkwPassThrough + venusDischarge + gridImport - gridExport);
         bkwToHouse = Math.min(bkwPassThrough, houseNeed);
         bkwToGrid = Math.max(0, bkwPassThrough - bkwToHouse);
       }
