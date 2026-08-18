@@ -27,6 +27,17 @@ const lang_de = {
     "editor.grid_section": "Netz Import/Export",
     "editor.battery_section": "Batterie 1",
     "editor.venus_section": "Batterie 2",
+    "editor.power_section": "Power-Kachel",
+    "editor.power_enabled": "Power-Kachel aktivieren",
+    "editor.power_position_hint": "Position der Kachel verschieben (in Pixeln, Standard = 0). Die Kachel misst 130 × 310 px und sitzt standardmäßig rechts neben dem Haus.",
+    "editor.power_offset_x": "Verschiebung X (px, + rechts / − links)",
+    "editor.power_offset_y": "Verschiebung Y (px, + runter / − hoch)",
+    "editor.power_entities_hint": "Nur die Werte, die die Karte noch nicht kennt. Alles andere — Herkunft, PV, Stromrechnung, Farben — übernimmt die Kachel automatisch aus den Sensoren der Blasen.",
+    "editor.power_autarkie": "Autarkiegrad heute (%)",
+    "editor.power_lg_nutzbar": "LG — nutzbare Restenergie (kWh)",
+    "editor.power_lg_reichweite": "LG — Reichweite (h)",
+    "editor.power_venus_nutzbar": "Venus — nutzbare Restenergie (kWh)",
+    "editor.power_venus_reichweite": "Venus — Reichweite (h)",
     "editor.temp_section": "Klima (Temperatur)",
     "editor.temp_enabled": "Klima-Bubble aktivieren",
     "editor.temp_position_hint": "Position der Kachel verschieben (in Pixeln, Standard = 0).",
@@ -514,6 +525,17 @@ const lang_en = {
     "editor.grid_section": "Grid Connection",
     "editor.battery_section": "Battery 1",
     "editor.venus_section": "Battery 2",
+    "editor.power_section": "Power Tile",
+    "editor.power_enabled": "Enable power tile",
+    "editor.power_position_hint": "Shift the tile position (in pixels, default 0). The tile measures 130 × 310 px and sits to the right of the house by default.",
+    "editor.power_offset_x": "Offset X (px, + right / − left)",
+    "editor.power_offset_y": "Offset Y (px, + down / − up)",
+    "editor.power_entities_hint": "Only the values the card does not already know. Everything else — origin split, PV, electricity cost, colours — is picked up automatically from the bubble sensors.",
+    "editor.power_autarkie": "Self-sufficiency today (%)",
+    "editor.power_lg_nutzbar": "LG — usable energy left (kWh)",
+    "editor.power_lg_reichweite": "LG — runtime left (h)",
+    "editor.power_venus_nutzbar": "Venus — usable energy left (kWh)",
+    "editor.power_venus_reichweite": "Venus — runtime left (h)",
     "editor.temp_section": "Climate (Temperature)",
     "editor.temp_enabled": "Enable climate bubble",
     "editor.temp_position_hint": "Move the panel (in pixels, default = 0).",
@@ -1525,7 +1547,13 @@ class PowerFluxCardEditor extends LitElement {
                 // sparkline. Self + Grid x 3 periods = 6 keys, plus sparkline.
                 'house_mix_self_day', 'house_mix_self_month', 'house_mix_self_year',
                 'house_mix_grid_day', 'house_mix_grid_month', 'house_mix_grid_year',
-                'house_sparkline_entity'
+                'house_sparkline_entity',
+                // Phase power-1: power tile. Only the five values the card does
+                // not already know. Everything else is reused from existing keys
+                // (donut_today_*, pv_donut_*, bkw_donut_*, grid_combined, ...).
+                'power_autarkie',
+                'power_lg_nutzbar', 'power_lg_reichweite',
+                'power_venus_nutzbar', 'power_venus_reichweite'
             ];
 
             let newConfig = { ...this._config };
@@ -4328,6 +4356,59 @@ class PowerFluxCardEditor extends LitElement {
 
             ${this._renderColorPickerQuint(`color_consumer_${idx}`, `color_pipe_consumer_${idx}`, `color_text_consumer_${idx}`, `color_icon_consumer_${idx}`, `color_secondary_consumer_${idx}`, defaultColor)}
         </div>
+        `;
+    }
+
+    // Phase power-1: editor for the power tile. Toggle, position and the five
+    // entities the card does not already know. Everything else the tile shows
+    // is read from keys that are already configured elsewhere in this editor,
+    // so it stays in sync with the bubbles by construction.
+    _renderPowerView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._localize('editor.power_section')}</h2>
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.power_enabled === true}
+                .configValue=${'power_enabled'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.power_enabled')}</div>
+        </div>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
+            ${this._localize('editor.power_position_hint')}
+        </div>
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
+            .value=${this._config.power_offset_x !== undefined ? this._config.power_offset_x : 0}
+            .configValue=${'power_offset_x'}
+            .label=${this._localize('editor.power_offset_x')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
+            .value=${this._config.power_offset_y !== undefined ? this._config.power_offset_y : 0}
+            .configValue=${'power_offset_y'}
+            .label=${this._localize('editor.power_offset_y')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 16px 0 6px;">
+            ${this._localize('editor.power_entities_hint')}
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.power_autarkie || "", 'power_autarkie', this._localize('editor.power_autarkie'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.power_lg_nutzbar || "", 'power_lg_nutzbar', this._localize('editor.power_lg_nutzbar'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.power_lg_reichweite || "", 'power_lg_reichweite', this._localize('editor.power_lg_reichweite'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.power_venus_nutzbar || "", 'power_venus_nutzbar', this._localize('editor.power_venus_nutzbar'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.power_venus_reichweite || "", 'power_venus_reichweite', this._localize('editor.power_venus_reichweite'))}
         `;
     }
 
@@ -7415,6 +7496,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'consumer_6') return this._renderConsumer6View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_7') return this._renderConsumer7View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'power') return this._renderPowerView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'temp') return this._renderTempView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'donut') return this._renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'side_panels') return this._renderSidePanelsView();
@@ -7498,6 +7580,11 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="menu-item" @click=${() => this._goSubView('temp')}>
             <div class="menu-icon"><ha-icon icon="mdi:thermometer"></ha-icon> ${this._localize('editor.temp_section')}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+
+        <div class="menu-item" @click=${() => this._goSubView('power')}>
+            <div class="menu-icon"><ha-icon icon="mdi:card-text-outline"></ha-icon> ${this._localize('editor.power_section')}</div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
         </div>
 
@@ -8808,6 +8895,29 @@ console.log(
         margin-top: 0;
         margin-left: 0;
       }
+      /* phase power-1: power tile. Rectangular data panel, 130x310, anchored
+         top-left like the temp panel. Skeleton only in this phase — head,
+         origin, PV and storage sections follow in power-2. The green glow
+         matches color_export, which the autarky ring will use. */
+      .bubble.power { border-color: var(--power-glow, #5fff33); }
+      .bubble.power.tinted { background: color-mix(in srgb, var(--power-glow, #5fff33), transparent 85%); }
+      .bubble.power {
+        width: 130px;
+        height: 310px;
+        border-radius: 14px;
+        margin-top: 0;
+        margin-left: 0;
+        display: block;
+        overflow: hidden;
+        box-sizing: border-box;
+        padding: 10px;
+      }
+      .bubble.power .power-placeholder {
+        font-size: 11px;
+        color: var(--secondary-text-color);
+        text-align: center;
+        margin-top: 130px;
+      }
       .bubble.house.donut { border: none !important; --house-gradient: var(--neon-pink); background: transparent; }
       .bubble.house.donut.tinted { background: color-mix(in srgb, var(--neon-pink), transparent 85%); }
       .bubble.house.donut::before {
@@ -9203,6 +9313,7 @@ console.log(
       .node-bkw { top: 80px; left: 635px; }   /* phase BKW-1: garden plant, feeds the venus */
       .node-house { top: 245px; left: 355px; }   
       .node-temp { top: calc(220px + var(--temp-offset-y, 0px)); left: calc(655px + var(--temp-offset-x, 0px)); }   /* phase 5.84: movable via editor */
+      .node-power { top: calc(185px + var(--power-offset-y, 0px)); left: calc(690px + var(--power-offset-x, 0px)); }   /* phase power-1: verified collision-free by bezier sampling at bubble_size 100 */
       .node-c1 { top: 400px; left: 130px; }
       .node-c2 { top: 400px; left: 355px; }
       .node-c3 { top: 400px; left: 580px; }
@@ -12127,6 +12238,18 @@ console.log(
                            @click=${() => this._handleClick(tInId)}></div>
                       <div style="position:absolute;left:50%;top:0;width:50%;height:100%;cursor:pointer;z-index:10;"
                            @click=${() => this._handleClick(tOutId)}></div>
+                  </div>`;
+                })() : ''}
+
+                ${this.config.power_enabled === true ? (() => {
+                  // Phase power-1: skeleton only. Geometry and toggle first, so
+                  // the position can be sight-checked before content lands in it.
+                  const pOffX = this.config.power_offset_x !== undefined ? parseFloat(this.config.power_offset_x) : 0;
+                  const pOffY = this.config.power_offset_y !== undefined ? parseFloat(this.config.power_offset_y) : 0;
+                  return html`
+                  <div class="bubble power node-power ${tintClass}"
+                       style="--power-offset-x: ${pOffX}px; --power-offset-y: ${pOffY}px;">
+                      <div class="power-placeholder">Power</div>
                   </div>`;
                 })() : ''}
 

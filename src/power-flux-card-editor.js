@@ -176,7 +176,13 @@ class PowerFluxCardEditor extends LitElement {
                 // sparkline. Self + Grid x 3 periods = 6 keys, plus sparkline.
                 'house_mix_self_day', 'house_mix_self_month', 'house_mix_self_year',
                 'house_mix_grid_day', 'house_mix_grid_month', 'house_mix_grid_year',
-                'house_sparkline_entity'
+                'house_sparkline_entity',
+                // Phase power-1: power tile. Only the five values the card does
+                // not already know. Everything else is reused from existing keys
+                // (donut_today_*, pv_donut_*, bkw_donut_*, grid_combined, ...).
+                'power_autarkie',
+                'power_lg_nutzbar', 'power_lg_reichweite',
+                'power_venus_nutzbar', 'power_venus_reichweite'
             ];
 
             let newConfig = { ...this._config };
@@ -2979,6 +2985,59 @@ class PowerFluxCardEditor extends LitElement {
 
             ${this._renderColorPickerQuint(`color_consumer_${idx}`, `color_pipe_consumer_${idx}`, `color_text_consumer_${idx}`, `color_icon_consumer_${idx}`, `color_secondary_consumer_${idx}`, defaultColor)}
         </div>
+        `;
+    }
+
+    // Phase power-1: editor for the power tile. Toggle, position and the five
+    // entities the card does not already know. Everything else the tile shows
+    // is read from keys that are already configured elsewhere in this editor,
+    // so it stays in sync with the bubbles by construction.
+    _renderPowerView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        return html`
+        <div class="header">
+            <div class="back-btn" @click=${this._goBack}>
+                <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
+            </div>
+            <h2>${this._localize('editor.power_section')}</h2>
+        </div>
+
+        <div class="switch-row">
+            <ha-switch
+                .checked=${this._config.power_enabled === true}
+                .configValue=${'power_enabled'}
+                @change=${this._valueChanged}
+            ></ha-switch>
+            <div class="switch-label">${this._localize('editor.power_enabled')}</div>
+        </div>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
+            ${this._localize('editor.power_position_hint')}
+        </div>
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
+            .value=${this._config.power_offset_x !== undefined ? this._config.power_offset_x : 0}
+            .configValue=${'power_offset_x'}
+            .label=${this._localize('editor.power_offset_x')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+        <ha-selector
+            .hass=${this.hass}
+            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
+            .value=${this._config.power_offset_y !== undefined ? this._config.power_offset_y : 0}
+            .configValue=${'power_offset_y'}
+            .label=${this._localize('editor.power_offset_y')}
+            @value-changed=${this._valueChanged}
+        ></ha-selector>
+
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 16px 0 6px;">
+            ${this._localize('editor.power_entities_hint')}
+        </div>
+        ${this._renderEntitySelector(entitySelectorSchema, entities.power_autarkie || "", 'power_autarkie', this._localize('editor.power_autarkie'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.power_lg_nutzbar || "", 'power_lg_nutzbar', this._localize('editor.power_lg_nutzbar'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.power_lg_reichweite || "", 'power_lg_reichweite', this._localize('editor.power_lg_reichweite'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.power_venus_nutzbar || "", 'power_venus_nutzbar', this._localize('editor.power_venus_nutzbar'))}
+        ${this._renderEntitySelector(entitySelectorSchema, entities.power_venus_reichweite || "", 'power_venus_reichweite', this._localize('editor.power_venus_reichweite'))}
         `;
     }
 
@@ -6066,6 +6125,7 @@ class PowerFluxCardEditor extends LitElement {
         if (this._subView === 'consumer_6') return this._renderConsumer6View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumer_7') return this._renderConsumer7View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'consumers') return this._renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
+        if (this._subView === 'power') return this._renderPowerView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'temp') return this._renderTempView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'donut') return this._renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema);
         if (this._subView === 'side_panels') return this._renderSidePanelsView();
@@ -6149,6 +6209,11 @@ class PowerFluxCardEditor extends LitElement {
 
         <div class="menu-item" @click=${() => this._goSubView('temp')}>
             <div class="menu-icon"><ha-icon icon="mdi:thermometer"></ha-icon> ${this._localize('editor.temp_section')}</div>
+            <ha-icon icon="mdi:chevron-right"></ha-icon>
+        </div>
+
+        <div class="menu-item" @click=${() => this._goSubView('power')}>
+            <div class="menu-icon"><ha-icon icon="mdi:card-text-outline"></ha-icon> ${this._localize('editor.power_section')}</div>
             <ha-icon icon="mdi:chevron-right"></ha-icon>
         </div>
 

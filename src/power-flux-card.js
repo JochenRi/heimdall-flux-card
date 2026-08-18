@@ -963,6 +963,29 @@ console.log(
         margin-top: 0;
         margin-left: 0;
       }
+      /* phase power-1: power tile. Rectangular data panel, 130x310, anchored
+         top-left like the temp panel. Skeleton only in this phase — head,
+         origin, PV and storage sections follow in power-2. The green glow
+         matches color_export, which the autarky ring will use. */
+      .bubble.power { border-color: var(--power-glow, #5fff33); }
+      .bubble.power.tinted { background: color-mix(in srgb, var(--power-glow, #5fff33), transparent 85%); }
+      .bubble.power {
+        width: 130px;
+        height: 310px;
+        border-radius: 14px;
+        margin-top: 0;
+        margin-left: 0;
+        display: block;
+        overflow: hidden;
+        box-sizing: border-box;
+        padding: 10px;
+      }
+      .bubble.power .power-placeholder {
+        font-size: 11px;
+        color: var(--secondary-text-color);
+        text-align: center;
+        margin-top: 130px;
+      }
       .bubble.house.donut { border: none !important; --house-gradient: var(--neon-pink); background: transparent; }
       .bubble.house.donut.tinted { background: color-mix(in srgb, var(--neon-pink), transparent 85%); }
       .bubble.house.donut::before {
@@ -1358,6 +1381,7 @@ console.log(
       .node-bkw { top: 80px; left: 635px; }   /* phase BKW-1: garden plant, feeds the venus */
       .node-house { top: 245px; left: 355px; }   
       .node-temp { top: calc(220px + var(--temp-offset-y, 0px)); left: calc(655px + var(--temp-offset-x, 0px)); }   /* phase 5.84: movable via editor */
+      .node-power { top: calc(185px + var(--power-offset-y, 0px)); left: calc(690px + var(--power-offset-x, 0px)); }   /* phase power-1: verified collision-free by bezier sampling at bubble_size 100 */
       .node-c1 { top: 400px; left: 130px; }
       .node-c2 { top: 400px; left: 355px; }
       .node-c3 { top: 400px; left: 580px; }
@@ -4282,6 +4306,18 @@ console.log(
                            @click=${() => this._handleClick(tInId)}></div>
                       <div style="position:absolute;left:50%;top:0;width:50%;height:100%;cursor:pointer;z-index:10;"
                            @click=${() => this._handleClick(tOutId)}></div>
+                  </div>`;
+                })() : ''}
+
+                ${this.config.power_enabled === true ? (() => {
+                  // Phase power-1: skeleton only. Geometry and toggle first, so
+                  // the position can be sight-checked before content lands in it.
+                  const pOffX = this.config.power_offset_x !== undefined ? parseFloat(this.config.power_offset_x) : 0;
+                  const pOffY = this.config.power_offset_y !== undefined ? parseFloat(this.config.power_offset_y) : 0;
+                  return html`
+                  <div class="bubble power node-power ${tintClass}"
+                       style="--power-offset-x: ${pOffX}px; --power-offset-y: ${pOffY}px;">
+                      <div class="power-placeholder">Power</div>
                   </div>`;
                 })() : ''}
 
