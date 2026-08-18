@@ -979,6 +979,13 @@ console.log(
         overflow: hidden;
         box-sizing: border-box;
         padding: 10px;
+        /* phase power-B2: .bubble sets background:transparent, which is right
+           for a ring but wrong for a text panel -- the pipes and the climate
+           tile showed through the numbers. The tile gets its own surface, and
+           a z-index above the flow layer so nothing draws over it. */
+        background: color-mix(in srgb, var(--card-background-color, #16181d) 94%, transparent);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+        z-index: 4;
       }
       .bubble.power .power-placeholder {
         font-size: 11px;
