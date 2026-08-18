@@ -355,6 +355,20 @@ console.log(
         this._fetchSparklineHistory(entityId, period, null);
       }
 
+      // Phase power-D2: the tile needs two series the bubbles never fetch --
+      // the two state-of-charge sensors. Grid and PV are already cached
+      // because the grid and solar bubbles pull them (storage is keyed by
+      // entity_id), so nothing is fetched twice. This loop has a FIXED source
+      // list; forgetting to extend it is how the BKW sparkline nearly shipped
+      // permanently empty.
+      if (this.config.power_enabled === true) {
+        for (const k of ['battery_soc', 'venus_soc']) {
+          const entityId = this.config?.entities?.[k];
+          if (!entityId) continue;
+          this._fetchSparklineHistory(entityId, '24h', null);
+        }
+      }
+
       // Phase 5.82a: temp-bubble sparklines (indoor/outdoor). Same fetch
       // infrastructure; storage key is the entity_id so no collisions.
       const tempSides = {
@@ -2133,6 +2147,45 @@ console.log(
         return `conic-gradient(from 0deg, ${stops.join(', ')})`;
     }
 
+    // Phase power-D2: series renderer for the tile.
+    //
+    // Two rules learned the hard way in power-D:
+    //  * no nested html`` fragments inside <svg> -- lit builds them in the
+    //    HTML namespace, the nodes are invalid, and the whole card stops
+    //    rendering. Each branch below returns one flat template.
+    //  * no <clipPath>. The split at the zero line is done by clamping the
+    //    path geometry instead, which needs no SVG feature at all.
+    // The sized, relatively positioned wrapper is what keeps the blanket
+    // svg rule from resizing it, same as .sparkline-wrap.
+    _pSpark(entityKey, w, h, color, mode, negColor) {
+      const id = (this.config.entities || {})[entityKey];
+      const raw = id ? this._sparklineData[id] : null;
+      if (!raw || raw.length < 2) return '';
+      const ys = raw.map(pt => (Array.isArray(pt) ? pt[1] : pt.y))
+                    .filter(v => typeof v === 'number' && isFinite(v));
+      if (ys.length < 2) return '';
+      let lo = Math.min(...ys), hi = Math.max(...ys);
+      if (mode === 'zero') { const m = Math.max(Math.abs(lo), Math.abs(hi)) || 1; lo = -m; hi = m; }
+      if (hi - lo < 1e-9) hi = lo + 1;
+      const X = i => ((i / (ys.length - 1)) * w).toFixed(1);
+      const Y = v => (h - ((v - lo) / (hi - lo)) * h).toFixed(1);
+      const line = ys.map((v, i) => (i ? 'L' : 'M') + ' ' + X(i) + ' ' + Y(v)).join(' ');
+      const wrap = 'position:relative;width:' + w + 'px;height:' + h + 'px;overflow:hidden;';
+      const svgS = 'position:absolute;top:0;left:0;width:' + w + 'px;height:' + h + 'px;display:block;z-index:0;';
+
+      if (mode === 'zero') {
+        const base = parseFloat(Y(0));
+        const up = ys.map((v, i) => (i ? 'L' : 'M') + ' ' + X(i) + ' ' + Math.min(parseFloat(Y(v)), base).toFixed(1)).join(' ')
+                 + ' L ' + w + ' ' + base + ' L 0 ' + base + ' Z';
+        const dn = ys.map((v, i) => (i ? 'L' : 'M') + ' ' + X(i) + ' ' + Math.max(parseFloat(Y(v)), base).toFixed(1)).join(' ')
+                 + ' L ' + w + ' ' + base + ' L 0 ' + base + ' Z';
+        return html`<div style="${wrap}"><svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="${svgS}"><path d="${up}" fill="${negColor || color}" opacity="0.3"></path><path d="${dn}" fill="${color}" opacity="0.3"></path><line x1="0" y1="${base}" x2="${w}" y2="${base}" stroke="var(--divider-color,#444)" stroke-width="0.5"></line><path d="${line}" fill="none" stroke="${color}" stroke-width="1.1" opacity="0.7" stroke-linejoin="round"></path></svg></div>`;
+      }
+
+      const fill = line + ' L ' + w + ' ' + h + ' L 0 ' + h + ' Z';
+      return html`<div style="${wrap}"><svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="${svgS}"><path d="${fill}" fill="${color}" opacity="0.22"></path><path d="${line}" fill="none" stroke="${color}" stroke-width="1.1" opacity="0.7" stroke-linejoin="round"></path></svg></div>`;
+    }
+
     // Phase power-E: an optional tile must never take the whole card down with
     // it. Any throw inside the tile is caught here, reported once to the
     // console with a recognisable prefix, and rendered as a short notice in
@@ -2213,7 +2266,9 @@ console.log(
         return html`
         <div class="pw-now ${pulsing ? 'pulse' : ''}"
              style="left:${nowX.toFixed(1)}px;top:${nowY.toFixed(1)}px;background:${dotColor};"></div>
-        <div class="pw-head">
+        <div style="position:relative;">
+        <div style="position:absolute;top:1px;left:0;opacity:.45;">${this._pSpark('grid_combined', 110, 44, C.grid, 'zero', C.good)}</div>
+        <div class="pw-head" style="position:relative;">
             <div class="pw-ringwrap">
                 <div class="pw-ring" style="--pw-col:${C.good};--pw-pct:${autPct === null ? 0 : autPct}%;"></div>
                 <div class="pw-ringtxt">${aut === null ? '–' : Math.round(aut) + '%'}</div>
@@ -2222,6 +2277,7 @@ console.log(
                 <div class="pw-big">${cost === null ? '–' : this._pFmt(cost) + ' €'}</div>
                 <div class="pw-sub">heute</div>
             </div>
+        </div>
         </div>
         <div class="pw-sep"></div>
 
@@ -2235,16 +2291,22 @@ console.log(
         <div class="pw-sep"></div>
 
         <div class="pw-title">PV heute</div>
+        <div style="position:relative;">
+        <div style="position:absolute;top:0;left:0;opacity:.4;">${this._pSpark('solar_sparkline_entity', 110, 54, C.solar)}</div>
+        <div style="position:relative;">
         ${this._pRow(null, 'erwartet', this._pFmt(expect, 1) + ' kWh')}
         ${this._pRow(null, 'davon Dach', this._pFmt(roof))}
         ${this._pRow(null, 'davon BKW', this._pFmt(gaNow))}
+        </div></div>
         <div class="pw-sep"></div>
 
         <div class="pw-title">Speicher · bis leer</div>
         ${this._pRow(C.batt, 'LG ' + this._pFmt(this._pv('power_lg_nutzbar'), 1),
                      runtime('power_lg_reichweite', 'power_lg_nutzbar'))}
+        <div style="opacity:.5;">${this._pSpark('battery_soc', 110, 15, C.batt)}</div>
         ${this._pRow(C.venus, 'Venus ' + this._pFmt(this._pv('power_venus_nutzbar'), 1),
                      runtime('power_venus_reichweite', 'power_venus_nutzbar'))}
+        <div style="opacity:.5;">${this._pSpark('venus_soc', 110, 15, C.venus)}</div>
         `;
     }
 
