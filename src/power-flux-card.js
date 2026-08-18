@@ -2301,12 +2301,16 @@ console.log(
         <div class="pw-sep"></div>
 
         <div class="pw-title">Speicher · bis leer</div>
-        ${this._pRow(C.batt, 'LG ' + this._pFmt(this._pv('power_lg_nutzbar'), 1),
-                     runtime('power_lg_reichweite', 'power_lg_nutzbar'))}
-        <div style="opacity:.5;">${this._pSpark('battery_soc', 110, 15, C.batt)}</div>
-        ${this._pRow(C.venus, 'Venus ' + this._pFmt(this._pv('power_venus_nutzbar'), 1),
-                     runtime('power_venus_reichweite', 'power_venus_nutzbar'))}
-        <div style="opacity:.5;">${this._pSpark('venus_soc', 110, 15, C.venus)}</div>
+        <div style="position:relative;">
+        <div style="position:absolute;top:0;left:0;opacity:.45;">${this._pSpark('battery_soc', 110, 16, C.batt)}</div>
+        <div style="position:relative;">${this._pRow(C.batt, 'LG ' + this._pFmt(this._pv('power_lg_nutzbar'), 1),
+                     runtime('power_lg_reichweite', 'power_lg_nutzbar'))}</div>
+        </div>
+        <div style="position:relative;">
+        <div style="position:absolute;top:0;left:0;opacity:.45;">${this._pSpark('venus_soc', 110, 16, C.venus)}</div>
+        <div style="position:relative;">${this._pRow(C.venus, 'Venus ' + this._pFmt(this._pv('power_venus_nutzbar'), 1),
+                     runtime('power_venus_reichweite', 'power_venus_nutzbar'))}</div>
+        </div>
         `;
     }
 
