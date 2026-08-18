@@ -1381,7 +1381,12 @@ console.log(
       .node-bkw { top: 80px; left: 635px; }   /* phase BKW-1: garden plant, feeds the venus */
       .node-house { top: 245px; left: 355px; }   
       .node-temp { top: calc(220px + var(--temp-offset-y, 0px)); left: calc(655px + var(--temp-offset-x, 0px)); }   /* phase 5.84: movable via editor */
-      .node-power { top: calc(185px + var(--power-offset-y, 0px)); left: calc(690px + var(--power-offset-x, 0px)); }   /* phase power-1: verified collision-free by bezier sampling at bubble_size 100 */
+      /* phase power-1a: anchor moved 690 -> 735. The first sampling run missed
+         the seven house-to-consumer paths; pathHouseC7 (house -> pump) reaches
+         x=725 on its way down and ran straight through the tile. Verified
+         against all eighteen paths and all thirteen bubbles at bubble_size 100:
+         735 is the first collision-free column, with 4 px clearance to C7. */
+      .node-power { top: calc(185px + var(--power-offset-y, 0px)); left: calc(735px + var(--power-offset-x, 0px)); }
       .node-c1 { top: 400px; left: 130px; }
       .node-c2 { top: 400px; left: 355px; }
       .node-c3 { top: 400px; left: 580px; }
