@@ -996,7 +996,22 @@ console.log(
       /* phase power-B: tile internals. Fixed 9/10px type -- the tile is 110px
          wide inside its padding, which fits about 14 characters per line. */
       .bubble.power .pw-head { display: flex; align-items: center; gap: 6px; }
-      .bubble.power .pw-ring { flex: 0 0 auto; }
+      /* phase power-B3: the ring is a CSS conic-gradient, not an SVG. The card
+         carries a blanket rule setting every svg to position absolute at 100%
+         size for the flow layer, and inline geometry did not reliably beat it
+         in the browser. A masked gradient sidesteps the rule entirely and
+         matches how the bubble donuts are already drawn. */
+      .bubble.power .pw-ringwrap { position: relative; width: 44px; height: 44px; flex: 0 0 auto; }
+      .bubble.power .pw-ring {
+        position: absolute; inset: 0; border-radius: 50%;
+        background: conic-gradient(var(--pw-col) 0 var(--pw-pct), var(--divider-color, #444) var(--pw-pct) 100%);
+        -webkit-mask: radial-gradient(closest-side, transparent 68%, #000 69%);
+        mask: radial-gradient(closest-side, transparent 68%, #000 69%);
+      }
+      .bubble.power .pw-ringtxt {
+        position: absolute; inset: 0; display: flex; align-items: center;
+        justify-content: center; font-size: 11px; color: var(--primary-text-color);
+      }
       .bubble.power .pw-head-r { margin-left: auto; text-align: right; line-height: 1.15; }
       .bubble.power .pw-big { font-size: 13px; font-weight: 500; color: var(--primary-text-color); }
       .bubble.power .pw-sub { font-size: 9px; color: var(--secondary-text-color); }
@@ -2071,8 +2086,6 @@ console.log(
         const aut = this._pv('power_autarkie');
         const cost = this._pv('grid_rotate_daily_3');
         const autPct = aut === null ? null : Math.max(0, Math.min(100, aut));
-        const R = 19, CIRC = 2 * Math.PI * R;
-        const dash = autPct === null ? 0 : (CIRC * autPct) / 100;
 
         // --- origin -------------------------------------------------------
         const src = [
@@ -2107,16 +2120,10 @@ console.log(
 
         return html`
         <div class="pw-head">
-            <svg class="pw-ring" width="44" height="44" viewBox="0 0 44 44"
-                 style="position:static;width:44px;height:44px;min-width:44px;display:block;flex:0 0 auto;z-index:auto;">
-                <circle cx="22" cy="22" r="${R}" fill="none"
-                        stroke="var(--divider-color, #444)" stroke-width="4" opacity="0.5"></circle>
-                <circle cx="22" cy="22" r="${R}" fill="none" stroke="${C.good}" stroke-width="4"
-                        stroke-linecap="round" transform="rotate(-90 22 22)"
-                        stroke-dasharray="${dash} ${CIRC - dash}"></circle>
-                <text x="22" y="25" text-anchor="middle" font-size="11"
-                      fill="var(--primary-text-color)">${aut === null ? '–' : Math.round(aut) + '%'}</text>
-            </svg>
+            <div class="pw-ringwrap">
+                <div class="pw-ring" style="--pw-col:${C.good};--pw-pct:${autPct === null ? 0 : autPct}%;"></div>
+                <div class="pw-ringtxt">${aut === null ? '–' : Math.round(aut) + '%'}</div>
+            </div>
             <div class="pw-head-r">
                 <div class="pw-big">${cost === null ? '–' : this._pFmt(cost) + ' €'}</div>
                 <div class="pw-sub">heute</div>
