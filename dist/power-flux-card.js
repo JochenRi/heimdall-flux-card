@@ -8994,6 +8994,22 @@ console.log(
         text-align: center;
         margin-top: 130px;
       }
+      /* phase power-B: tile internals. Fixed 9/10px type -- the tile is 110px
+         wide inside its padding, which fits about 14 characters per line. */
+      .bubble.power .pw-head { display: flex; align-items: center; gap: 6px; }
+      .bubble.power .pw-ring { flex: 0 0 auto; }
+      .bubble.power .pw-head-r { margin-left: auto; text-align: right; line-height: 1.15; }
+      .bubble.power .pw-big { font-size: 13px; font-weight: 500; color: var(--primary-text-color); }
+      .bubble.power .pw-sub { font-size: 9px; color: var(--secondary-text-color); }
+      .bubble.power .pw-sep { height: 1px; background: var(--divider-color, #444); opacity: .5; margin: 6px 0; }
+      .bubble.power .pw-title { font-size: 9px; color: var(--secondary-text-color); margin-bottom: 3px; }
+      .bubble.power .pw-bar { display: flex; height: 9px; border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
+      .bubble.power .pw-bar > span { display: block; height: 100%; }
+      .bubble.power .pw-row { display: flex; align-items: center; gap: 4px; font-size: 9px; line-height: 1.5; }
+      .bubble.power .pw-dot { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; }
+      .bubble.power .pw-lbl { color: var(--secondary-text-color); }
+      .bubble.power .pw-num { margin-left: auto; font-size: 10px; color: var(--primary-text-color); }
+      .bubble.power .pw-pct { flex: 0 0 26px; text-align: right; color: var(--secondary-text-color); }
       .bubble.house.donut { border: none !important; --house-gradient: var(--neon-pink); background: transparent; }
       .bubble.house.donut.tinted { background: color-mix(in srgb, var(--neon-pink), transparent 85%); }
       .bubble.house.donut::before {
@@ -10001,6 +10017,134 @@ console.log(
           <text x="98" y="123" text-anchor="middle" fill="#fff" style="font-size:13px;font-weight:500;">${fmt(outVal)}</text>
         </svg>
       `;
+    }
+
+    // Phase power-B: the tile content. Four sections, no frame and no curves
+    // yet (those are power-C and power-D). Every value except the five
+    // power_* keys is read from entities the bubbles already use, so the tile
+    // and the rings it sits next to cannot drift apart.
+    _pv(key) {
+        const id = (this.config.entities || {})[key];
+        if (!id || !this.hass) return null;
+        const st = this.hass.states[id];
+        if (!st || st.state === 'unavailable' || st.state === 'unknown') return null;
+        const n = parseFloat(st.state);
+        return isNaN(n) ? null : n;
+    }
+
+    // Largest-remainder apportionment. Plain rounding of 57.2/22.4/17.5/3.0
+    // yields 99, which looks like a bug to anyone who adds the column up.
+    _pShares(vals) {
+        const tot = vals.reduce((a, b) => a + b, 0);
+        if (!(tot > 0)) return vals.map(() => null);
+        const raw = vals.map(v => (v / tot) * 100);
+        const out = raw.map(v => Math.floor(v));
+        let left = 100 - out.reduce((a, b) => a + b, 0);
+        const order = raw.map((v, i) => [v - Math.floor(v), i]).sort((a, b) => b[0] - a[0]);
+        for (let i = 0; i < left && i < order.length; i++) out[order[i][1]]++;
+        return out;
+    }
+
+    _pFmt(v, dec = 2) {
+        if (v === null || v === undefined) return '–';
+        return v.toFixed(dec).replace('.', ',');
+    }
+
+    _pRow(color, label, value, pct) {
+        return html`<div class="pw-row">
+            ${color ? html`<span class="pw-dot" style="background:${color};"></span>` : ''}
+            <span class="pw-lbl">${label}</span>
+            <span class="pw-num">${value}</span>
+            ${pct !== undefined ? html`<span class="pw-pct">${pct === null ? '–' : pct + '%'}</span>` : ''}
+        </div>`;
+    }
+
+    _renderPowerTile() {
+        const C = {
+            solar: 'var(--pipe-solar-color)',
+            venus: 'var(--pipe-venus-color)',
+            batt:  'var(--pipe-battery-color)',
+            grid:  'var(--pipe-grid-color)',
+            good:  'var(--export-color)',
+        };
+
+        // --- head ---------------------------------------------------------
+        const aut = this._pv('power_autarkie');
+        const cost = this._pv('grid_rotate_daily_3');
+        const autPct = aut === null ? null : Math.max(0, Math.min(100, aut));
+        const R = 19, CIRC = 2 * Math.PI * R;
+        const dash = autPct === null ? 0 : (CIRC * autPct) / 100;
+
+        // --- origin -------------------------------------------------------
+        const src = [
+            ['donut_today_solar', 'Dach',  C.solar],
+            ['donut_today_venus', 'Venus', C.venus],
+            ['donut_today_battery', 'LG',  C.batt],
+            ['donut_today_grid',  'Netz',  C.grid],
+        ].map(([k, l, c]) => ({ k, l, c, v: this._pv(k) }));
+        const vals = src.map(s => (s.v === null ? 0 : Math.max(0, s.v)));
+        const total = vals.reduce((a, b) => a + b, 0);
+        const pct = this._pShares(vals);
+
+        // --- pv -----------------------------------------------------------
+        const pvNow = this._pv('pv_donut_produced_today');
+        const pvRest = this._pv('pv_donut_forecast_today');
+        const gaNow = this._pv('bkw_donut_produced_today');
+        const gaRest = this._pv('bkw_donut_forecast_today');
+        const expect = [pvNow, pvRest, gaRest].every(v => v === null)
+            ? null : (pvNow || 0) + (pvRest || 0) + (gaRest || 0);
+        const roof = (pvNow === null) ? null : pvNow - (gaNow || 0);
+
+        // --- storage ------------------------------------------------------
+        // The runtime template returns 0 below 50 W of draw, so a full but
+        // idle battery reads "0 h" and looks empty. Caught here.
+        const runtime = (hKey, kKey) => {
+            const h = this._pv(hKey), kwh = this._pv(kKey);
+            if (h === null) return '–';
+            if (h >= 99) return '> 99 h';
+            if (h <= 0) return (kwh !== null && kwh > 0.3) ? 'ruht' : '0 h';
+            return this._pFmt(h, 1) + ' h';
+        };
+
+        return html`
+        <div class="pw-head">
+            <svg class="pw-ring" width="44" height="44" viewBox="0 0 44 44">
+                <circle cx="22" cy="22" r="${R}" fill="none"
+                        stroke="var(--divider-color, #444)" stroke-width="4" opacity="0.5"></circle>
+                <circle cx="22" cy="22" r="${R}" fill="none" stroke="${C.good}" stroke-width="4"
+                        stroke-linecap="round" transform="rotate(-90 22 22)"
+                        stroke-dasharray="${dash} ${CIRC - dash}"></circle>
+                <text x="22" y="25" text-anchor="middle" font-size="11"
+                      fill="var(--primary-text-color)">${aut === null ? '–' : Math.round(aut) + '%'}</text>
+            </svg>
+            <div class="pw-head-r">
+                <div class="pw-big">${cost === null ? '–' : this._pFmt(cost) + ' €'}</div>
+                <div class="pw-sub">heute</div>
+            </div>
+        </div>
+        <div class="pw-sep"></div>
+
+        <div class="pw-title">woher · ${this._pFmt(total)} kWh</div>
+        <div class="pw-bar">
+            ${total > 0
+                ? src.map((s, i) => html`<span style="width:${pct[i]}%;background:${s.c};"></span>`)
+                : html`<span style="width:100%;background:var(--divider-color,#444);opacity:.4;"></span>`}
+        </div>
+        ${src.map((s, i) => this._pRow(s.c, s.l, this._pFmt(s.v), total > 0 ? pct[i] : null))}
+        <div class="pw-sep"></div>
+
+        <div class="pw-title">PV heute</div>
+        ${this._pRow(null, 'erwartet', this._pFmt(expect, 1) + ' kWh')}
+        ${this._pRow(null, 'davon Dach', this._pFmt(roof))}
+        ${this._pRow(null, 'davon BKW', this._pFmt(gaNow))}
+        <div class="pw-sep"></div>
+
+        <div class="pw-title">Speicher · bis leer</div>
+        ${this._pRow(C.batt, 'LG ' + this._pFmt(this._pv('power_lg_nutzbar'), 1),
+                     runtime('power_lg_reichweite', 'power_lg_nutzbar'))}
+        ${this._pRow(C.venus, 'Venus ' + this._pFmt(this._pv('power_venus_nutzbar'), 1),
+                     runtime('power_venus_reichweite', 'power_venus_nutzbar'))}
+        `;
     }
 
     _renderStandardView(entities) {
@@ -12330,7 +12474,7 @@ console.log(
                   return html`
                   <div class="bubble power node-power ${tintClass}"
                        style="--power-offset-x: ${pOffX}px; --power-offset-y: ${pOffY}px;">
-                      <div class="power-placeholder">Power</div>
+                      <div class="power-tile-inner">${this._renderPowerTile()}</div>
                   </div>`;
                 })() : ''}
 
