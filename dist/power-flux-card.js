@@ -10180,7 +10180,7 @@ console.log(
       const id = (this.config.entities || {})[entityKey];
       const raw = id ? this._sparklineData[id] : null;
       if (!raw || raw.length < 2) return '';
-      const ys = raw.map(pt => (Array.isArray(pt) ? pt[1] : pt.y))
+      const ys = raw.map(pt => (Array.isArray(pt) ? pt[1] : pt.v))
                     .filter(v => typeof v === 'number' && isFinite(v));
       if (ys.length < 2) return '';
       let lo = Math.min(...ys), hi = Math.max(...ys);
