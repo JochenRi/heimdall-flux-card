@@ -355,20 +355,6 @@ console.log(
         this._fetchSparklineHistory(entityId, period, null);
       }
 
-      // Phase power-D: the tile needs two series the bubbles never fetch --
-      // the two state-of-charge sensors. Grid and PV are already in the cache
-      // because the grid and solar bubbles pull them, so nothing is fetched
-      // twice; storage is keyed by entity_id. This loop has a FIXED source
-      // list -- forgetting to extend it is exactly how the BKW sparkline
-      // nearly shipped permanently empty.
-      if (this.config.power_enabled === true) {
-        for (const k of ['battery_soc', 'venus_soc']) {
-          const entityId = this.config?.entities?.[k];
-          if (!entityId) continue;
-          this._fetchSparklineHistory(entityId, '24h', null);
-        }
-      }
-
       // Phase 5.82a: temp-bubble sparklines (indoor/outdoor). Same fetch
       // infrastructure; storage key is the entity_id so no collisions.
       const tempSides = {
@@ -2147,42 +2133,6 @@ console.log(
         return `conic-gradient(from 0deg, ${stops.join(', ')})`;
     }
 
-    // Phase power-D: compact series renderer for the tile. Wrapped in a sized,
-    // relatively positioned div -- the same shape .sparkline-wrap uses, which
-    // is what keeps the blanket svg rule from resizing it (see power-B3).
-    // mode "zero" splits fill above/below the zero line for signed series.
-    _pSpark(entityKey, w, h, color, mode = 'area', negColor = null) {
-      const id = (this.config.entities || {})[entityKey];
-      const raw = id ? this._sparklineData[id] : null;
-      if (!raw || raw.length < 2) return '';
-      const ys = raw.map(p => (Array.isArray(p) ? p[1] : p.y));
-      let lo = Math.min(...ys), hi = Math.max(...ys);
-      if (mode === 'zero') { const m = Math.max(Math.abs(lo), Math.abs(hi)) || 1; lo = -m; hi = m; }
-      if (hi - lo < 1e-9) { hi = lo + 1; }
-      const X = i => (i / (ys.length - 1)) * w;
-      const Y = v => h - ((v - lo) / (hi - lo)) * h;
-      const line = ys.map((v, i) => `${i ? 'L' : 'M'} ${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');
-      const base = mode === 'zero' ? Y(0) : h;
-      const fill = `${line} L ${w} ${base.toFixed(1)} L 0 ${base.toFixed(1)} Z`;
-      const clipUp = mode === 'zero'
-        ? html`<clipPath id="pu-${entityKey}"><rect x="0" y="0" width="${w}" height="${base}"></rect></clipPath>
-               <clipPath id="pd-${entityKey}"><rect x="0" y="${base}" width="${w}" height="${h - base}"></rect></clipPath>`
-        : '';
-      return html`<div style="position:relative;width:${w}px;height:${h}px;overflow:hidden;">
-        <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"
-             style="position:absolute;top:0;left:0;width:${w}px;height:${h}px;display:block;z-index:0;">
-          <defs>${clipUp}</defs>
-          ${mode === 'zero'
-            ? html`<path d="${fill}" fill="${negColor || color}" opacity="0.28" clip-path="url(#pu-${entityKey})"></path>
-                   <path d="${fill}" fill="${color}" opacity="0.28" clip-path="url(#pd-${entityKey})"></path>
-                   <line x1="0" y1="${base}" x2="${w}" y2="${base}" stroke="var(--divider-color,#444)" stroke-width="0.5"></line>`
-            : html`<path d="${fill}" fill="${color}" opacity="0.22"></path>`}
-          <path d="${line}" fill="none" stroke="${color}" stroke-width="1.2" opacity="0.75"
-                stroke-linejoin="round"></path>
-        </svg>
-      </div>`;
-    }
-
     _renderPowerTile() {
         const C = {
             solar: 'var(--pipe-solar-color)',
@@ -2245,11 +2195,7 @@ console.log(
         return html`
         <div class="pw-now ${pulsing ? 'pulse' : ''}"
              style="left:${nowX.toFixed(1)}px;top:${nowY.toFixed(1)}px;background:${dotColor};"></div>
-        <div style="position:relative;">
-        <div style="position:absolute;top:2px;left:0;opacity:.5;">
-            ${this._pSpark('grid_combined', 110, 42, C.grid, 'zero', C.good)}
-        </div>
-        <div class="pw-head" style="position:relative;">
+        <div class="pw-head">
             <div class="pw-ringwrap">
                 <div class="pw-ring" style="--pw-col:${C.good};--pw-pct:${autPct === null ? 0 : autPct}%;"></div>
                 <div class="pw-ringtxt">${aut === null ? '–' : Math.round(aut) + '%'}</div>
@@ -2258,7 +2204,6 @@ console.log(
                 <div class="pw-big">${cost === null ? '–' : this._pFmt(cost) + ' €'}</div>
                 <div class="pw-sub">heute</div>
             </div>
-        </div>
         </div>
         <div class="pw-sep"></div>
 
@@ -2272,24 +2217,16 @@ console.log(
         <div class="pw-sep"></div>
 
         <div class="pw-title">PV heute</div>
-        <div style="position:relative;">
-        <div style="position:absolute;top:0;left:0;opacity:.45;">
-            ${this._pSpark('solar_sparkline_entity', 110, 54, C.solar)}
-        </div>
-        <div style="position:relative;">
         ${this._pRow(null, 'erwartet', this._pFmt(expect, 1) + ' kWh')}
         ${this._pRow(null, 'davon Dach', this._pFmt(roof))}
         ${this._pRow(null, 'davon BKW', this._pFmt(gaNow))}
-        </div></div>
         <div class="pw-sep"></div>
 
         <div class="pw-title">Speicher · bis leer</div>
         ${this._pRow(C.batt, 'LG ' + this._pFmt(this._pv('power_lg_nutzbar'), 1),
                      runtime('power_lg_reichweite', 'power_lg_nutzbar'))}
-        <div style="opacity:.55;">${this._pSpark('battery_soc', 110, 16, C.batt)}</div>
         ${this._pRow(C.venus, 'Venus ' + this._pFmt(this._pv('power_venus_nutzbar'), 1),
                      runtime('power_venus_reichweite', 'power_venus_nutzbar'))}
-        <div style="opacity:.55;">${this._pSpark('venus_soc', 110, 16, C.venus)}</div>
         `;
     }
 
