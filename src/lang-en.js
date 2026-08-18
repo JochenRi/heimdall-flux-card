@@ -26,6 +26,7 @@ export default {
     "editor.side_panels_reserve": "Space taken by both panels",
     "editor.side_panels_threshold": "Card stays at full size from a window width of",
     "editor.side_panels_warn": "That is wider than most screens — the card will be scaled down.",
+    "editor.power_entities_title": "Power tile sensors",
     "editor.power_section": "Power Tile",
     "editor.power_enabled": "Enable power tile",
     "editor.power_position_hint": "Shift the tile position (in pixels, default 0). The tile measures 130 × 310 px and sits to the right of the house by default.",

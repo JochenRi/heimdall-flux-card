@@ -7,6 +7,15 @@ const editorTranslations = {
 };
 
 
+// Phase power-B0: the five entity keys the power tile owns. Single source of
+// truth -- used to build the form data, to read the form result back, and
+// registered in entityKeys for the legacy hand-wired path.
+const POWER_FLUX_EDITOR_POWER_KEYS = [
+    'power_autarkie',
+    'power_lg_nutzbar', 'power_lg_reichweite',
+    'power_venus_nutzbar', 'power_venus_reichweite',
+];
+
 const fireEvent = (node, type, detail, options) => {
     options = options || {};
     detail = detail === null || detail === undefined ? {} : detail;
@@ -3013,7 +3022,67 @@ class PowerFluxCardEditor extends LitElement {
     // entities the card does not already know. Everything else the tile shows
     // is read from keys that are already configured elsewhere in this editor,
     // so it stays in sync with the bubbles by construction.
+    // Phase power-B0: proof of concept for schema-driven editor sections.
+    // This is the first section built on <ha-form> instead of hand-wired
+    // controls. If it holds up, the twelve legacy views follow the same
+    // pattern -- ~6000 lines of near-duplicate template code collapse into
+    // data. Deliberately kept to the four fields the section already had, so
+    // a failure costs four fields and not a whole phase.
+    _powerSchema() {
+        const sensor = { entity: { domain: ['sensor', 'input_number'] } };
+        return [
+            { name: 'power_enabled', selector: { boolean: {} } },
+            { type: 'grid', name: '', flatten: true, column_min_width: '220px', schema: [
+                { name: 'power_offset_x', selector: { number: { min: -300, max: 300, step: 1, mode: 'slider' } } },
+                { name: 'power_offset_y', selector: { number: { min: -300, max: 300, step: 1, mode: 'slider' } } },
+            ]},
+            // flatten:false is the point of this experiment: the five children
+            // are expected to land under config.entities.* automatically, which
+            // is exactly what the hand-maintained entityKeys array does today.
+            { type: 'expandable', name: 'entities', flatten: false,
+              title: this._localize('editor.power_entities_title'), schema:
+                POWER_FLUX_EDITOR_POWER_KEYS.map(k => ({ name: k, selector: sensor })) },
+        ];
+    }
+
+    _powerFormChanged(ev) {
+        ev.stopPropagation();
+        if (!this._config) return;
+        const v = (ev.detail && ev.detail.value) || {};
+        const cfg = { ...this._config };
+
+        // Never assign a whole object back. Only known keys are copied, so a
+        // surprise in what ha-form returns cannot wipe unrelated config.
+        for (const k of ['power_enabled', 'power_offset_x', 'power_offset_y']) {
+            if (k in v) cfg[k] = v[k];
+        }
+
+        const ents = { ...(this._config.entities || {}) };
+        const incoming = v.entities || {};
+        for (const k of POWER_FLUX_EDITOR_POWER_KEYS) {
+            if (!(k in incoming)) continue;
+            if (incoming[k]) ents[k] = incoming[k]; else delete ents[k];
+        }
+        cfg.entities = ents;
+
+        this._config = cfg;
+        fireEvent(this, "config-changed", { config: this._config });
+    }
+
     _renderPowerView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        // Only the five power keys go into data, so ha-form can only ever hand
+        // back those five -- the other ~100 entity keys are never exposed to it.
+        const data = {
+            power_enabled: this._config.power_enabled === true,
+            power_offset_x: this._config.power_offset_x !== undefined ? this._config.power_offset_x : 0,
+            power_offset_y: this._config.power_offset_y !== undefined ? this._config.power_offset_y : 0,
+            entities: {},
+        };
+        for (const k of POWER_FLUX_EDITOR_POWER_KEYS) {
+            const val = (this._config.entities || {})[k];
+            if (val) data.entities[k] = val;
+        }
+
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
@@ -3022,43 +3091,19 @@ class PowerFluxCardEditor extends LitElement {
             <h2>${this._localize('editor.power_section')}</h2>
         </div>
 
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.power_enabled === true}
-                .configValue=${'power_enabled'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.power_enabled')}</div>
-        </div>
-
-        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 8px 0 12px; line-height: 1.6;">
             ${this._localize('editor.power_position_hint')}
         </div>
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
-            .value=${this._config.power_offset_x !== undefined ? this._config.power_offset_x : 0}
-            .configValue=${'power_offset_x'}
-            .label=${this._localize('editor.power_offset_x')}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
-            .value=${this._config.power_offset_y !== undefined ? this._config.power_offset_y : 0}
-            .configValue=${'power_offset_y'}
-            .label=${this._localize('editor.power_offset_y')}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
 
-        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 16px 0 6px;">
-            ${this._localize('editor.power_entities_hint')}
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.power_autarkie || "", 'power_autarkie', this._localize('editor.power_autarkie'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.power_lg_nutzbar || "", 'power_lg_nutzbar', this._localize('editor.power_lg_nutzbar'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.power_lg_reichweite || "", 'power_lg_reichweite', this._localize('editor.power_lg_reichweite'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.power_venus_nutzbar || "", 'power_venus_nutzbar', this._localize('editor.power_venus_nutzbar'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.power_venus_reichweite || "", 'power_venus_reichweite', this._localize('editor.power_venus_reichweite'))}
+        <ha-form
+            .hass=${this.hass}
+            .data=${data}
+            .schema=${this._powerSchema()}
+            .computeLabel=${(s) => this._localize(`editor.${s.name}`)}
+            .computeHelper=${(s) => (s.name === 'power_enabled'
+                ? this._localize('editor.power_entities_hint') : undefined)}
+            @value-changed=${this._powerFormChanged}
+        ></ha-form>
         `;
     }
 
