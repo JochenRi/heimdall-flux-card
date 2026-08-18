@@ -2133,7 +2133,25 @@ console.log(
         return `conic-gradient(from 0deg, ${stops.join(', ')})`;
     }
 
+    // Phase power-E: an optional tile must never take the whole card down with
+    // it. Any throw inside the tile is caught here, reported once to the
+    // console with a recognisable prefix, and rendered as a short notice in
+    // place of the content. The eleven bubbles and every pipe keep working.
     _renderPowerTile() {
+      try {
+        return this._renderPowerTileInner();
+      } catch (err) {
+        if (!this._pwErrLogged) {
+          this._pwErrLogged = true;
+          console.error('[power-flux-card] power tile render failed:', err);
+        }
+        return html`<div style="font-size:9px;color:var(--error-color,#e24b4a);line-height:1.5;">
+            Power-Kachel: Fehler<br><span style="color:var(--secondary-text-color);">
+            Details in der Browser-Konsole</span></div>`;
+      }
+    }
+
+    _renderPowerTileInner() {
         const C = {
             solar: 'var(--pipe-solar-color)',
             venus: 'var(--pipe-venus-color)',
