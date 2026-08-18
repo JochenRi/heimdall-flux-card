@@ -27,6 +27,10 @@ const lang_de = {
     "editor.grid_section": "Netz Import/Export",
     "editor.battery_section": "Batterie 1",
     "editor.venus_section": "Batterie 2",
+    "editor.side_panels_scale_hint": "Panelbreite und Abstand gehen der Karte verloren. Bleiben ihr weniger als 800 px, verkleinert sich die gesamte Darstellung — die Blasen inklusive.",
+    "editor.side_panels_reserve": "Platzbedarf beider Panels",
+    "editor.side_panels_threshold": "Karte bleibt in voller Größe ab einer Fensterbreite von",
+    "editor.side_panels_warn": "Das ist breiter als die meisten Bildschirme — die Karte wird verkleinert dargestellt.",
     "editor.power_section": "Power-Kachel",
     "editor.power_enabled": "Power-Kachel aktivieren",
     "editor.power_position_hint": "Position der Kachel verschieben (in Pixeln, Standard = 0). Die Kachel misst 130 × 310 px und sitzt standardmäßig rechts neben dem Haus.",
@@ -525,6 +529,10 @@ const lang_en = {
     "editor.grid_section": "Grid Connection",
     "editor.battery_section": "Battery 1",
     "editor.venus_section": "Battery 2",
+    "editor.side_panels_scale_hint": "Panel width and gap are taken away from the card. If less than 800 px remain, the whole visual shrinks — bubbles included.",
+    "editor.side_panels_reserve": "Space taken by both panels",
+    "editor.side_panels_threshold": "Card stays at full size from a window width of",
+    "editor.side_panels_warn": "That is wider than most screens — the card will be scaled down.",
     "editor.power_section": "Power Tile",
     "editor.power_enabled": "Enable power tile",
     "editor.power_position_hint": "Shift the tile position (in pixels, default 0). The tile measures 130 × 310 px and sits to the right of the house by default.",
@@ -2039,6 +2047,27 @@ class PowerFluxCardEditor extends LitElement {
                 ></ha-selector>
             </div>
         </div>
+
+        ${(() => {
+            // Phase power-1b: the width/gap pair silently drives the whole card
+            // scale -- scale = min(zoom, (host - 2*width - 2*gap) / 800). Turning
+            // the gap up shrinks every bubble, and nothing in the editor said so.
+            // This block makes the trade visible while dragging.
+            const w = Number(this._config.side_panel_width !== undefined ? this._config.side_panel_width : 320);
+            const g = Number(this._config.side_panel_gap !== undefined ? this._config.side_panel_gap : 40);
+            const reserve = 2 * w + 2 * g;
+            const threshold = 800 + reserve;
+            const tight = threshold > 1920;
+            return html`
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 4px 0 12px; line-height: 1.6;">
+                ${this._localize('editor.side_panels_scale_hint')}<br><br>
+                ${this._localize('editor.side_panels_reserve')}: 2 × ${w} + 2 × ${g} =
+                <b style="color: var(--primary-text-color);">${reserve} px</b><br>
+                ${this._localize('editor.side_panels_threshold')}
+                <b style="color: ${tight ? 'var(--error-color)' : 'var(--primary-text-color)'};">${threshold} px</b>
+                ${tight ? html`<br><span style="color: var(--error-color);">${this._localize('editor.side_panels_warn')}</span>` : ''}
+            </div>`;
+        })()}
 
         ${this._renderPanelCardList('left')}
         ${this._renderPanelCardList('right')}

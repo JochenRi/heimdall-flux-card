@@ -669,6 +669,27 @@ class PowerFluxCardEditor extends LitElement {
             </div>
         </div>
 
+        ${(() => {
+            // Phase power-1b: the width/gap pair silently drives the whole card
+            // scale -- scale = min(zoom, (host - 2*width - 2*gap) / 800). Turning
+            // the gap up shrinks every bubble, and nothing in the editor said so.
+            // This block makes the trade visible while dragging.
+            const w = Number(this._config.side_panel_width !== undefined ? this._config.side_panel_width : 320);
+            const g = Number(this._config.side_panel_gap !== undefined ? this._config.side_panel_gap : 40);
+            const reserve = 2 * w + 2 * g;
+            const threshold = 800 + reserve;
+            const tight = threshold > 1920;
+            return html`
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 4px 0 12px; line-height: 1.6;">
+                ${this._localize('editor.side_panels_scale_hint')}<br><br>
+                ${this._localize('editor.side_panels_reserve')}: 2 × ${w} + 2 × ${g} =
+                <b style="color: var(--primary-text-color);">${reserve} px</b><br>
+                ${this._localize('editor.side_panels_threshold')}
+                <b style="color: ${tight ? 'var(--error-color)' : 'var(--primary-text-color)'};">${threshold} px</b>
+                ${tight ? html`<br><span style="color: var(--error-color);">${this._localize('editor.side_panels_warn')}</span>` : ''}
+            </div>`;
+        })()}
+
         ${this._renderPanelCardList('left')}
         ${this._renderPanelCardList('right')}
         `;
