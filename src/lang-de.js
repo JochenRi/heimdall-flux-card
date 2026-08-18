@@ -27,6 +27,8 @@ export default {
     "editor.side_panels_threshold": "Karte bleibt in voller Größe ab einer Fensterbreite von",
     "editor.side_panels_warn": "Das ist breiter als die meisten Bildschirme — die Karte wird verkleinert dargestellt.",
     "editor.power_entities_title": "Sensoren der Power-Kachel",
+    "editor.power_pulse_enabled": "Bei Netzbezug pulsieren",
+    "editor.power_pulse_threshold": "Schwelle für das Pulsieren (W)",
     "editor.power_section": "Power-Kachel",
     "editor.power_enabled": "Power-Kachel aktivieren",
     "editor.power_position_hint": "Position der Kachel verschieben (in Pixeln, Standard = 0). Die Kachel misst 130 × 310 px und sitzt standardmäßig rechts neben dem Haus.",

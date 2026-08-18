@@ -3036,6 +3036,10 @@ class PowerFluxCardEditor extends LitElement {
                 { name: 'power_offset_x', selector: { number: { min: -300, max: 300, step: 1, mode: 'slider' } } },
                 { name: 'power_offset_y', selector: { number: { min: -300, max: 300, step: 1, mode: 'slider' } } },
             ]},
+            { type: 'grid', name: '', flatten: true, column_min_width: '220px', schema: [
+                { name: 'power_pulse_enabled', selector: { boolean: {} } },
+                { name: 'power_pulse_threshold', selector: { number: { min: 0, max: 2000, step: 25, mode: 'slider' } } },
+            ]},
             // flatten:false is the point of this experiment: the five children
             // are expected to land under config.entities.* automatically, which
             // is exactly what the hand-maintained entityKeys array does today.
@@ -3053,7 +3057,8 @@ class PowerFluxCardEditor extends LitElement {
 
         // Never assign a whole object back. Only known keys are copied, so a
         // surprise in what ha-form returns cannot wipe unrelated config.
-        for (const k of ['power_enabled', 'power_offset_x', 'power_offset_y']) {
+        for (const k of ['power_enabled', 'power_offset_x', 'power_offset_y',
+                         'power_pulse_enabled', 'power_pulse_threshold']) {
             if (k in v) cfg[k] = v[k];
         }
 
@@ -3076,6 +3081,8 @@ class PowerFluxCardEditor extends LitElement {
             power_enabled: this._config.power_enabled === true,
             power_offset_x: this._config.power_offset_x !== undefined ? this._config.power_offset_x : 0,
             power_offset_y: this._config.power_offset_y !== undefined ? this._config.power_offset_y : 0,
+            power_pulse_enabled: this._config.power_pulse_enabled !== false,
+            power_pulse_threshold: this._config.power_pulse_threshold !== undefined ? this._config.power_pulse_threshold : 200,
             entities: {},
         };
         for (const k of POWER_FLUX_EDITOR_POWER_KEYS) {

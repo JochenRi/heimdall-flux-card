@@ -32,6 +32,8 @@ const lang_de = {
     "editor.side_panels_threshold": "Karte bleibt in voller Größe ab einer Fensterbreite von",
     "editor.side_panels_warn": "Das ist breiter als die meisten Bildschirme — die Karte wird verkleinert dargestellt.",
     "editor.power_entities_title": "Sensoren der Power-Kachel",
+    "editor.power_pulse_enabled": "Bei Netzbezug pulsieren",
+    "editor.power_pulse_threshold": "Schwelle für das Pulsieren (W)",
     "editor.power_section": "Power-Kachel",
     "editor.power_enabled": "Power-Kachel aktivieren",
     "editor.power_position_hint": "Position der Kachel verschieben (in Pixeln, Standard = 0). Die Kachel misst 130 × 310 px und sitzt standardmäßig rechts neben dem Haus.",
@@ -535,6 +537,8 @@ const lang_en = {
     "editor.side_panels_threshold": "Card stays at full size from a window width of",
     "editor.side_panels_warn": "That is wider than most screens — the card will be scaled down.",
     "editor.power_entities_title": "Power tile sensors",
+    "editor.power_pulse_enabled": "Pulse on grid import",
+    "editor.power_pulse_threshold": "Pulse threshold (W)",
     "editor.power_section": "Power Tile",
     "editor.power_enabled": "Enable power tile",
     "editor.power_position_hint": "Shift the tile position (in pixels, default 0). The tile measures 130 × 310 px and sits to the right of the house by default.",
@@ -4417,6 +4421,10 @@ class PowerFluxCardEditor extends LitElement {
                 { name: 'power_offset_x', selector: { number: { min: -300, max: 300, step: 1, mode: 'slider' } } },
                 { name: 'power_offset_y', selector: { number: { min: -300, max: 300, step: 1, mode: 'slider' } } },
             ]},
+            { type: 'grid', name: '', flatten: true, column_min_width: '220px', schema: [
+                { name: 'power_pulse_enabled', selector: { boolean: {} } },
+                { name: 'power_pulse_threshold', selector: { number: { min: 0, max: 2000, step: 25, mode: 'slider' } } },
+            ]},
             // flatten:false is the point of this experiment: the five children
             // are expected to land under config.entities.* automatically, which
             // is exactly what the hand-maintained entityKeys array does today.
@@ -4434,7 +4442,8 @@ class PowerFluxCardEditor extends LitElement {
 
         // Never assign a whole object back. Only known keys are copied, so a
         // surprise in what ha-form returns cannot wipe unrelated config.
-        for (const k of ['power_enabled', 'power_offset_x', 'power_offset_y']) {
+        for (const k of ['power_enabled', 'power_offset_x', 'power_offset_y',
+                         'power_pulse_enabled', 'power_pulse_threshold']) {
             if (k in v) cfg[k] = v[k];
         }
 
@@ -4457,6 +4466,8 @@ class PowerFluxCardEditor extends LitElement {
             power_enabled: this._config.power_enabled === true,
             power_offset_x: this._config.power_offset_x !== undefined ? this._config.power_offset_x : 0,
             power_offset_y: this._config.power_offset_y !== undefined ? this._config.power_offset_y : 0,
+            power_pulse_enabled: this._config.power_pulse_enabled !== false,
+            power_pulse_threshold: this._config.power_pulse_threshold !== undefined ? this._config.power_pulse_threshold : 200,
             entities: {},
         };
         for (const k of POWER_FLUX_EDITOR_POWER_KEYS) {
@@ -8984,7 +8995,7 @@ console.log(
         margin-top: 0;
         margin-left: 0;
         display: block;
-        overflow: hidden;
+        overflow: visible;
         box-sizing: border-box;
         padding: 10px;
         /* phase power-B2: .bubble sets background:transparent, which is right
@@ -8994,6 +9005,31 @@ console.log(
         background: color-mix(in srgb, var(--card-background-color, #16181d) 94%, transparent);
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
         z-index: 4;
+        border: none;
+        position: absolute;
+      }
+      /* phase power-C: the frame carries the day. A conic-gradient masked to a
+         2px ring -- same trick as .bubble.house.donut::before, and free of the
+         blanket svg rule that broke the ring in power-B. Filled portion = how
+         much of the day has passed, split by today's origin shares. */
+      .bubble.power::before {
+        content: ""; position: absolute; inset: 0; border-radius: 14px;
+        padding: 2px; background: var(--pw-frame, var(--power-glow, #5fff33));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude;
+        pointer-events: none; z-index: 0;
+      }
+      .bubble.power .pw-now {
+        position: absolute; width: 9px; height: 9px; border-radius: 50%;
+        transform: translate(-50%, -50%); pointer-events: none; z-index: 5;
+        box-shadow: 0 0 0 2px var(--card-background-color, #16181d);
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .bubble.power .pw-now.pulse { animation: pw-pulse 1.6s ease-in-out infinite; }
+      }
+      @keyframes pw-pulse {
+        0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        50%      { opacity: .35; transform: translate(-50%, -50%) scale(1.35); }
       }
       .bubble.power .power-placeholder {
         font-size: 11px;
@@ -10081,6 +10117,41 @@ console.log(
         </div>`;
     }
 
+    // Shared by the tile body and the frame gradient, so both always describe
+    // the same split -- computing it twice risks them drifting apart.
+    _pOrigin() {
+        const src = [
+            ['donut_today_solar', 'Dach',  'var(--pipe-solar-color)'],
+            ['donut_today_venus', 'Venus', 'var(--pipe-venus-color)'],
+            ['donut_today_battery', 'LG',  'var(--pipe-battery-color)'],
+            ['donut_today_grid',  'Netz',  'var(--pipe-grid-color)'],
+        ].map(([k, l, c]) => ({ k, l, c, v: this._pv(k) }));
+        const vals = src.map(s => (s.v === null ? 0 : Math.max(0, s.v)));
+        const total = vals.reduce((a, b) => a + b, 0);
+        return { src, total, pct: this._pShares(vals) };
+    }
+
+    _pDayPct() {
+        const n = new Date();
+        return ((n.getHours() * 60 + n.getMinutes()) / 1440) * 100;
+    }
+
+    _pFrameGradient() {
+        const { src, total, pct } = this._pOrigin();
+        const dayPct = this._pDayPct();
+        if (!(total > 0) || dayPct <= 0) return 'var(--divider-color, #444)';
+        const stops = [];
+        let acc = 0;
+        src.forEach((s, i) => {
+            const seg = (pct[i] / 100) * dayPct;
+            if (seg <= 0) return;
+            stops.push(`${s.c} ${acc.toFixed(2)}% ${(acc + seg).toFixed(2)}%`);
+            acc += seg;
+        });
+        stops.push(`var(--divider-color, #444) ${acc.toFixed(2)}% 100%`);
+        return `conic-gradient(from 0deg, ${stops.join(', ')})`;
+    }
+
     _renderPowerTile() {
         const C = {
             solar: 'var(--pipe-solar-color)',
@@ -10096,15 +10167,7 @@ console.log(
         const autPct = aut === null ? null : Math.max(0, Math.min(100, aut));
 
         // --- origin -------------------------------------------------------
-        const src = [
-            ['donut_today_solar', 'Dach',  C.solar],
-            ['donut_today_venus', 'Venus', C.venus],
-            ['donut_today_battery', 'LG',  C.batt],
-            ['donut_today_grid',  'Netz',  C.grid],
-        ].map(([k, l, c]) => ({ k, l, c, v: this._pv(k) }));
-        const vals = src.map(s => (s.v === null ? 0 : Math.max(0, s.v)));
-        const total = vals.reduce((a, b) => a + b, 0);
-        const pct = this._pShares(vals);
+        const { src, total, pct } = this._pOrigin();
 
         // --- pv -----------------------------------------------------------
         const pvNow = this._pv('pv_donut_produced_today');
@@ -10126,7 +10189,31 @@ console.log(
             return this._pFmt(h, 1) + ' h';
         };
 
+        const dayPct = this._pDayPct();
+
+        // Where the filled arc meets the rounded rectangle. A conic gradient
+        // sweeps by angle, so the marker has to be placed by angle too -- the
+        // ray from the centre, clipped to the 130x310 box.
+        const ang = (dayPct / 100) * 2 * Math.PI;
+        const sx = Math.sin(ang), cx0 = Math.cos(ang);
+        const HW = 65, HH = 155;
+        const t = Math.min(
+            Math.abs(sx) < 1e-6 ? Infinity : HW / Math.abs(sx),
+            Math.abs(cx0) < 1e-6 ? Infinity : HH / Math.abs(cx0));
+        const nowX = HW + t * sx, nowY = HH - t * cx0;
+
+        // Pulse only on grid import above the threshold. One alarm channel:
+        // nothing else in the tile blinks, so its meaning stays unambiguous.
+        const gridNow = this._pv('grid_combined');
+        const thr = this.config.power_pulse_threshold !== undefined
+            ? parseFloat(this.config.power_pulse_threshold) : 200;
+        const pulsing = this.config.power_pulse_enabled !== false
+            && gridNow !== null && gridNow > thr;
+        const dotColor = pulsing ? C.grid : (src.find((s, i) => pct[i] === Math.max(...pct))?.c || C.solar);
+
         return html`
+        <div class="pw-now ${pulsing ? 'pulse' : ''}"
+             style="left:${nowX.toFixed(1)}px;top:${nowY.toFixed(1)}px;background:${dotColor};"></div>
         <div class="pw-head">
             <div class="pw-ringwrap">
                 <div class="pw-ring" style="--pw-col:${C.good};--pw-pct:${autPct === null ? 0 : autPct}%;"></div>
@@ -12488,7 +12575,7 @@ console.log(
                   const pOffY = this.config.power_offset_y !== undefined ? parseFloat(this.config.power_offset_y) : 0;
                   return html`
                   <div class="bubble power node-power ${tintClass}"
-                       style="--power-offset-x: ${pOffX}px; --power-offset-y: ${pOffY}px;">
+                       style="--power-offset-x: ${pOffX}px; --power-offset-y: ${pOffY}px; --pw-frame: ${this._pFrameGradient()};">
                       <div class="power-tile-inner">${this._renderPowerTile()}</div>
                   </div>`;
                 })() : ''}
