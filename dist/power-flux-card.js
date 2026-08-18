@@ -10108,7 +10108,8 @@ console.log(
 
         return html`
         <div class="pw-head">
-            <svg class="pw-ring" width="44" height="44" viewBox="0 0 44 44">
+            <svg class="pw-ring" width="44" height="44" viewBox="0 0 44 44"
+                 style="position:static;width:44px;height:44px;min-width:44px;display:block;flex:0 0 auto;z-index:auto;">
                 <circle cx="22" cy="22" r="${R}" fill="none"
                         stroke="var(--divider-color, #444)" stroke-width="4" opacity="0.5"></circle>
                 <circle cx="22" cy="22" r="${R}" fill="none" stroke="${C.good}" stroke-width="4"
