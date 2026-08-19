@@ -471,6 +471,31 @@ const BUBBLE_CAPS = {
                      periods: SPARKLINE_PERIODS, periodDef: '24h',
                      testMode: true, debug: true },
     },
+    // Phase editor-9: the climate tile. Two mirrored halves -- indoor and
+    // outdoor, identical but for the prefix -- so both are generated from the
+    // same sparkline definition. No label, no icon, no rotation, no mix ring:
+    // it is a thermometer panel, not a bubble.
+    temp_indoor: {
+        sparkline: { opacityDef: 0.35, styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h' },
+    },
+    temp_outdoor: {
+        sparkline: { opacityDef: 0.35, styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h' },
+    },
+    temp: {
+        enabled: { key: 'temp_enabled', def: false, labelKey: 'temp_enabled' },
+        // Wider range than the bubbles: this tile is moved across the whole
+        // card, not nudged within one.
+        labelOffsets: { targets: [''], range: 300, labels: 'temp',
+                        keyStem: 'offset', defaults: { x: 0, y: 0 } },
+        scales: [
+            ['temp_outdoor_min', -10, -40, 20],
+            ['temp_outdoor_max', 40, 20, 60],
+            ['temp_indoor_min', 10, 0, 20],
+            ['temp_indoor_max', 30, 20, 40],
+        ],
+    },
     grid: {
         label: true,
         icon: true,
@@ -608,6 +633,12 @@ const FIELD_HELP = {
     side_panel_gap: 'help_side_panel_gap',
     show_flow_rates: 'help_show_flow_rates',
     portals_enabled: 'help_portals_enabled',
+    temp_offset_x: 'help_temp_offset',
+    temp_offset_y: 'help_temp_offset',
+    temp_outdoor_min: 'help_temp_scale_min',
+    temp_indoor_min: 'help_temp_scale_min',
+    temp_outdoor_max: 'help_temp_scale_max',
+    temp_indoor_max: 'help_temp_scale_max',
     portal_size: 'help_portal_size',
     temp_portal_offset_x: 'help_portal_offset',
     temp_portal_offset_y: 'help_portal_offset',
@@ -740,6 +771,17 @@ const bubbleFields = (prefix, group) => {
         }
     }
 
+    // Scale ends for the two thermometer columns. Paired so min and max of one
+    // column sit on a row -- they are only ever set together.
+    if (group === 'scales' && caps.scales) {
+        for (let i = 0; i < caps.scales.length; i += 2) {
+            f.push(sideBySide(caps.scales.slice(i, i + 2).map(([key, def, min, max]) => ({
+                key, def, labelKey: key,
+                selector: { number: { min, max, step: 1, mode: 'slider' } },
+            }))));
+        }
+    }
+
     if (group === 'soc' && caps.socDonut) {
         bool(`${prefix}_soc_donut_mode`, false,
             caps.socDonut.labelKey || `${prefix}_soc_donut_enabled`);
@@ -759,13 +801,16 @@ const bubbleFields = (prefix, group) => {
         // sit on one row rather than stacked with a slider's width between.
         for (const target of o.targets) {
             const stem = target ? `${prefix}_${target}` : prefix;
+            const stemKey = o.keyStem === 'offset' ? `${stem}_offset` : `${stem}_label_offset`;
             const pair = ['x', 'y'].map((axis) => ({
-                key: `${stem}_label_offset_${axis}`,
+                key: `${stemKey}_${axis}`,
                 def: (o.defaults && o.defaults[axis] !== undefined) ? o.defaults[axis] : 0,
                 selector: { number: { min: -o.range, max: o.range, step: 1, mode: 'slider' } },
                 labelKey: o.labels === 'axis'
                     ? `__axis_${axis.toUpperCase()}`
-                    : `${o.labels}_label_offset_${axis}`,
+                    : (o.keyStem === 'offset'
+                        ? `${o.labels}_offset_${axis}`
+                        : `${o.labels}_label_offset_${axis}`),
             }));
             f.push(sideBySide(pair));
         }
@@ -818,18 +863,25 @@ const bubbleFields = (prefix, group) => {
         }
         // Rule B: appearance is fine adjustment -- folded away, the two
         // everyday controls (on, period) stay in reach above it.
-        const fine = [
-            sideBySide([
+        const fine = [];
+        const styleField = { key: `${prefix}_sparkline_style`, def: s.styleDef,
+            selector: { select: { mode: 'dropdown', options: SPARKLINE_STYLES } },
+            labelKey: 'sparkline_style', optionLabels: 'sparkline_style_' };
+        // The climate curves have no layer choice -- they sit behind their own
+        // column and nowhere else -- so style stands alone there.
+        if (s.layerDef) {
+            fine.push(sideBySide([
                 { key: `${prefix}_sparkline_layer`, def: s.layerDef,
                   selector: { select: { mode: 'dropdown', options: SPARKLINE_LAYERS } },
                   labelKey: 'sparkline_layer', optionLabels: 'sparkline_layer_' },
-                { key: `${prefix}_sparkline_style`, def: s.styleDef,
-                  selector: { select: { mode: 'dropdown', options: SPARKLINE_STYLES } },
-                  labelKey: 'sparkline_style', optionLabels: 'sparkline_style_' },
-            ], '200px'),
-            { key: `${prefix}_sparkline_opacity`, def: s.opacityDef, labelKey: 'sparkline_opacity',
-              selector: { number: { min: 0.05, max: 1, step: 0.05, mode: 'slider' } } },
-        ];
+                styleField,
+            ], '200px'));
+        } else {
+            fine.push(styleField);
+        }
+        fine.push({ key: `${prefix}_sparkline_opacity`, def: s.opacityDef,
+            labelKey: 'sparkline_opacity',
+            selector: { number: { min: 0.05, max: 1, step: 0.05, mode: 'slider' } } });
         if (s.debug) fine.push({ key: `${prefix}_sparkline_debug`, def: false,
             selector: { boolean: {} }, labelKey: 'sparkline_debug' });
         if (s.testMode) fine.push({ key: `${prefix}_sparkline_test_mode`, def: false,
@@ -2974,10 +3026,15 @@ class PowerFluxCardEditor extends LitElement {
     // suitable for indoor temperature. User can override consumer_6_soc_max
     // for humidity (max=100), CO2 (max=2000), or any other ratio metric.
     // Rotation (phase 5.65) and charge-mix ring (phase 5.66) follow.
+    // Phase editor-9: the climate tile, last of the twelve sections. Two
+    // mirrored halves -- indoor and outdoor -- generated from one sparkline
+    // definition with different prefixes, the same way the seven consumers
+    // share one template.
     _renderTempView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
-        // Phase 5.79c: full editor for the split climate (temp) bubble.
-        // Four entities (outdoor/indoor current + forecast high/low) land
-        // under config.entities.* via entityKeys; scales are top-level config.
+        const tempSides = [
+            { side: 'indoor',  titleKey: 'temp_sparkline_indoor_title',  color: '#7cf8d1' },
+            { side: 'outdoor', titleKey: 'temp_sparkline_outdoor_title', color: '#77bafd' },
+        ];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
@@ -2986,198 +3043,74 @@ class PowerFluxCardEditor extends LitElement {
             <h2>${this._localize('editor.temp_section')}</h2>
         </div>
 
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.temp_enabled === true}
-                .configValue=${'temp_enabled'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.temp_enabled')}</div>
-        </div>
+        <div class="consumer-group">
+            ${this._bubbleForm('temp', 'behavior')}
 
-        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
-            ${this._localize('editor.temp_position_hint')}
-        </div>
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
-            .value=${this._config.temp_offset_x !== undefined ? this._config.temp_offset_x : 0}
-            .configValue=${'temp_offset_x'}
-            .label=${this._localize('editor.temp_offset_x')}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${{ number: { min: -300, max: 300, step: 1, mode: "slider" } }}
-            .value=${this._config.temp_offset_y !== undefined ? this._config.temp_offset_y : 0}
-            .configValue=${'temp_offset_y'}
-            .label=${this._localize('editor.temp_offset_y')}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-
-        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
-            ${this._localize('editor.temp_sensors_hint')}
-        </div>
-
-        ${this._renderEntitySelector(entitySelectorSchema, entities.temp_outdoor || "", 'temp_outdoor', this._localize('editor.temp_outdoor'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.temp_indoor || "", 'temp_indoor', this._localize('editor.temp_indoor'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.temp_forecast_high || "", 'temp_forecast_high', this._localize('editor.temp_forecast_high'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.temp_forecast_low || "", 'temp_forecast_low', this._localize('editor.temp_forecast_low'))}
-
-        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
-            ${this._localize('editor.temp_scales_hint')}
-        </div>
-
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -40, max: 20, step: 1, mode: "slider" } }}
-                .value=${this._config.temp_outdoor_min !== undefined ? this._config.temp_outdoor_min : -10}
-                .configValue=${'temp_outdoor_min'}
-                .label=${this._localize('editor.temp_outdoor_min')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 20, max: 60, step: 1, mode: "slider" } }}
-                .value=${this._config.temp_outdoor_max !== undefined ? this._config.temp_outdoor_max : 40}
-                .configValue=${'temp_outdoor_max'}
-                .label=${this._localize('editor.temp_outdoor_max')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 20, step: 1, mode: "slider" } }}
-                .value=${this._config.temp_indoor_min !== undefined ? this._config.temp_indoor_min : 10}
-                .configValue=${'temp_indoor_min'}
-                .label=${this._localize('editor.temp_indoor_min')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
-        <div>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 20, max: 40, step: 1, mode: "slider" } }}
-                .value=${this._config.temp_indoor_max !== undefined ? this._config.temp_indoor_max : 30}
-                .configValue=${'temp_indoor_max'}
-                .label=${this._localize('editor.temp_indoor_max')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-        </div>
-
-        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 12px 0 6px;">
-            ${this._localize('editor.temp_colors_hint')}
-        </div>
-        ${this._renderColorPicker('temp_outdoor_color', this._localize('editor.temp_outdoor_color'), '#378ADD')}
-        ${this._renderColorPicker('temp_indoor_color', this._localize('editor.temp_indoor_color'), '#1D9E75')}
-        ${this._renderColorPicker('temp_marker_color', this._localize('editor.temp_marker_color'), '#D85A30')}
-
-        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 16px 0 6px;">
-            ${this._localize('editor.temp_sparkline_hint')}
-        </div>
-
-        <div class="option-group">
-            <div class="group-title">
-                <ha-icon icon="mdi:chart-line-variant"></ha-icon>
-                ${this._localize('editor.temp_sparkline_indoor_title')}
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 8px 0 4px;">
+                ${this._localize('editor.temp_position_hint')}
             </div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.temp_indoor_sparkline === true}
-                    .configValue=${'temp_indoor_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, this._config.temp_indoor_sparkline_entity || "", 'temp_indoor_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h", label: "1h" }, { value: "6h", label: "6h" },
-                    { value: "12h", label: "12h" }, { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.temp_indoor_sparkline_period || '24h'}
-                .configValue=${'temp_indoor_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area", label: this._localize('editor.sparkline_style_area') },
-                    { value: "line", label: this._localize('editor.sparkline_style_line') },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.temp_indoor_sparkline_style || 'area-line'}
-                .configValue=${'temp_indoor_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.temp_indoor_sparkline_opacity !== undefined ? this._config.temp_indoor_sparkline_opacity : 0.35}
-                .configValue=${'temp_indoor_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ${this._renderColorPicker('temp_indoor_sparkline_color', this._localize('editor.sparkline_color'), '#1D9E75')}
+            ${this._bubbleForm('temp', 'offsets')}
         </div>
 
-        <div class="option-group">
-            <div class="group-title">
-                <ha-icon icon="mdi:chart-line-variant"></ha-icon>
-                ${this._localize('editor.temp_sparkline_outdoor_title')}
+        <!-- Sensors -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.temp_sensors_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:thermometer"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.temp_sensors_hint')}
             </div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.temp_outdoor_sparkline === true}
-                    .configValue=${'temp_outdoor_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities.temp_indoor || "", 'temp_indoor', this._localize('editor.temp_indoor'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.temp_outdoor || "", 'temp_outdoor', this._localize('editor.temp_outdoor'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.temp_forecast_high || "", 'temp_forecast_high', this._localize('editor.temp_forecast_high'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.temp_forecast_low || "", 'temp_forecast_low', this._localize('editor.temp_forecast_low'))}
+        </ha-expansion-panel>
+
+        <!-- Scale ends -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.temp_scales_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:ruler"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.temp_scales_hint')}
             </div>
-            ${this._renderEntitySelector(entitySelectorSchema, this._config.temp_outdoor_sparkline_entity || "", 'temp_outdoor_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h", label: "1h" }, { value: "6h", label: "6h" },
-                    { value: "12h", label: "12h" }, { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.temp_outdoor_sparkline_period || '24h'}
-                .configValue=${'temp_outdoor_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area", label: this._localize('editor.sparkline_style_area') },
-                    { value: "line", label: this._localize('editor.sparkline_style_line') },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.temp_outdoor_sparkline_style || 'area-line'}
-                .configValue=${'temp_outdoor_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.temp_outdoor_sparkline_opacity !== undefined ? this._config.temp_outdoor_sparkline_opacity : 0.35}
-                .configValue=${'temp_outdoor_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ${this._renderColorPicker('temp_outdoor_sparkline_color', this._localize('editor.sparkline_color'), '#378ADD')}
-        </div>
-    `;
+
+            ${this._bubbleForm('temp', 'scales')}
+        </ha-expansion-panel>
+
+        <!-- Colours -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.temp_colors_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:palette"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.temp_colors_hint')}
+            </div>
+
+            ${this._renderColorPicker('temp_indoor_color', this._localize('editor.temp_indoor_color'), '#7cf8d1')}
+            ${this._renderColorPicker('temp_outdoor_color', this._localize('editor.temp_outdoor_color'), '#77bafd')}
+            ${this._renderColorPicker('temp_marker_color', this._localize('editor.temp_marker_color'), '#d60000')}
+        </ha-expansion-panel>
+
+        <!-- One curve per column -->
+        ${tempSides.map((tempSide) => html`
+        <ha-expansion-panel outlined .header=${this._localize(`editor.${tempSide.titleKey}`)}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.temp_sparkline_hint')}
+            </div>
+
+            ${this._renderEntitySelector(entitySelectorSchema, entities[`temp_${tempSide.side}_sparkline_entity`] || "", `temp_${tempSide.side}_sparkline_entity`, this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.temp_sparkline_entity_hint')}
+            </div>
+
+            ${this._bubbleForm(`temp_${tempSide.side}`, 'sparkline')}
+
+            ${this._renderColorPicker(`temp_${tempSide.side}_sparkline_color`, this._localize('editor.sparkline_color'), tempSide.color)}
+        </ha-expansion-panel>
+        `)}
+      `;
     }
-
     // Phase editor-8: consumer 6 on the generic schema. All seven are built
     // from one template -- 29 controls each, identical but for the colours and
     // soc_max, which is the only thing that genuinely differs: what "full"

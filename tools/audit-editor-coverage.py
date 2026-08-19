@@ -64,10 +64,12 @@ DOMAINS = {
     'venusMixTarget': ['pv', 'grid'],
     'houseMixTarget': ['self', 'grid'],
     'consumerMixTarget': ['pv', 'lg', 'venus', 'grid'],
+    'tempSide.side': ['indoor', 'outdoor'],
+    'tempSide': ['indoor', 'outdoor'],
 }
 
 # Bubbles and the keys that belong to them but do not carry the prefix.
-BUBBLES = ['solar', 'grid', 'battery', 'venus', 'bkw', 'house', 'power'] + CONSUMERS
+BUBBLES = ['solar', 'grid', 'battery', 'venus', 'bkw', 'house', 'power', 'temp'] + CONSUMERS
 
 # Keys that belong to a section without carrying its prefix. Each one verified
 # in the markup of the section named.
@@ -108,7 +110,9 @@ class AuditError(RuntimeError):
 
 def expand(tpl, where):
     """`a_${var}_b` -> concrete keys. Unknown variable is a hard error."""
-    variables = re.findall(r'\$\{\s*(\w+)\s*\}', tpl)
+    # Dotted access too: a loop over objects writes ${tempSide.side}, and
+    # reading only the bare name would silently miss every key it builds.
+    variables = re.findall(r'\$\{\s*([\w.]+)\s*\}', tpl)
     if not variables:
         return [tpl]
     for v in variables:
@@ -265,13 +269,19 @@ def read_editor_schema_keys():
         out = subprocess.run(
             ['node', '-e', f'''
 const {{bubbleFields,BUBBLE_CAPS,flattenFields}}=require({json.dumps(str(module))});
-const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline'];
+const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline','scales'];
 const res={{}};
 for(const p of Object.keys(BUBBLE_CAPS)){{
   const keys=[];
   for(const g of groups) for(const f of flattenFields(bubbleFields(p,g))) keys.push(f.key);
   res[p]=keys;
 }}
+// The climate section is fed by three capability entries: the tile itself and
+// one per thermometer column, all rendered by _renderTempView.
+res['temp']=[];
+for(const p of ['temp','temp_indoor','temp_outdoor'])
+  for(const g of groups)
+    for(const f of flattenFields(bubbleFields(p,g))) res['temp'].push(f.key);
 for(const g of ['sizing','appearance','display','debug','panels','portals'])
   res['__global__:'+g]=flattenFields(bubbleFields('__global__',g)).map(f=>f.key);
 process.stdout.write(JSON.stringify(res));
@@ -315,6 +325,7 @@ SECTION_OF = {
     'consumer_5': '_renderConsumer5View', 'consumer_6': '_renderConsumer6View',
     'consumer_7': '_renderConsumer7View',
     'power': '_renderPowerView',
+    'temp': '_renderTempView',
 }
 
 

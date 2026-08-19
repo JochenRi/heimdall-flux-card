@@ -39,6 +39,8 @@ DOMAINS = {
     'venusMixTarget': ['pv', 'grid'],
     'houseMixTarget': ['self', 'grid'],
     'consumerMixTarget': ['pv', 'lg', 'venus', 'grid'],
+    'tempSide.side': ['indoor', 'outdoor'],
+    'tempSide': ['indoor', 'outdoor'],
     'period': ['day', 'month', 'year'],
     'side': ['indoor', 'outdoor'],
 }
@@ -78,7 +80,7 @@ def keys_from_markup():
         # full by keys_from_schema() for the generic sections, and the power
         # section's five keys are checked separately below -- these are the
         # only places where skipping loses no coverage.
-        if any(x in tpl for x in ('fld.', 'item.', 's.name', 'schemaEntry.', '${k}')):
+        if any(x in tpl for x in ('fld.', 'item.', 's.name', 'schemaEntry.', 'tempSide.titleKey', '${k}')):
             continue
         line = src[:m.start()].count('\n') + 1
         keys.update(expand(tpl, f'{EDITOR.name}:{line}'))
@@ -96,7 +98,7 @@ def keys_from_schema():
         editor = str(EDITOR)
         out = subprocess.run(['node', '-e', rf'''
 const {{bubbleFields,BUBBLE_CAPS,flattenFields}}=require({json.dumps(str(module))});
-const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline'];
+const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline','scales'];
 const keys=new Set();
 for(const p of Object.keys(BUBBLE_CAPS))
  for(const g of groups)
