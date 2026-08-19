@@ -7160,7 +7160,16 @@ console.log(
         border-radius: 14px;
         margin-top: 0;
         margin-left: 0;
-        display: block;
+        /* phase power-fill: a column that distributes its slack.
+           The content came to roughly 270 of 310px and the remainder pooled at
+           the bottom as a visible gap. Tuning the gaps by hand only moves that
+           problem around -- the content is not a fixed height, it grows and
+           shrinks with which sensors are configured. Spreading the sections
+           evenly means the leftover is shared between them instead of dumped
+           at the end, whatever the content happens to be. */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
         overflow: visible;
         box-sizing: border-box;
         padding: 10px;
@@ -7236,11 +7245,11 @@ console.log(
          across the room. Labels now take the primary colour, values go to
          plain white, and everything gains a point. The dots get a faint glow
          so a dark user-set colour still registers. */
-      .bubble.power .pw-sep { height: 1px; background: var(--divider-color, #444); opacity: .5; margin: 4px 0; }
+      .bubble.power .pw-sep { height: 1px; background: var(--divider-color, #444); opacity: .5; margin: 5px 0; flex: 0 0 auto; }
       .bubble.power .pw-title { font-size: 10px; color: var(--primary-text-color, #e8eaed); opacity: .85; margin-bottom: 2px; }
       .bubble.power .pw-bar { display: flex; height: 9px; border-radius: 2px; overflow: hidden; margin-bottom: 3px; }
       .bubble.power .pw-bar > span, .bubble.temp .pw-bar > span { display: block; height: 100%; }
-      .bubble.power .pw-row { display: flex; align-items: center; gap: 5px; font-size: 10px; line-height: 1.35; }
+      .bubble.power .pw-row { display: flex; align-items: center; gap: 5px; font-size: 10px; line-height: 1.45; }
       .bubble.power .pw-dot { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 4px -1px currentColor; }
       .bubble.power .pw-lbl { color: var(--primary-text-color, #e8eaed); }
       .bubble.power .pw-num { margin-left: auto; font-size: 11px; font-weight: 500; color: #fff; }
