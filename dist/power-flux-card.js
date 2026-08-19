@@ -8233,7 +8233,7 @@ console.log(
         series.push({ t, v });
       }
       this._sparklineData[entityId] = series;
-      this.requestUpdate();
+      this._requestRedraw();
     }
 
     async _fetchSparklineHistory(entityId, period, idx) {
@@ -8275,7 +8275,7 @@ console.log(
               { t: start.getTime(), v: parsed },
               { t: end.getTime(),   v: parsed }
             ];
-            this.requestUpdate();
+            this._requestRedraw();
           }
           return;
         }
@@ -8333,11 +8333,11 @@ console.log(
             console.log(`[HEIMDALL Sparkline c${idx}] constant value ${flatVal} over window -> flat line`);
           }
           this._sparklineData[entityId] = flatSeries;
-          this.requestUpdate();
+          this._requestRedraw();
           return;
         }
         this._sparklineData[entityId] = series;
-        this.requestUpdate();
+        this._requestRedraw();
       } catch (e) {
         if (debug) {
           // eslint-disable-next-line no-console
@@ -8389,6 +8389,95 @@ console.log(
       }
     }
 
+    // ------------------------------------------------------------------
+    // Phase perf-1: the render gate.
+    //
+    // Home Assistant hands every card a fresh `hass` object on EVERY state
+    // change anywhere in the system -- dozens per second on a busy setup.
+    // Without a gate, each one rebuilt this entire card: twelve bubbles,
+    // eighteen paths, conic gradients, sparklines. The power tile did not
+    // cause the stutter, it exposed it -- it raised the cost per pass far
+    // enough for the pass count to matter.
+    //
+    // The gate compares only the entities this card actually reads. HA
+    // replaces a state object rather than mutating it, so identity comparison
+    // is exact and costs nothing.
+    // ------------------------------------------------------------------
+
+    // Every entity id reachable from the config, wherever it sits. Derived
+    // rather than listed: a hand-maintained list is the thing that has already
+    // swallowed sensors twice in this project.
+    _watchedEntityIds() {
+      if (this._watchedIds && this._watchedIdsFor === this.config) {
+        return this._watchedIds;
+      }
+      const ids = new Set();
+      const looksLikeEntity = (v) =>
+        typeof v === 'string' && /^[a-z_]+\.[a-z0-9_]+$/.test(v);
+      const collect = (obj) => {
+        if (!obj || typeof obj !== 'object') return;
+        for (const value of Object.values(obj)) {
+          if (looksLikeEntity(value)) ids.add(value);
+        }
+      };
+      collect(this.config && this.config.entities);
+      collect(this.config);
+      this._watchedIds = ids;
+      this._watchedIdsFor = this.config;
+      return ids;
+    }
+
+    // Embedded panel cards are separate elements with their own hass. They must
+    // keep receiving updates even when this card decides not to re-render --
+    // otherwise the weather and radar cards freeze while the flux card is
+    // merely idle. Forward first, gate second.
+    _forwardHassToPanels() {
+      if (this._panelLeftEls) {
+        this._panelLeftEls.forEach((el) => { if (el) el.hass = this.hass; });
+      }
+      if (this._panelRightEls) {
+        this._panelRightEls.forEach((el) => { if (el) el.hass = this.hass; });
+      }
+    }
+
+    // Anything that asks for a redraw without going through a reactive property
+    // -- the sparkline fetches call requestUpdate() directly -- raises this
+    // flag. Without it, a redraw requested mid-flight could be swallowed by a
+    // simultaneous but irrelevant hass update, and a curve would appear a
+    // minute late for no visible reason.
+    _requestRedraw() {
+      this._forceNextUpdate = true;
+      this.requestUpdate();
+    }
+
+    shouldUpdate(changedProps) {
+      if (changedProps.has('hass') && this.hass) this._forwardHassToPanels();
+
+      if (this._forceNextUpdate) {
+        this._forceNextUpdate = false;
+        return true;
+      }
+
+      // Any change other than a plain hass update renders unconditionally.
+      if (!changedProps.has('hass') || changedProps.size > 1) return true;
+
+      const previous = changedProps.get('hass');
+      if (!previous || !this.hass || !this.config) return true;
+
+      // Theme, language and localisation changes alter output without touching
+      // any entity.
+      if (previous.themes !== this.hass.themes) return true;
+      if (previous.language !== this.hass.language) return true;
+      if (previous.localize !== this.hass.localize) return true;
+
+      const watched = this._watchedEntityIds();
+      if (watched.size === 0) return true;
+      for (const id of watched) {
+        if (previous.states[id] !== this.hass.states[id]) return true;
+      }
+      return false;
+    }
+
     updated(changedProps) {
       super.updated(changedProps);
       // Phase A1.8: re-measure when config changes (e.g. toggling side panels)
@@ -8411,11 +8500,9 @@ console.log(
         } else {
           this.setAttribute('data-theme-light', '');
         }
-        // Phase A2.2: forward hass to every embedded panel card on each hass
-        // update so they stay live (the common failure mode is setting hass
-        // once and leaving sub-cards frozen).
-        if (this._panelLeftEls) this._panelLeftEls.forEach((el) => { if (el) el.hass = this.hass; });
-        if (this._panelRightEls) this._panelRightEls.forEach((el) => { if (el) el.hass = this.hass; });
+        // Phase perf-1: forwarding hass to the embedded panel cards moved to
+        // shouldUpdate, so it also happens on the updates this card skips.
+        // Doing it here as well would only repeat work already done.
         // Phase 5.67.2: kick off the sparkline timer once we have hass.
         // This is the bulletproof trigger -- updated() with changedProps.has('hass')
         // is guaranteed to fire whenever hass becomes available, regardless of
