@@ -553,6 +553,7 @@ const lang_de = {
     "card.label_consumer_4": "Verbr. 4",
     "card.label_consumer_5": "Verbr. 5",
     "card.label_import": "Import",
+    "card.temp_body_placeholder": "Platz für Raumklima —\nInhalt folgt",
     "card.label_export": "Export",
   }
 };
@@ -1106,6 +1107,7 @@ const lang_en = {
     "card.label_consumer_4": "Cons. 4",
     "card.label_consumer_5": "Cons. 5",
     "card.label_import": "Import",
+    "card.temp_body_placeholder": "Room climate goes here —\ncontent to follow",
     "card.label_export": "Export",
   }
 };
@@ -6698,10 +6700,41 @@ console.log(
          Inner thermometer geometry (split columns, levels, marker) is 5.79b. */
       .bubble.temp {
         width: 130px;
-        height: 130px;
+        height: 310px;
         border-radius: 14px;
         margin-top: 0;
         margin-left: 0;
+        display: block;
+        overflow: visible;
+        box-sizing: border-box;
+      }
+      /* phase temp-1: the thermometer keeps its own 130x130 stage.
+         The card carries a global rule that stretches EVERY svg to
+         100% of its parent (see the note in phase power-B). Without a
+         sized, relatively positioned wrapper the thermometer would be
+         pulled over the full 310px and the scale would lie. Same shape
+         .sparkline-wrap uses, and for the same reason. */
+      .bubble.temp .temp-head {
+        position: relative;
+        width: 130px;
+        height: 130px;
+        overflow: hidden;
+        border-radius: 14px 14px 0 0;
+      }
+      .bubble.temp .temp-body {
+        position: relative;
+        width: 130px;
+        height: 180px;
+        box-sizing: border-box;
+        padding: 6px 8px;
+        border-top: 1px solid var(--divider-color, #333);
+      }
+      .bubble.temp .temp-placeholder {
+        font-size: 11px;
+        color: var(--secondary-text-color, #888);
+        text-align: center;
+        padding-top: 70px;
+        line-height: 1.5;
       }
       /* phase power-1: power tile. Rectangular data panel, 130x310, anchored
          top-left like the temp panel. Skeleton only in this phase — head,
@@ -7183,7 +7216,10 @@ console.log(
       .node-venus { top: 80px; left: 495px; }   
       .node-bkw { top: 80px; left: 635px; }   /* phase BKW-1: garden plant, feeds the venus */
       .node-house { top: 245px; left: 355px; }   
-      .node-temp { top: calc(220px + var(--temp-offset-y, 0px)); left: calc(655px + var(--temp-offset-x, 0px)); }   /* phase 5.84: movable via editor */
+      .node-temp { top: calc(185px + var(--temp-offset-y, 0px)); left: calc(-90px + var(--temp-offset-x, 0px)); }  /* phase temp-1: mirrored to the power tile. At the same top edge,
+         anything right of left=-90 is crossed by pathHouseC6 -- verified
+         against all 19 paths and all 14 other bubbles at bubble_size 100.
+         Needs background_padding_left to bring it into view. */
       /* phase power-1a: anchor moved 690 -> 735. The first sampling run missed
          the seven house-to-consumer paths; pathHouseC7 (house -> pump) reaches
          x=725 on its way down and ran straight through the tile. Verified
@@ -10338,6 +10374,7 @@ console.log(
                   return html`
                   <div class="bubble temp node-temp ${tintClass}"
                        style="--temp-offset-x: ${tOffX}px; --temp-offset-y: ${tOffY}px;">
+                    <div class="temp-head">
                       ${this._renderTempSparkline('indoor')}
                       ${this._renderTempSparkline('outdoor')}
                       ${this._renderTempPanel()}
@@ -10345,6 +10382,12 @@ console.log(
                            @click=${() => this._handleClick(tInId)}></div>
                       <div style="position:absolute;left:50%;top:0;width:50%;height:100%;cursor:pointer;z-index:10;"
                            @click=${() => this._handleClick(tOutId)}></div>
+                    </div>
+                    <div class="temp-body">
+                      <div class="temp-placeholder">
+                        ${this._localize('card.temp_body_placeholder')}
+                      </div>
+                    </div>
                   </div>`;
                 })() : ''}
 

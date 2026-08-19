@@ -548,6 +548,7 @@ export default {
     "card.label_consumer_4": "Cons. 4",
     "card.label_consumer_5": "Cons. 5",
     "card.label_import": "Import",
+    "card.temp_body_placeholder": "Room climate goes here —\ncontent to follow",
     "card.label_export": "Export",
   }
 };

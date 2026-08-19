@@ -548,6 +548,7 @@ export default {
     "card.label_consumer_4": "Verbr. 4",
     "card.label_consumer_5": "Verbr. 5",
     "card.label_import": "Import",
+    "card.temp_body_placeholder": "Platz für Raumklima —\nInhalt folgt",
     "card.label_export": "Export",
   }
 };
