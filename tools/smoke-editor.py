@@ -92,6 +92,20 @@ def methods(text):
     return set(re.findall(r'^    (\w+)\(', text, re.M))
 
 
+def function_body(text, name):
+    """One function, bounded properly.
+
+    The parallel session owns _renderTempView and it has to stay untouched.
+    Checking that with "from this name to the next render function" broke the
+    moment the next function was rewritten -- the hash changed and nothing was
+    wrong. Fallstrick 4.8 in the session notes, hit again.
+    """
+    a = text.index(f'    {name}(')
+    rest = text[a + 10:]
+    m = re.search(r'\n    (?://[^\n]*\n    )*(?:_render\w+|render|_\w+)\(', rest)
+    return text[a:a + 10 + (m.start() + 1 if m else len(rest))]
+
+
 def top_level(text):
     """Module-level const names.
 
@@ -128,6 +142,16 @@ def main():
             capture_output=True, text=True, cwd=ROOT)
         if before.returncode == 0:
             now = EDITOR.read_text()
+            import hashlib
+            for fn in ('_renderTempView',):
+                try:
+                    h_old = hashlib.md5(function_body(before.stdout, fn).encode()).hexdigest()
+                    h_new = hashlib.md5(function_body(now, fn).encode()).hexdigest()
+                except ValueError:
+                    continue
+                if h_old != h_new:
+                    failed = True
+                    print(f'    {fn} CHANGED since {ref} (owned by the parallel session)')
             lost = sorted(methods(before.stdout) - methods(now))
             lost_const = sorted(top_level(before.stdout) - top_level(now))
             print()

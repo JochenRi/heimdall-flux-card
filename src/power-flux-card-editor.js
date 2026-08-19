@@ -240,6 +240,237 @@ const BUBBLE_CAPS = {
         sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
                      periods: SPARKLINE_PERIODS, periodDef: '24h', testMode: true },
     },
+    consumer_1: {
+        label: true,
+        icon: true,
+        enabled: { key: 'consumer_1_enabled', def: true, labelKey: 'consumer_enabled' },
+        // Off by default here, unlike the source bubbles: the card reads it
+        // with === true, so a consumer pipe stays unlabelled until asked.
+        showFlowRate: { key: 'show_flow_rate_consumer_1', def: false,
+                        labelKey: 'consumer_show_flow_rate' },
+        unitKw: { key: 'consumer_1_unit_kw', def: false, labelKey: 'consumer_unit_kw' },
+        invert: { labelKey: 'invert_consumer' },
+        showPower: { def: true, labelKey: 'consumer_show_power' },
+        hidePipe: true,
+        pipeThreshold: true,
+        animationThreshold: { key: 'consumer_1_animation_threshold', max: 200, def: 0,
+                              labelKey: 'consumer_animation_threshold' },
+        labelOffsets: { targets: [''], range: 100, labels: 'consumer', defaults: { y: -25 } },
+        rotation: { slots: 3, showLiveDef: true },
+        socDonut: { max: 100, labelKey: 'consumer_1_soc_donut_enable',
+                    maxLabelKey: 'consumer_1_soc_max' },
+        mix: { toggleKey: 'consumer_1_mix_donut_mode', toggleDef: false,
+               labelKey: 'consumer_1_mix_enable',
+               // The consumer ring uses its own key names and shares consumer_1's
+               // labels -- all seven show the same words for the same control.
+               ringNames: true,
+               periodDef: 'day', periodLabelKey: 'consumer_1_mix_period',
+               periodOptionPrefix: 'consumer_1_mix_period_',
+               gapDef: 8, gapMax: 30, gapLabelKey: 'consumer_1_mix_ring_gap',
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15,
+               thicknessLabelKey: 'consumer_1_mix_ring_thickness' },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h',
+                     testMode: true, debug: true },
+    },
+    consumer_2: {
+        label: true,
+        icon: true,
+        enabled: { key: 'consumer_2_enabled', def: true, labelKey: 'consumer_enabled' },
+        // Off by default here, unlike the source bubbles: the card reads it
+        // with === true, so a consumer pipe stays unlabelled until asked.
+        showFlowRate: { key: 'show_flow_rate_consumer_2', def: false,
+                        labelKey: 'consumer_show_flow_rate' },
+        unitKw: { key: 'consumer_2_unit_kw', def: false, labelKey: 'consumer_unit_kw' },
+        invert: { labelKey: 'invert_consumer' },
+        showPower: { def: true, labelKey: 'consumer_show_power' },
+        hidePipe: true,
+        pipeThreshold: true,
+        animationThreshold: { key: 'consumer_2_animation_threshold', max: 200, def: 0,
+                              labelKey: 'consumer_animation_threshold' },
+        labelOffsets: { targets: [''], range: 100, labels: 'consumer', defaults: { y: -25 } },
+        rotation: { slots: 3, showLiveDef: true },
+        socDonut: { max: 5, labelKey: 'consumer_2_soc_donut_enable',
+                    maxLabelKey: 'consumer_2_soc_max' },
+        mix: { toggleKey: 'consumer_2_mix_donut_mode', toggleDef: false,
+               labelKey: 'consumer_2_mix_enable',
+               // The consumer ring uses its own key names and shares consumer_1's
+               // labels -- all seven show the same words for the same control.
+               ringNames: true,
+               periodDef: 'day', periodLabelKey: 'consumer_1_mix_period',
+               periodOptionPrefix: 'consumer_1_mix_period_',
+               gapDef: 8, gapMax: 30, gapLabelKey: 'consumer_1_mix_ring_gap',
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15,
+               thicknessLabelKey: 'consumer_1_mix_ring_thickness' },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h',
+                     testMode: true, debug: true },
+    },
+    consumer_3: {
+        label: true,
+        icon: true,
+        enabled: { key: 'consumer_3_enabled', def: true, labelKey: 'consumer_enabled' },
+        // Off by default here, unlike the source bubbles: the card reads it
+        // with === true, so a consumer pipe stays unlabelled until asked.
+        showFlowRate: { key: 'show_flow_rate_consumer_3', def: false,
+                        labelKey: 'consumer_show_flow_rate' },
+        unitKw: { key: 'consumer_3_unit_kw', def: false, labelKey: 'consumer_unit_kw' },
+        invert: { labelKey: 'invert_consumer' },
+        showPower: { def: true, labelKey: 'consumer_show_power' },
+        hidePipe: true,
+        pipeThreshold: true,
+        animationThreshold: { key: 'consumer_3_animation_threshold', max: 200, def: 0,
+                              labelKey: 'consumer_animation_threshold' },
+        labelOffsets: { targets: [''], range: 100, labels: 'consumer', defaults: { y: -25 } },
+        rotation: { slots: 3, showLiveDef: true },
+        socDonut: { max: 5, labelKey: 'consumer_3_soc_donut_enable',
+                    maxLabelKey: 'consumer_3_soc_max' },
+        mix: { toggleKey: 'consumer_3_mix_donut_mode', toggleDef: false,
+               labelKey: 'consumer_3_mix_enable',
+               // The consumer ring uses its own key names and shares consumer_1's
+               // labels -- all seven show the same words for the same control.
+               ringNames: true,
+               periodDef: 'day', periodLabelKey: 'consumer_1_mix_period',
+               periodOptionPrefix: 'consumer_1_mix_period_',
+               gapDef: 8, gapMax: 30, gapLabelKey: 'consumer_1_mix_ring_gap',
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15,
+               thicknessLabelKey: 'consumer_1_mix_ring_thickness' },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h',
+                     testMode: true, debug: true },
+    },
+    consumer_4: {
+        label: true,
+        icon: true,
+        enabled: { key: 'consumer_4_enabled', def: true, labelKey: 'consumer_enabled' },
+        // Off by default here, unlike the source bubbles: the card reads it
+        // with === true, so a consumer pipe stays unlabelled until asked.
+        showFlowRate: { key: 'show_flow_rate_consumer_4', def: false,
+                        labelKey: 'consumer_show_flow_rate' },
+        unitKw: { key: 'consumer_4_unit_kw', def: false, labelKey: 'consumer_unit_kw' },
+        invert: { labelKey: 'invert_consumer' },
+        showPower: { def: true, labelKey: 'consumer_show_power' },
+        hidePipe: true,
+        pipeThreshold: true,
+        animationThreshold: { key: 'consumer_4_animation_threshold', max: 200, def: 0,
+                              labelKey: 'consumer_animation_threshold' },
+        labelOffsets: { targets: [''], range: 100, labels: 'consumer', defaults: { y: -25 } },
+        rotation: { slots: 3, showLiveDef: true },
+        socDonut: { max: 5, labelKey: 'consumer_4_soc_donut_enable',
+                    maxLabelKey: 'consumer_4_soc_max' },
+        mix: { toggleKey: 'consumer_4_mix_donut_mode', toggleDef: false,
+               labelKey: 'consumer_4_mix_enable',
+               // The consumer ring uses its own key names and shares consumer_1's
+               // labels -- all seven show the same words for the same control.
+               ringNames: true,
+               periodDef: 'day', periodLabelKey: 'consumer_1_mix_period',
+               periodOptionPrefix: 'consumer_1_mix_period_',
+               gapDef: 8, gapMax: 30, gapLabelKey: 'consumer_1_mix_ring_gap',
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15,
+               thicknessLabelKey: 'consumer_1_mix_ring_thickness' },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h',
+                     testMode: true, debug: true },
+    },
+    consumer_5: {
+        label: true,
+        icon: true,
+        enabled: { key: 'consumer_5_enabled', def: true, labelKey: 'consumer_enabled' },
+        // Off by default here, unlike the source bubbles: the card reads it
+        // with === true, so a consumer pipe stays unlabelled until asked.
+        showFlowRate: { key: 'show_flow_rate_consumer_5', def: false,
+                        labelKey: 'consumer_show_flow_rate' },
+        unitKw: { key: 'consumer_5_unit_kw', def: false, labelKey: 'consumer_unit_kw' },
+        invert: { labelKey: 'invert_consumer' },
+        showPower: { def: true, labelKey: 'consumer_show_power' },
+        hidePipe: true,
+        pipeThreshold: true,
+        animationThreshold: { key: 'consumer_5_animation_threshold', max: 200, def: 0,
+                              labelKey: 'consumer_animation_threshold' },
+        labelOffsets: { targets: [''], range: 100, labels: 'consumer', defaults: { y: -25 } },
+        rotation: { slots: 3, showLiveDef: true },
+        socDonut: { max: 65, labelKey: 'consumer_5_soc_donut_enable',
+                    maxLabelKey: 'consumer_5_soc_max' },
+        mix: { toggleKey: 'consumer_5_mix_donut_mode', toggleDef: false,
+               labelKey: 'consumer_5_mix_enable',
+               // The consumer ring uses its own key names and shares consumer_1's
+               // labels -- all seven show the same words for the same control.
+               ringNames: true,
+               periodDef: 'day', periodLabelKey: 'consumer_1_mix_period',
+               periodOptionPrefix: 'consumer_1_mix_period_',
+               gapDef: 8, gapMax: 30, gapLabelKey: 'consumer_1_mix_ring_gap',
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15,
+               thicknessLabelKey: 'consumer_1_mix_ring_thickness' },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h',
+                     testMode: true, debug: true },
+    },
+    consumer_6: {
+        label: true,
+        icon: true,
+        enabled: { key: 'consumer_6_enabled', def: true, labelKey: 'consumer_enabled' },
+        // Off by default here, unlike the source bubbles: the card reads it
+        // with === true, so a consumer pipe stays unlabelled until asked.
+        showFlowRate: { key: 'show_flow_rate_consumer_6', def: false,
+                        labelKey: 'consumer_show_flow_rate' },
+        unitKw: { key: 'consumer_6_unit_kw', def: false, labelKey: 'consumer_unit_kw' },
+        invert: { labelKey: 'invert_consumer' },
+        showPower: { def: true, labelKey: 'consumer_show_power' },
+        hidePipe: true,
+        pipeThreshold: true,
+        animationThreshold: { key: 'consumer_6_animation_threshold', max: 200, def: 0,
+                              labelKey: 'consumer_animation_threshold' },
+        labelOffsets: { targets: [''], range: 100, labels: 'consumer', defaults: { y: -25 } },
+        rotation: { slots: 3, showLiveDef: true },
+        socDonut: { max: 30, labelKey: 'consumer_6_soc_donut_enable',
+                    maxLabelKey: 'consumer_6_soc_max' },
+        mix: { toggleKey: 'consumer_6_mix_donut_mode', toggleDef: false,
+               labelKey: 'consumer_6_mix_enable',
+               // The consumer ring uses its own key names and shares consumer_1's
+               // labels -- all seven show the same words for the same control.
+               ringNames: true,
+               periodDef: 'day', periodLabelKey: 'consumer_1_mix_period',
+               periodOptionPrefix: 'consumer_1_mix_period_',
+               gapDef: 8, gapMax: 30, gapLabelKey: 'consumer_1_mix_ring_gap',
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15,
+               thicknessLabelKey: 'consumer_1_mix_ring_thickness' },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h',
+                     testMode: true, debug: true },
+    },
+    consumer_7: {
+        label: true,
+        icon: true,
+        enabled: { key: 'consumer_7_enabled', def: true, labelKey: 'consumer_enabled' },
+        // Off by default here, unlike the source bubbles: the card reads it
+        // with === true, so a consumer pipe stays unlabelled until asked.
+        showFlowRate: { key: 'show_flow_rate_consumer_7', def: false,
+                        labelKey: 'consumer_show_flow_rate' },
+        unitKw: { key: 'consumer_7_unit_kw', def: false, labelKey: 'consumer_unit_kw' },
+        invert: { labelKey: 'invert_consumer' },
+        showPower: { def: true, labelKey: 'consumer_show_power' },
+        hidePipe: true,
+        pipeThreshold: true,
+        animationThreshold: { key: 'consumer_7_animation_threshold', max: 200, def: 0,
+                              labelKey: 'consumer_animation_threshold' },
+        labelOffsets: { targets: [''], range: 100, labels: 'consumer', defaults: { y: -25 } },
+        rotation: { slots: 3, showLiveDef: true },
+        socDonut: { max: 165, labelKey: 'consumer_7_soc_donut_enable',
+                    maxLabelKey: 'consumer_7_soc_max' },
+        mix: { toggleKey: 'consumer_7_mix_donut_mode', toggleDef: false,
+               labelKey: 'consumer_7_mix_enable',
+               // The consumer ring uses its own key names and shares consumer_1's
+               // labels -- all seven show the same words for the same control.
+               ringNames: true,
+               periodDef: 'day', periodLabelKey: 'consumer_1_mix_period',
+               periodOptionPrefix: 'consumer_1_mix_period_',
+               gapDef: 8, gapMax: 30, gapLabelKey: 'consumer_1_mix_ring_gap',
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15,
+               thicknessLabelKey: 'consumer_1_mix_ring_thickness' },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h',
+                     testMode: true, debug: true },
+    },
     grid: {
         label: true,
         icon: true,
@@ -459,21 +690,38 @@ const bubbleFields = (prefix, group) => {
         if (caps.enabled) bool(caps.enabled.key, caps.enabled.def,
             caps.enabled.labelKey || `${prefix}_enabled`);
         if (caps.showLabel) bool(caps.showLabel.key, caps.showLabel.def, 'label_toggle');
-        if (caps.unitKw) bool(caps.unitKw.key, caps.unitKw.def, `${prefix}_unit_kw`);
-        if (caps.showFlowRate) bool(caps.showFlowRate.key, caps.showFlowRate.def, 'flow_rate_title');
+        if (caps.unitKw) bool(caps.unitKw.key, caps.unitKw.def,
+            caps.unitKw.labelKey || `${prefix}_unit_kw`);
+        if (caps.showFlowRate) bool(caps.showFlowRate.key, caps.showFlowRate.def,
+            caps.showFlowRate.labelKey || 'flow_rate_title');
         // Storage-only switches, in the order the old markup had them.
-        if (caps.invert) bool(`invert_${prefix}`, false, `invert_${prefix}`);
-        if (caps.showPower) bool(`${prefix}_show_power`, false, `${prefix}_show_power`);
+        if (caps.invert) bool(`invert_${prefix}`, false,
+            caps.invert.labelKey || `invert_${prefix}`);
+        if (caps.showPower) bool(`${prefix}_show_power`, caps.showPower.def === true,
+            caps.showPower.labelKey || `${prefix}_show_power`);
         if (caps.chargeViaHouse) bool(`${prefix}_charge_via_house`, false, `${prefix}_charge_via_house`);
         if (caps.hideSolarPipe) bool(caps.hideSolarPipe.key, false, 'hide_solar_arc');
+        // Consumer-only switches and sliders.
+        if (caps.hidePipe) bool(`${prefix}_hide_pipe`, false, 'consumer_hide_pipe');
+        if (caps.pipeThreshold) num(`${prefix}_pipe_threshold`, 0, 0, 2000, 10,
+            'consumer_pipe_threshold');
         if (caps.animationThreshold) {
             const a = caps.animationThreshold;
-            num(a.key, a.def, 0, a.max, 1, 'bubble_animation_threshold');
+            num(a.key, a.def, 0, a.max, 1, a.labelKey || 'bubble_animation_threshold');
         }
     }
 
     if (group === 'soc' && caps.socDonut) {
-        bool(`${prefix}_soc_donut_mode`, false, `${prefix}_soc_donut_enabled`);
+        bool(`${prefix}_soc_donut_mode`, false,
+            caps.socDonut.labelKey || `${prefix}_soc_donut_enabled`);
+        // The one thing that genuinely differs across the seven consumers: what
+        // "full" means. A charge level tops out at 100, a temperature at its
+        // upper limit, a tank at its capacity.
+        if (caps.socDonut.max !== undefined) {
+            f.push({ key: `${prefix}_soc_max`, def: caps.socDonut.max,
+                labelKey: caps.socDonut.maxLabelKey || `${prefix}_soc_max`,
+                selector: { number: { min: 1, max: 1000, step: 1, mode: 'box' } } });
+        }
     }
 
     if (group === 'offsets' && caps.labelOffsets) {
@@ -483,11 +731,12 @@ const bubbleFields = (prefix, group) => {
         for (const target of o.targets) {
             const stem = target ? `${prefix}_${target}` : prefix;
             const pair = ['x', 'y'].map((axis) => ({
-                key: `${stem}_label_offset_${axis}`, def: 0,
+                key: `${stem}_label_offset_${axis}`,
+                def: (o.defaults && o.defaults[axis] !== undefined) ? o.defaults[axis] : 0,
                 selector: { number: { min: -o.range, max: o.range, step: 1, mode: 'slider' } },
-                labelKey: o.labels === 'bubble'
-                    ? `bubble_label_offset_${axis}`
-                    : `__axis_${axis.toUpperCase()}`,
+                labelKey: o.labels === 'axis'
+                    ? `__axis_${axis.toUpperCase()}`
+                    : `${o.labels}_label_offset_${axis}`,
             }));
             f.push(sideBySide(pair));
         }
@@ -510,15 +759,18 @@ const bubbleFields = (prefix, group) => {
 
     if (group === 'mix' && caps.mix) {
         const m = caps.mix;
-        bool(m.toggleKey, m.toggleDef, `${prefix}_mix_enabled`);
+        bool(m.toggleKey, m.toggleDef, m.labelKey || `${prefix}_mix_enabled`);
         f.push({ key: `${prefix}_mix_period`, def: m.periodDef,
             selector: { select: { mode: 'dropdown', options: MIX_PERIODS } },
-            labelKey: `${prefix}_mix_period`, optionLabels: `${prefix}_mix_period_` });
+            labelKey: m.periodLabelKey || `${prefix}_mix_period`,
+            optionLabels: m.periodOptionPrefix || `${prefix}_mix_period_` });
+        const gapKey = m.ringNames ? `${prefix}_mix_ring_gap` : `${prefix}_mix_gap`;
+        const thickKey = m.ringNames ? `${prefix}_mix_ring_thickness` : `${prefix}_mix_thickness`;
         f.push(sideBySide([
-            { key: `${prefix}_mix_gap`, def: m.gapDef, labelKey: `${prefix}_mix_gap`,
+            { key: gapKey, def: m.gapDef, labelKey: m.gapLabelKey || `${prefix}_mix_gap`,
               selector: { number: { min: 0, max: m.gapMax, step: 1, mode: 'slider' } } },
-            { key: `${prefix}_mix_thickness`, def: m.thicknessDef,
-              labelKey: `${prefix}_mix_thickness`,
+            { key: thickKey, def: m.thicknessDef,
+              labelKey: m.thicknessLabelKey || `${prefix}_mix_thickness`,
               selector: { number: { min: m.thicknessMin, max: m.thicknessMax, step: 1, mode: 'slider' } } },
         ]));
     }
@@ -549,6 +801,8 @@ const bubbleFields = (prefix, group) => {
             { key: `${prefix}_sparkline_opacity`, def: s.opacityDef, labelKey: 'sparkline_opacity',
               selector: { number: { min: 0.05, max: 1, step: 0.05, mode: 'slider' } } },
         ];
+        if (s.debug) fine.push({ key: `${prefix}_sparkline_debug`, def: false,
+            selector: { boolean: {} }, labelKey: 'sparkline_debug' });
         if (s.testMode) fine.push({ key: `${prefix}_sparkline_test_mode`, def: false,
             selector: { boolean: {} }, labelKey: 'sparkline_test_mode' });
         f.push(collapsible('group_sparkline_look', fine));
@@ -2895,239 +3149,73 @@ class PowerFluxCardEditor extends LitElement {
     `;
     }
 
+    // Phase editor-8: consumer 6 on the generic schema. All seven are built
+    // from one template -- 29 controls each, identical but for the colours and
+    // soc_max, which is the only thing that genuinely differs: what "full"
+    // means for a charge level, a temperature or a tank.
     _renderConsumer6View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const idx = 6;
+        const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
+        const mixTargets = ['pv', 'lg', 'venus', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
                 <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
             </div>
-            <h2>${this._consumerMenuLabel(6)}</h2>
+            <h2>${this._consumerMenuLabel(idx)}</h2>
         </div>
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #14b8a6;">${this._localize('editor.consumer_6_title')}</div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_6_enabled !== false}
-                    .configValue=${'consumer_6_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6, 'consumer_6', this._localize('editor.entity'))}
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_6_label}
-                .configValue=${'consumer_6_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_6_icon}
-                .configValue=${'consumer_6_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_6 === true}
-                    .configValue=${'invert_consumer_6'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_6_hide_pipe === true}
-                    .configValue=${'consumer_6_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_6_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_6_pipe_threshold !== undefined ? this._config.consumer_6_pipe_threshold : 0}
-                .configValue=${'consumer_6_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_6_unit_kw === true}
-                    .configValue=${'consumer_6_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_6_show_power !== false}
-                    .configValue=${'consumer_6_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_6 === true}
-                    .configValue=${'show_flow_rate_consumer_6'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_6_label_offset_x !== undefined ? this._config.consumer_6_label_offset_x : 0}
-                .configValue=${'consumer_6_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_6_label_offset_y !== undefined ? this._config.consumer_6_label_offset_y : -25}
-                .configValue=${'consumer_6_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_6_animation_threshold !== undefined ? this._config.consumer_6_animation_threshold : 0}
-                .configValue=${'consumer_6_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_6 || "", 'secondary_consumer_6', this._localize('editor.secondary_sensor'))}
 
+            ${this._bubbleForm('consumer_6', 'sensors')}
+            ${this._bubbleForm('consumer_6', 'behavior')}
+            ${this._bubbleForm('consumer_6', 'offsets')}
+
             ${this._renderColorPickerQuint('color_consumer_6', 'color_pipe_consumer_6', 'color_text_consumer_6', 'color_icon_consumer_6', 'color_secondary_consumer_6', '#14b8a6')}
+        </div>
 
-            <!-- Phase 5.64: configurable donut for Klima -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_6_donut_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_6_donut_hint')}
+        <!-- Charge-level ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_6_donut_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:gauge"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_6_donut_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_6', 'soc')}
+        </ha-expansion-panel>
+
+        <!-- Charge-mix ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_6_mix_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_6_mix_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_6', 'mix')}
+
+            ${(() => {
+                const mixPeriod = this._config.consumer_6_mix_period || 'day';
+                return html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.consumer_1_mix_period_${mixPeriod}`)}
                 </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_6_soc_donut_mode === true}
-                    .configValue=${'consumer_6_soc_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_6_soc_donut_enable')}</div>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
-                .value=${this._config.consumer_6_soc_max !== undefined ? this._config.consumer_6_soc_max : 30}
-                .configValue=${'consumer_6_soc_max'}
-                .label=${this._localize('editor.consumer_6_soc_max')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Phase 5.66: Charge-mix outer ring for Klima -- final mix-ring of the series. -->
-            </ha-expansion-panel>
-
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_6_mix_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_6_mix_hint')}
+                ${mixTargets.map((consumerMixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`consumer_6_mix_${consumerMixTarget}_${mixPeriod}`] || "",
+                    `consumer_6_mix_${consumerMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.consumer_6_mix_${consumerMixTarget}_${mixPeriod}`)))}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
                 </div>
+                `;
+            })()}
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_6_mix_donut_mode === true}
-                    .configValue=${'consumer_6_mix_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_6_mix_enable')}</div>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
-                    { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
-                    { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
-                ] } }}
-                .value=${this._config.consumer_6_mix_period || 'day'}
-                .configValue=${'consumer_6_mix_period'}
-                .label=${this._localize('editor.consumer_1_mix_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_6_mix_ring_gap !== undefined ? this._config.consumer_6_mix_ring_gap : 8}
-                .configValue=${'consumer_6_mix_ring_gap'}
-                .label=${this._localize('editor.consumer_1_mix_ring_gap')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_6_mix_ring_thickness !== undefined ? this._config.consumer_6_mix_ring_thickness : 4}
-                .configValue=${'consumer_6_mix_ring_thickness'}
-                .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Tag -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_day')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_pv_day || "", 'consumer_6_mix_pv_day', this._localize('editor.consumer_6_mix_pv_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_lg_day || "", 'consumer_6_mix_lg_day', this._localize('editor.consumer_6_mix_lg_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_venus_day || "", 'consumer_6_mix_venus_day', this._localize('editor.consumer_6_mix_venus_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_grid_day || "", 'consumer_6_mix_grid_day', this._localize('editor.consumer_6_mix_grid_day'))}
-
-            <!-- Monat -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_month')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_pv_month || "", 'consumer_6_mix_pv_month', this._localize('editor.consumer_6_mix_pv_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_lg_month || "", 'consumer_6_mix_lg_month', this._localize('editor.consumer_6_mix_lg_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_venus_month || "", 'consumer_6_mix_venus_month', this._localize('editor.consumer_6_mix_venus_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_grid_month || "", 'consumer_6_mix_grid_month', this._localize('editor.consumer_6_mix_grid_month'))}
-
-            <!-- Jahr -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_year')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_pv_year || "", 'consumer_6_mix_pv_year', this._localize('editor.consumer_6_mix_pv_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_lg_year || "", 'consumer_6_mix_lg_year', this._localize('editor.consumer_6_mix_lg_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_venus_year || "", 'consumer_6_mix_venus_year', this._localize('editor.consumer_6_mix_venus_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_mix_grid_year || "", 'consumer_6_mix_grid_year', this._localize('editor.consumer_6_mix_grid_year'))}
-
-            <!-- Phase 5.83: per-segment colors for the c6 mix-ring.
-                 Each defaults to the matching pipe color when unset.
-                 Reuses the consumer_1 color i18n labels (identical PV/LG/Venus/Grid
-                 semantics) -- no new translation keys needed. -->
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
                 ${this._localize('editor.consumer_1_mix_colors_section')}
             </div>
@@ -3135,80 +3223,31 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderColorPicker('consumer_6_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
             ${this._renderColorPicker('consumer_6_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
             ${this._renderColorPicker('consumer_6_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
+        </ha-expansion-panel>
 
-            <!-- Phase 5.65: rotation for Klima bubble -->
-            </ha-expansion-panel>
+        <!-- Value rotation -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
 
-            <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.rotation_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_6_rotate_show_live !== false}
-                    .configValue=${'consumer_6_rotate_show_live'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
             </div>
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_6_rotate_show_daily_1 === true}
-                    .configValue=${'consumer_6_rotate_show_daily_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_rotate_daily_1 || "", 'consumer_6_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-            ${this._renderColorPicker('consumer_6_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+            ${this._bubbleForm('consumer_6', 'rotation')}
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_6_rotate_show_daily_2 === true}
-                    .configValue=${'consumer_6_rotate_show_daily_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_rotate_daily_2 || "", 'consumer_6_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-            ${this._renderColorPicker('consumer_6_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+            ${[1, 2, 3].map((n) => html`
+                <div class="separator"></div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities[`consumer_6_rotate_daily_${n}`] || "", `consumer_6_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                ${this._renderColorPicker(`consumer_6_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), rotationSlotColors[n - 1])}
+            `)}
+        </ha-expansion-panel>
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_6_rotate_show_daily_3 === true}
-                    .configValue=${'consumer_6_rotate_show_daily_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_rotate_daily_3 || "", 'consumer_6_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-            ${this._renderColorPicker('consumer_6_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+        <!-- Sparkline -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
 
-            <!-- Phase 5.67.11: Sparkline / history graph for Klima.
-                 Default colour #14b8a6 (teal, matches the bubble's
-                 default consumer-6 colour). Same control set as
-                 Tesla / Waschen / Trockner / Spüler / BWWP. -->
-            </ha-expansion-panel>
-
-            <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.sparkline_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_6_sparkline === true}
-                    .configValue=${'consumer_6_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
             </div>
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_6_sparkline_entity || "", 'consumer_6_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
@@ -3216,317 +3255,84 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.sparkline_entity_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h",  label: "1h"  },
-                    { value: "6h",  label: "6h"  },
-                    { value: "12h", label: "12h" },
-                    { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.consumer_6_sparkline_period || '24h'}
-                .configValue=${'consumer_6_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                ] } }}
-                .value=${this._config.consumer_6_sparkline_layer || 'back'}
-                .configValue=${'consumer_6_sparkline_layer'}
-                .label=${this._localize('editor.sparkline_layer')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.consumer_6_sparkline_style || 'area-line'}
-                .configValue=${'consumer_6_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.consumer_6_sparkline_opacity !== undefined ? this._config.consumer_6_sparkline_opacity : 0.35}
-                .configValue=${'consumer_6_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('consumer_6', 'sparkline')}
 
             ${this._renderColorPicker('consumer_6_sparkline_color', this._localize('editor.sparkline_color'), '#14b8a6')}
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_6_sparkline_debug === true}
-                    .configValue=${'consumer_6_sparkline_debug'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
-            </div>
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_6_sparkline_test_mode === true}
-                    .configValue=${'consumer_6_sparkline_test_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-            </div>
-            </ha-expansion-panel>
-        </div>
-        `;
+        </ha-expansion-panel>
+      `;
     }
-
     // Phase 5.61: dedicated sub-view for Spüler (Consumer 4) -- sixth bubble
     // with full feature parity. Default donut max = 5 (kWh) for a daily
     // energy budget on a dishwasher. User can override consumer_4_soc_max
     // for any other ratio metric. Rotation (phase 5.62) and charge-mix ring
     // (phase 5.63) follow.
+    // Phase editor-8: consumer 4 on the generic schema. All seven are built
+    // from one template -- 29 controls each, identical but for the colours and
+    // soc_max, which is the only thing that genuinely differs: what "full"
+    // means for a charge level, a temperature or a tank.
     _renderConsumer4View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const idx = 4;
+        const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
+        const mixTargets = ['pv', 'lg', 'venus', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
                 <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
             </div>
-            <h2>${this._consumerMenuLabel(4)}</h2>
+            <h2>${this._consumerMenuLabel(idx)}</h2>
         </div>
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #eab308;">${this._localize('editor.consumer_4_title')}</div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_4_enabled !== false}
-                    .configValue=${'consumer_4_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4, 'consumer_4', this._localize('editor.entity'))}
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_4_label}
-                .configValue=${'consumer_4_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_4_icon}
-                .configValue=${'consumer_4_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_4 === true}
-                    .configValue=${'invert_consumer_4'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_4_hide_pipe === true}
-                    .configValue=${'consumer_4_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_4_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_4_pipe_threshold !== undefined ? this._config.consumer_4_pipe_threshold : 0}
-                .configValue=${'consumer_4_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_4_unit_kw === true}
-                    .configValue=${'consumer_4_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_4_show_power !== false}
-                    .configValue=${'consumer_4_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_4 === true}
-                    .configValue=${'show_flow_rate_consumer_4'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_4_label_offset_x !== undefined ? this._config.consumer_4_label_offset_x : 0}
-                .configValue=${'consumer_4_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_4_label_offset_y !== undefined ? this._config.consumer_4_label_offset_y : -25}
-                .configValue=${'consumer_4_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_4_animation_threshold !== undefined ? this._config.consumer_4_animation_threshold : 0}
-                .configValue=${'consumer_4_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_4 || "", 'secondary_consumer_4', this._localize('editor.secondary_sensor'))}
 
+            ${this._bubbleForm('consumer_4', 'sensors')}
+            ${this._bubbleForm('consumer_4', 'behavior')}
+            ${this._bubbleForm('consumer_4', 'offsets')}
+
             ${this._renderColorPickerQuint('color_consumer_4', 'color_pipe_consumer_4', 'color_text_consumer_4', 'color_icon_consumer_4', 'color_secondary_consumer_4', '#eab308')}
+        </div>
 
-            <!-- Phase 5.61: configurable donut for Spüler. Generic ratio -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_4_donut_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_4_donut_hint')}
+        <!-- Charge-level ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_4_donut_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:gauge"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_4_donut_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_4', 'soc')}
+        </ha-expansion-panel>
+
+        <!-- Charge-mix ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_4_mix_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_4_mix_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_4', 'mix')}
+
+            ${(() => {
+                const mixPeriod = this._config.consumer_4_mix_period || 'day';
+                return html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.consumer_1_mix_period_${mixPeriod}`)}
                 </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_4_soc_donut_mode === true}
-                    .configValue=${'consumer_4_soc_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_4_soc_donut_enable')}</div>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
-                .value=${this._config.consumer_4_soc_max !== undefined ? this._config.consumer_4_soc_max : 5}
-                .configValue=${'consumer_4_soc_max'}
-                .label=${this._localize('editor.consumer_4_soc_max')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Phase 5.63: Charge-mix outer ring for Spüler. -->
-            </ha-expansion-panel>
-
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_4_mix_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_4_mix_hint')}
+                ${mixTargets.map((consumerMixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`consumer_4_mix_${consumerMixTarget}_${mixPeriod}`] || "",
+                    `consumer_4_mix_${consumerMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.consumer_4_mix_${consumerMixTarget}_${mixPeriod}`)))}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
                 </div>
+                `;
+            })()}
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_4_mix_donut_mode === true}
-                    .configValue=${'consumer_4_mix_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_4_mix_enable')}</div>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
-                    { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
-                    { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
-                ] } }}
-                .value=${this._config.consumer_4_mix_period || 'day'}
-                .configValue=${'consumer_4_mix_period'}
-                .label=${this._localize('editor.consumer_1_mix_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_4_mix_ring_gap !== undefined ? this._config.consumer_4_mix_ring_gap : 8}
-                .configValue=${'consumer_4_mix_ring_gap'}
-                .label=${this._localize('editor.consumer_1_mix_ring_gap')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_4_mix_ring_thickness !== undefined ? this._config.consumer_4_mix_ring_thickness : 4}
-                .configValue=${'consumer_4_mix_ring_thickness'}
-                .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Tag -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_day')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_pv_day || "", 'consumer_4_mix_pv_day', this._localize('editor.consumer_4_mix_pv_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_lg_day || "", 'consumer_4_mix_lg_day', this._localize('editor.consumer_4_mix_lg_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_venus_day || "", 'consumer_4_mix_venus_day', this._localize('editor.consumer_4_mix_venus_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_grid_day || "", 'consumer_4_mix_grid_day', this._localize('editor.consumer_4_mix_grid_day'))}
-
-            <!-- Monat -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_month')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_pv_month || "", 'consumer_4_mix_pv_month', this._localize('editor.consumer_4_mix_pv_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_lg_month || "", 'consumer_4_mix_lg_month', this._localize('editor.consumer_4_mix_lg_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_venus_month || "", 'consumer_4_mix_venus_month', this._localize('editor.consumer_4_mix_venus_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_grid_month || "", 'consumer_4_mix_grid_month', this._localize('editor.consumer_4_mix_grid_month'))}
-
-            <!-- Jahr -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_year')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_pv_year || "", 'consumer_4_mix_pv_year', this._localize('editor.consumer_4_mix_pv_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_lg_year || "", 'consumer_4_mix_lg_year', this._localize('editor.consumer_4_mix_lg_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_venus_year || "", 'consumer_4_mix_venus_year', this._localize('editor.consumer_4_mix_venus_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_mix_grid_year || "", 'consumer_4_mix_grid_year', this._localize('editor.consumer_4_mix_grid_year'))}
-
-            <!-- Phase 5.83: per-segment colors for the c4 mix-ring.
-                 Each defaults to the matching pipe color when unset.
-                 Reuses the consumer_1 color i18n labels (identical PV/LG/Venus/Grid
-                 semantics) -- no new translation keys needed. -->
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
                 ${this._localize('editor.consumer_1_mix_colors_section')}
             </div>
@@ -3534,80 +3340,31 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderColorPicker('consumer_4_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
             ${this._renderColorPicker('consumer_4_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
             ${this._renderColorPicker('consumer_4_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
+        </ha-expansion-panel>
 
-            <!-- Phase 5.62: rotation for Spüler bubble -->
-            </ha-expansion-panel>
+        <!-- Value rotation -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
 
-            <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.rotation_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_4_rotate_show_live !== false}
-                    .configValue=${'consumer_4_rotate_show_live'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
             </div>
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_4_rotate_show_daily_1 === true}
-                    .configValue=${'consumer_4_rotate_show_daily_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_rotate_daily_1 || "", 'consumer_4_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-            ${this._renderColorPicker('consumer_4_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+            ${this._bubbleForm('consumer_4', 'rotation')}
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_4_rotate_show_daily_2 === true}
-                    .configValue=${'consumer_4_rotate_show_daily_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_rotate_daily_2 || "", 'consumer_4_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-            ${this._renderColorPicker('consumer_4_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+            ${[1, 2, 3].map((n) => html`
+                <div class="separator"></div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities[`consumer_4_rotate_daily_${n}`] || "", `consumer_4_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                ${this._renderColorPicker(`consumer_4_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), rotationSlotColors[n - 1])}
+            `)}
+        </ha-expansion-panel>
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_4_rotate_show_daily_3 === true}
-                    .configValue=${'consumer_4_rotate_show_daily_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_rotate_daily_3 || "", 'consumer_4_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-            ${this._renderColorPicker('consumer_4_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+        <!-- Sparkline -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
 
-            <!-- Phase 5.67.9: Sparkline / history graph for Spüler.
-                 Default colour #eab308 (yellow, matches the bubble's
-                 default consumer-4 colour). Same control set as
-                 Tesla / Waschen / Trockner. -->
-            </ha-expansion-panel>
-
-            <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.sparkline_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_4_sparkline === true}
-                    .configValue=${'consumer_4_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
             </div>
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_4_sparkline_entity || "", 'consumer_4_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
@@ -3615,320 +3372,84 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.sparkline_entity_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h",  label: "1h"  },
-                    { value: "6h",  label: "6h"  },
-                    { value: "12h", label: "12h" },
-                    { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.consumer_4_sparkline_period || '24h'}
-                .configValue=${'consumer_4_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                ] } }}
-                .value=${this._config.consumer_4_sparkline_layer || 'back'}
-                .configValue=${'consumer_4_sparkline_layer'}
-                .label=${this._localize('editor.sparkline_layer')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.consumer_4_sparkline_style || 'area-line'}
-                .configValue=${'consumer_4_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.consumer_4_sparkline_opacity !== undefined ? this._config.consumer_4_sparkline_opacity : 0.35}
-                .configValue=${'consumer_4_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('consumer_4', 'sparkline')}
 
             ${this._renderColorPicker('consumer_4_sparkline_color', this._localize('editor.sparkline_color'), '#eab308')}
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_4_sparkline_debug === true}
-                    .configValue=${'consumer_4_sparkline_debug'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
-            </div>
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_4_sparkline_test_mode === true}
-                    .configValue=${'consumer_4_sparkline_test_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-            </div>
-            </ha-expansion-panel>
-        </div>
-        `;
+        </ha-expansion-panel>
+      `;
     }
-
     // Phase 5.58: dedicated sub-view for Trockner (Consumer 3) -- fifth bubble
     // with full feature parity to Tesla/BWWP/Pumpe/Waschen. Default donut
     // max = 5 (kWh) suitable for a daily energy budget on a tumble dryer.
     // User can override consumer_3_soc_max for any other ratio metric.
     // Rotation (phase 5.59) and charge-mix ring (phase 5.60) follow.
+    // Phase editor-8: consumer 3 on the generic schema. All seven are built
+    // from one template -- 29 controls each, identical but for the colours and
+    // soc_max, which is the only thing that genuinely differs: what "full"
+    // means for a charge level, a temperature or a tank.
     _renderConsumer3View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const idx = 3;
+        const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
+        const mixTargets = ['pv', 'lg', 'venus', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
                 <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
             </div>
-            <h2>${this._consumerMenuLabel(3)}</h2>
+            <h2>${this._consumerMenuLabel(idx)}</h2>
         </div>
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #06b6d4;">${this._localize('editor.consumer_3_title')}</div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_3_enabled !== false}
-                    .configValue=${'consumer_3_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3, 'consumer_3', this._localize('editor.entity'))}
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_3_label}
-                .configValue=${'consumer_3_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_3_icon}
-                .configValue=${'consumer_3_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_3 === true}
-                    .configValue=${'invert_consumer_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_3_hide_pipe === true}
-                    .configValue=${'consumer_3_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_3_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_3_pipe_threshold !== undefined ? this._config.consumer_3_pipe_threshold : 0}
-                .configValue=${'consumer_3_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_3_unit_kw === true}
-                    .configValue=${'consumer_3_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_3_show_power !== false}
-                    .configValue=${'consumer_3_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_3 === true}
-                    .configValue=${'show_flow_rate_consumer_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_3_label_offset_x !== undefined ? this._config.consumer_3_label_offset_x : 0}
-                .configValue=${'consumer_3_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_3_label_offset_y !== undefined ? this._config.consumer_3_label_offset_y : -25}
-                .configValue=${'consumer_3_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_3_animation_threshold !== undefined ? this._config.consumer_3_animation_threshold : 0}
-                .configValue=${'consumer_3_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_3 || "", 'secondary_consumer_3', this._localize('editor.secondary_sensor'))}
 
+            ${this._bubbleForm('consumer_3', 'sensors')}
+            ${this._bubbleForm('consumer_3', 'behavior')}
+            ${this._bubbleForm('consumer_3', 'offsets')}
+
             ${this._renderColorPickerQuint('color_consumer_3', 'color_pipe_consumer_3', 'color_text_consumer_3', 'color_icon_consumer_3', 'color_secondary_consumer_3', '#06b6d4')}
+        </div>
 
-            <!-- Phase 5.58: configurable donut for Trockner. Generic ratio
-                 visualisation: secondary sensor / max. Use a daily energy
-                 sensor with max=5 kWh for budget, or any other progress
-                 indicator. -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_3_donut_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_3_donut_hint')}
+        <!-- Charge-level ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_3_donut_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:gauge"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_3_donut_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_3', 'soc')}
+        </ha-expansion-panel>
+
+        <!-- Charge-mix ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_3_mix_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_3_mix_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_3', 'mix')}
+
+            ${(() => {
+                const mixPeriod = this._config.consumer_3_mix_period || 'day';
+                return html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.consumer_1_mix_period_${mixPeriod}`)}
                 </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_3_soc_donut_mode === true}
-                    .configValue=${'consumer_3_soc_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_3_soc_donut_enable')}</div>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
-                .value=${this._config.consumer_3_soc_max !== undefined ? this._config.consumer_3_soc_max : 5}
-                .configValue=${'consumer_3_soc_max'}
-                .label=${this._localize('editor.consumer_3_soc_max')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Phase 5.60: Charge-mix outer ring for Trockner. -->
-            </ha-expansion-panel>
-
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_3_mix_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_3_mix_hint')}
+                ${mixTargets.map((consumerMixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`consumer_3_mix_${consumerMixTarget}_${mixPeriod}`] || "",
+                    `consumer_3_mix_${consumerMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.consumer_3_mix_${consumerMixTarget}_${mixPeriod}`)))}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
                 </div>
+                `;
+            })()}
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_3_mix_donut_mode === true}
-                    .configValue=${'consumer_3_mix_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_3_mix_enable')}</div>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
-                    { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
-                    { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
-                ] } }}
-                .value=${this._config.consumer_3_mix_period || 'day'}
-                .configValue=${'consumer_3_mix_period'}
-                .label=${this._localize('editor.consumer_1_mix_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_3_mix_ring_gap !== undefined ? this._config.consumer_3_mix_ring_gap : 8}
-                .configValue=${'consumer_3_mix_ring_gap'}
-                .label=${this._localize('editor.consumer_1_mix_ring_gap')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_3_mix_ring_thickness !== undefined ? this._config.consumer_3_mix_ring_thickness : 4}
-                .configValue=${'consumer_3_mix_ring_thickness'}
-                .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Tag -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_day')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_pv_day || "", 'consumer_3_mix_pv_day', this._localize('editor.consumer_3_mix_pv_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_lg_day || "", 'consumer_3_mix_lg_day', this._localize('editor.consumer_3_mix_lg_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_venus_day || "", 'consumer_3_mix_venus_day', this._localize('editor.consumer_3_mix_venus_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_grid_day || "", 'consumer_3_mix_grid_day', this._localize('editor.consumer_3_mix_grid_day'))}
-
-            <!-- Monat -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_month')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_pv_month || "", 'consumer_3_mix_pv_month', this._localize('editor.consumer_3_mix_pv_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_lg_month || "", 'consumer_3_mix_lg_month', this._localize('editor.consumer_3_mix_lg_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_venus_month || "", 'consumer_3_mix_venus_month', this._localize('editor.consumer_3_mix_venus_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_grid_month || "", 'consumer_3_mix_grid_month', this._localize('editor.consumer_3_mix_grid_month'))}
-
-            <!-- Jahr -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_year')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_pv_year || "", 'consumer_3_mix_pv_year', this._localize('editor.consumer_3_mix_pv_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_lg_year || "", 'consumer_3_mix_lg_year', this._localize('editor.consumer_3_mix_lg_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_venus_year || "", 'consumer_3_mix_venus_year', this._localize('editor.consumer_3_mix_venus_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_mix_grid_year || "", 'consumer_3_mix_grid_year', this._localize('editor.consumer_3_mix_grid_year'))}
-
-            <!-- Phase 5.83: per-segment colors for the c3 mix-ring.
-                 Each defaults to the matching pipe color when unset.
-                 Reuses the consumer_1 color i18n labels (identical PV/LG/Venus/Grid
-                 semantics) -- no new translation keys needed. -->
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
                 ${this._localize('editor.consumer_1_mix_colors_section')}
             </div>
@@ -3936,492 +3457,149 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderColorPicker('consumer_3_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
             ${this._renderColorPicker('consumer_3_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
             ${this._renderColorPicker('consumer_3_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
+        </ha-expansion-panel>
 
-            <!-- Phase 5.59: rotation for Trockner bubble (analog Tesla/BWWP/Pumpe/Waschen) -->
-            </ha-expansion-panel>
+        <!-- Value rotation -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
 
-            <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.rotation_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_3_rotate_show_live !== false}
-                    .configValue=${'consumer_3_rotate_show_live'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
             </div>
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_3_rotate_show_daily_1 === true}
-                    .configValue=${'consumer_3_rotate_show_daily_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_rotate_daily_1 || "", 'consumer_3_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-            ${this._renderColorPicker('consumer_3_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+            ${this._bubbleForm('consumer_3', 'rotation')}
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_3_rotate_show_daily_2 === true}
-                    .configValue=${'consumer_3_rotate_show_daily_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_rotate_daily_2 || "", 'consumer_3_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-            ${this._renderColorPicker('consumer_3_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+            ${[1, 2, 3].map((n) => html`
+                <div class="separator"></div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities[`consumer_3_rotate_daily_${n}`] || "", `consumer_3_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                ${this._renderColorPicker(`consumer_3_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), rotationSlotColors[n - 1])}
+            `)}
+        </ha-expansion-panel>
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_3_rotate_show_daily_3 === true}
-                    .configValue=${'consumer_3_rotate_show_daily_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_rotate_daily_3 || "", 'consumer_3_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-            ${this._renderColorPicker('consumer_3_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+        <!-- Sparkline -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
 
-            <!-- Phase 5.67: Sparkline / history graph in bubble background.
-                 Prototype on Trockner first; if visually convincing,
-                 replicate to all 7 consumer bubbles in follow-up phases. -->
-            </ha-expansion-panel>
-
-            <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.sparkline_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_3_sparkline === true}
-                    .configValue=${'consumer_3_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
             </div>
 
-            <!-- Phase 5.67.1: optional sensor override. Empty value =
-                 fall back to consumer_3 main entity. Allows showing any
-                 entity (e.g. temperature, total energy, status) in the
-                 background even when the main sensor is power. -->
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_3_sparkline_entity || "", 'consumer_3_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
             <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
                 ${this._localize('editor.sparkline_entity_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h",  label: "1h"  },
-                    { value: "6h",  label: "6h"  },
-                    { value: "12h", label: "12h" },
-                    { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.consumer_3_sparkline_period || '24h'}
-                .configValue=${'consumer_3_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                ] } }}
-                .value=${this._config.consumer_3_sparkline_layer || 'back'}
-                .configValue=${'consumer_3_sparkline_layer'}
-                .label=${this._localize('editor.sparkline_layer')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.consumer_3_sparkline_style || 'area-line'}
-                .configValue=${'consumer_3_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.consumer_3_sparkline_opacity !== undefined ? this._config.consumer_3_sparkline_opacity : 0.35}
-                .configValue=${'consumer_3_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('consumer_3', 'sparkline')}
 
             ${this._renderColorPicker('consumer_3_sparkline_color', this._localize('editor.sparkline_color'), '#06b6d4')}
-
-            <!-- Phase 5.67.1: developer debug toggle. When on, the fetch
-                 helper logs URL, raw response, parsed series length and
-                 first/last point to the browser DevTools console. Use to
-                 diagnose why no chart appears (wrong sensor? empty
-                 history? auth failure?). -->
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_3_sparkline_debug === true}
-                    .configValue=${'consumer_3_sparkline_debug'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
-            </div>
-
-            <!-- Phase 5.67.2: test-mode toggle. Replaces the live history
-                 fetch with a synthetic sine wave so the render pipeline can
-                 be verified in isolation. If you enable this and see a
-                 smooth curve in the bubble, the rendering works -- any
-                 real-mode failure is then about data fetching, not display. -->
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_3_sparkline_test_mode === true}
-                    .configValue=${'consumer_3_sparkline_test_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-            </div>
-            </ha-expansion-panel>
-        </div>
-        `;
+        </ha-expansion-panel>
+      `;
     }
-
     // Phase 5.55: dedicated sub-view for Waschen (Consumer 2) -- fourth bubble
     // with full feature parity to Tesla/BWWP/Pumpe. Default donut max = 5 (kWh)
     // suitable for a daily energy budget on a washing machine. User can
     // override consumer_2_soc_max for other sensor ranges (different machine,
     // or a different secondary sensor like remaining time in minutes).
     // Rotation (phase 5.56) and charge-mix ring (phase 5.57) follow.
+    // Phase editor-8: consumer 2 on the generic schema. All seven are built
+    // from one template -- 29 controls each, identical but for the colours and
+    // soc_max, which is the only thing that genuinely differs: what "full"
+    // means for a charge level, a temperature or a tank.
     _renderConsumer2View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const idx = 2;
+        const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
+        const mixTargets = ['pv', 'lg', 'venus', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
                 <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
             </div>
-            <h2>${this._consumerMenuLabel(2)}</h2>
+            <h2>${this._consumerMenuLabel(idx)}</h2>
         </div>
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #f97316;">${this._localize('editor.consumer_2_title')}</div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_2_enabled !== false}
-                    .configValue=${'consumer_2_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2, 'consumer_2', this._localize('editor.entity'))}
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_2_label}
-                .configValue=${'consumer_2_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_2_icon}
-                .configValue=${'consumer_2_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_2 === true}
-                    .configValue=${'invert_consumer_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_2_hide_pipe === true}
-                    .configValue=${'consumer_2_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_2_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_2_pipe_threshold !== undefined ? this._config.consumer_2_pipe_threshold : 0}
-                .configValue=${'consumer_2_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_2_unit_kw === true}
-                    .configValue=${'consumer_2_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_2_show_power !== false}
-                    .configValue=${'consumer_2_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_2 === true}
-                    .configValue=${'show_flow_rate_consumer_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_2_label_offset_x !== undefined ? this._config.consumer_2_label_offset_x : 0}
-                .configValue=${'consumer_2_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_2_label_offset_y !== undefined ? this._config.consumer_2_label_offset_y : -25}
-                .configValue=${'consumer_2_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_2_animation_threshold !== undefined ? this._config.consumer_2_animation_threshold : 0}
-                .configValue=${'consumer_2_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_2 || "", 'secondary_consumer_2', this._localize('editor.secondary_sensor'))}
 
+            ${this._bubbleForm('consumer_2', 'sensors')}
+            ${this._bubbleForm('consumer_2', 'behavior')}
+            ${this._bubbleForm('consumer_2', 'offsets')}
+
             ${this._renderColorPickerQuint('color_consumer_2', 'color_pipe_consumer_2', 'color_text_consumer_2', 'color_icon_consumer_2', 'color_secondary_consumer_2', '#f97316')}
+        </div>
 
-            <!-- Phase 5.55/5.82: configurable donut for Waschen, wrapped in
-                 a collapsible expansion panel. Generic ratio visualisation:
-                 secondary sensor / max. -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_2_donut_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_2_donut_hint')}
+        <!-- Charge-level ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_2_donut_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:gauge"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_2_donut_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_2', 'soc')}
+        </ha-expansion-panel>
+
+        <!-- Charge-mix ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_2_mix_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_2_mix_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_2', 'mix')}
+
+            ${(() => {
+                const mixPeriod = this._config.consumer_2_mix_period || 'day';
+                return html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.consumer_1_mix_period_${mixPeriod}`)}
                 </div>
-
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_2_soc_donut_mode === true}
-                        .configValue=${'consumer_2_soc_donut_mode'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.consumer_2_soc_donut_enable')}</div>
+                ${mixTargets.map((consumerMixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`consumer_2_mix_${consumerMixTarget}_${mixPeriod}`] || "",
+                    `consumer_2_mix_${consumerMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.consumer_2_mix_${consumerMixTarget}_${mixPeriod}`)))}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
                 </div>
+                `;
+            })()}
 
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
-                    .value=${this._config.consumer_2_soc_max !== undefined ? this._config.consumer_2_soc_max : 5}
-                    .configValue=${'consumer_2_soc_max'}
-                    .label=${this._localize('editor.consumer_2_soc_max')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </ha-expansion-panel>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('consumer_2_mix_color_pv', this._localize('editor.consumer_1_mix_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('consumer_2_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
+            ${this._renderColorPicker('consumer_2_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
+            ${this._renderColorPicker('consumer_2_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
+        </ha-expansion-panel>
 
-            <!-- Phase 5.57/5.82: Charge-mix outer ring for Waschen, wrapped
-                 in a collapsible expansion panel. -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_2_mix_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_2_mix_hint')}
-                </div>
+        <!-- Value rotation -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
 
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_2_mix_donut_mode === true}
-                        .configValue=${'consumer_2_mix_donut_mode'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.consumer_2_mix_enable')}</div>
-                </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
+            </div>
 
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ select: { mode: "dropdown", options: [
-                        { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
-                        { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
-                        { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
-                    ] } }}
-                    .value=${this._config.consumer_2_mix_period || 'day'}
-                    .configValue=${'consumer_2_mix_period'}
-                    .label=${this._localize('editor.consumer_1_mix_period')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
+            ${this._bubbleForm('consumer_2', 'rotation')}
 
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                    .value=${this._config.consumer_2_mix_ring_gap !== undefined ? this._config.consumer_2_mix_ring_gap : 8}
-                    .configValue=${'consumer_2_mix_ring_gap'}
-                    .label=${this._localize('editor.consumer_1_mix_ring_gap')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                    .value=${this._config.consumer_2_mix_ring_thickness !== undefined ? this._config.consumer_2_mix_ring_thickness : 4}
-                    .configValue=${'consumer_2_mix_ring_thickness'}
-                    .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-
-                <!-- Tag -->
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                    ${this._localize('editor.consumer_1_mix_period_day')}
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_pv_day || "", 'consumer_2_mix_pv_day', this._localize('editor.consumer_2_mix_pv_day'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_lg_day || "", 'consumer_2_mix_lg_day', this._localize('editor.consumer_2_mix_lg_day'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_venus_day || "", 'consumer_2_mix_venus_day', this._localize('editor.consumer_2_mix_venus_day'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_grid_day || "", 'consumer_2_mix_grid_day', this._localize('editor.consumer_2_mix_grid_day'))}
-
-                <!-- Monat -->
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                    ${this._localize('editor.consumer_1_mix_period_month')}
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_pv_month || "", 'consumer_2_mix_pv_month', this._localize('editor.consumer_2_mix_pv_month'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_lg_month || "", 'consumer_2_mix_lg_month', this._localize('editor.consumer_2_mix_lg_month'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_venus_month || "", 'consumer_2_mix_venus_month', this._localize('editor.consumer_2_mix_venus_month'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_grid_month || "", 'consumer_2_mix_grid_month', this._localize('editor.consumer_2_mix_grid_month'))}
-
-                <!-- Jahr -->
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                    ${this._localize('editor.consumer_1_mix_period_year')}
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_pv_year || "", 'consumer_2_mix_pv_year', this._localize('editor.consumer_2_mix_pv_year'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_lg_year || "", 'consumer_2_mix_lg_year', this._localize('editor.consumer_2_mix_lg_year'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_venus_year || "", 'consumer_2_mix_venus_year', this._localize('editor.consumer_2_mix_venus_year'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_mix_grid_year || "", 'consumer_2_mix_grid_year', this._localize('editor.consumer_2_mix_grid_year'))}
-
-                <!-- Phase 5.83: per-segment colors for the c2 mix-ring.
-                     Each defaults to the matching pipe color when unset.
-                     Reuses the consumer_1 color i18n labels (identical PV/LG/Venus/Grid
-                     semantics) -- no new translation keys needed. -->
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                    ${this._localize('editor.consumer_1_mix_colors_section')}
-                </div>
-                ${this._renderColorPicker('consumer_2_mix_color_pv', this._localize('editor.consumer_1_mix_color_pv'), '#ffd900')}
-                ${this._renderColorPicker('consumer_2_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
-                ${this._renderColorPicker('consumer_2_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
-                ${this._renderColorPicker('consumer_2_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
-            </ha-expansion-panel>
-
-            <!-- Phase 5.56/5.82: rotation for Waschen bubble, wrapped in
-                 a collapsible expansion panel. -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.rotation_hint')}
-                </div>
-
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_2_rotate_show_live !== false}
-                        .configValue=${'consumer_2_rotate_show_live'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
-                </div>
-
+            ${[1, 2, 3].map((n) => html`
                 <div class="separator"></div>
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_2_rotate_show_daily_1 === true}
-                        .configValue=${'consumer_2_rotate_show_daily_1'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_rotate_daily_1 || "", 'consumer_2_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-                ${this._renderColorPicker('consumer_2_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+                ${this._renderEntitySelector(entitySelectorSchema, entities[`consumer_2_rotate_daily_${n}`] || "", `consumer_2_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                ${this._renderColorPicker(`consumer_2_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), rotationSlotColors[n - 1])}
+            `)}
+        </ha-expansion-panel>
 
-                <div class="separator"></div>
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_2_rotate_show_daily_2 === true}
-                        .configValue=${'consumer_2_rotate_show_daily_2'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_rotate_daily_2 || "", 'consumer_2_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-                ${this._renderColorPicker('consumer_2_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+        <!-- Sparkline -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
 
-                <div class="separator"></div>
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_2_rotate_show_daily_3 === true}
-                        .configValue=${'consumer_2_rotate_show_daily_3'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_rotate_daily_3 || "", 'consumer_2_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-                ${this._renderColorPicker('consumer_2_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
-            </ha-expansion-panel>
-
-            <!-- Phase 5.67.8/5.82: Sparkline / history graph for Waschen,
-                 wrapped in a collapsible expansion panel. -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.sparkline_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_2_sparkline === true}
-                    .configValue=${'consumer_2_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
             </div>
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_2_sparkline_entity || "", 'consumer_2_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
@@ -4429,321 +3607,85 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.sparkline_entity_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h",  label: "1h"  },
-                    { value: "6h",  label: "6h"  },
-                    { value: "12h", label: "12h" },
-                    { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.consumer_2_sparkline_period || '24h'}
-                .configValue=${'consumer_2_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                ] } }}
-                .value=${this._config.consumer_2_sparkline_layer || 'back'}
-                .configValue=${'consumer_2_sparkline_layer'}
-                .label=${this._localize('editor.sparkline_layer')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.consumer_2_sparkline_style || 'area-line'}
-                .configValue=${'consumer_2_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.consumer_2_sparkline_opacity !== undefined ? this._config.consumer_2_sparkline_opacity : 0.35}
-                .configValue=${'consumer_2_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('consumer_2', 'sparkline')}
 
             ${this._renderColorPicker('consumer_2_sparkline_color', this._localize('editor.sparkline_color'), '#f97316')}
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_2_sparkline_debug === true}
-                    .configValue=${'consumer_2_sparkline_debug'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
-            </div>
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_2_sparkline_test_mode === true}
-                    .configValue=${'consumer_2_sparkline_test_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-            </div>
-            </ha-expansion-panel>
-        </div>
-        `;
+        </ha-expansion-panel>
+      `;
     }
-
     // Phase 5.52: dedicated sub-view for Pumpe (Consumer 7) -- third bubble
     // with full feature parity to Tesla/BWWP. Default donut max = 165 cm
     // suitable for a typical Regenschacht / rainwater cistern. User can
     // override consumer_7_soc_max for other sensor ranges (deeper cisterns,
     // shallower wells, etc.). Rotation (phase 5.53) and charge-mix ring
     // (phase 5.54) follow in the next two phases.
+    // Phase editor-8: consumer 7 on the generic schema. All seven are built
+    // from one template -- 29 controls each, identical but for the colours and
+    // soc_max, which is the only thing that genuinely differs: what "full"
+    // means for a charge level, a temperature or a tank.
     _renderConsumer7View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const idx = 7;
+        const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
+        const mixTargets = ['pv', 'lg', 'venus', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
                 <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
             </div>
-            <h2>${this._consumerMenuLabel(7)}</h2>
+            <h2>${this._consumerMenuLabel(idx)}</h2>
         </div>
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #ec4899;">${this._localize('editor.consumer_7_title')}</div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_7_enabled !== false}
-                    .configValue=${'consumer_7_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7, 'consumer_7', this._localize('editor.entity'))}
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_7_label}
-                .configValue=${'consumer_7_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_7_icon}
-                .configValue=${'consumer_7_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_7 === true}
-                    .configValue=${'invert_consumer_7'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_7_hide_pipe === true}
-                    .configValue=${'consumer_7_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_7_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_7_pipe_threshold !== undefined ? this._config.consumer_7_pipe_threshold : 0}
-                .configValue=${'consumer_7_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_7_unit_kw === true}
-                    .configValue=${'consumer_7_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_7_show_power !== false}
-                    .configValue=${'consumer_7_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_7 === true}
-                    .configValue=${'show_flow_rate_consumer_7'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_7_label_offset_x !== undefined ? this._config.consumer_7_label_offset_x : 0}
-                .configValue=${'consumer_7_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_7_label_offset_y !== undefined ? this._config.consumer_7_label_offset_y : -25}
-                .configValue=${'consumer_7_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_7_animation_threshold !== undefined ? this._config.consumer_7_animation_threshold : 0}
-                .configValue=${'consumer_7_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_7 || "", 'secondary_consumer_7', this._localize('editor.secondary_sensor'))}
 
+            ${this._bubbleForm('consumer_7', 'sensors')}
+            ${this._bubbleForm('consumer_7', 'behavior')}
+            ${this._bubbleForm('consumer_7', 'offsets')}
+
             ${this._renderColorPickerQuint('color_consumer_7', 'color_pipe_consumer_7', 'color_text_consumer_7', 'color_icon_consumer_7', 'color_secondary_consumer_7', '#ec4899')}
+        </div>
 
-            <!-- Phase 5.52: water-level donut ring for Pumpe bubble.
-                 Default soc_max = 165 (typical cistern depth in cm). User can
-                 change it for deeper/shallower cisterns or other use cases. -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_7_donut_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_7_donut_hint')}
+        <!-- Charge-level ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_7_donut_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:gauge"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_7_donut_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_7', 'soc')}
+        </ha-expansion-panel>
+
+        <!-- Charge-mix ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_7_mix_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_7_mix_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_7', 'mix')}
+
+            ${(() => {
+                const mixPeriod = this._config.consumer_7_mix_period || 'day';
+                return html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.consumer_1_mix_period_${mixPeriod}`)}
                 </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_7_soc_donut_mode === true}
-                    .configValue=${'consumer_7_soc_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_7_soc_donut_enable')}</div>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
-                .value=${this._config.consumer_7_soc_max !== undefined ? this._config.consumer_7_soc_max : 165}
-                .configValue=${'consumer_7_soc_max'}
-                .label=${this._localize('editor.consumer_7_soc_max')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Phase 5.54: Charge-mix outer ring for Pumpe. Shows where the
-                 bubble's energy came from over the chosen period. -->
-            </ha-expansion-panel>
-
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_7_mix_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_7_mix_hint')}
+                ${mixTargets.map((consumerMixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`consumer_7_mix_${consumerMixTarget}_${mixPeriod}`] || "",
+                    `consumer_7_mix_${consumerMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.consumer_7_mix_${consumerMixTarget}_${mixPeriod}`)))}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
                 </div>
+                `;
+            })()}
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_7_mix_donut_mode === true}
-                    .configValue=${'consumer_7_mix_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_7_mix_enable')}</div>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
-                    { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
-                    { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
-                ] } }}
-                .value=${this._config.consumer_7_mix_period || 'day'}
-                .configValue=${'consumer_7_mix_period'}
-                .label=${this._localize('editor.consumer_1_mix_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_7_mix_ring_gap !== undefined ? this._config.consumer_7_mix_ring_gap : 8}
-                .configValue=${'consumer_7_mix_ring_gap'}
-                .label=${this._localize('editor.consumer_1_mix_ring_gap')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_7_mix_ring_thickness !== undefined ? this._config.consumer_7_mix_ring_thickness : 4}
-                .configValue=${'consumer_7_mix_ring_thickness'}
-                .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Tag -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_day')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_pv_day || "", 'consumer_7_mix_pv_day', this._localize('editor.consumer_7_mix_pv_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_lg_day || "", 'consumer_7_mix_lg_day', this._localize('editor.consumer_7_mix_lg_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_venus_day || "", 'consumer_7_mix_venus_day', this._localize('editor.consumer_7_mix_venus_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_grid_day || "", 'consumer_7_mix_grid_day', this._localize('editor.consumer_7_mix_grid_day'))}
-
-            <!-- Monat -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_month')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_pv_month || "", 'consumer_7_mix_pv_month', this._localize('editor.consumer_7_mix_pv_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_lg_month || "", 'consumer_7_mix_lg_month', this._localize('editor.consumer_7_mix_lg_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_venus_month || "", 'consumer_7_mix_venus_month', this._localize('editor.consumer_7_mix_venus_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_grid_month || "", 'consumer_7_mix_grid_month', this._localize('editor.consumer_7_mix_grid_month'))}
-
-            <!-- Jahr -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_year')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_pv_year || "", 'consumer_7_mix_pv_year', this._localize('editor.consumer_7_mix_pv_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_lg_year || "", 'consumer_7_mix_lg_year', this._localize('editor.consumer_7_mix_lg_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_venus_year || "", 'consumer_7_mix_venus_year', this._localize('editor.consumer_7_mix_venus_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_mix_grid_year || "", 'consumer_7_mix_grid_year', this._localize('editor.consumer_7_mix_grid_year'))}
-
-            <!-- Phase 5.83: per-segment colors for the c7 mix-ring.
-                 Each defaults to the matching pipe color when unset.
-                 Reuses the consumer_1 color i18n labels (identical PV/LG/Venus/Grid
-                 semantics) -- no new translation keys needed. -->
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
                 ${this._localize('editor.consumer_1_mix_colors_section')}
             </div>
@@ -4751,81 +3693,31 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderColorPicker('consumer_7_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
             ${this._renderColorPicker('consumer_7_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
             ${this._renderColorPicker('consumer_7_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
+        </ha-expansion-panel>
 
-            <!-- Phase 5.53: rotation for Pumpe bubble (analog Tesla/BWWP/Battery/Venus) -->
-            </ha-expansion-panel>
+        <!-- Value rotation -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
 
-            <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.rotation_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_7_rotate_show_live !== false}
-                    .configValue=${'consumer_7_rotate_show_live'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
             </div>
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_7_rotate_show_daily_1 === true}
-                    .configValue=${'consumer_7_rotate_show_daily_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_rotate_daily_1 || "", 'consumer_7_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-            ${this._renderColorPicker('consumer_7_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+            ${this._bubbleForm('consumer_7', 'rotation')}
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_7_rotate_show_daily_2 === true}
-                    .configValue=${'consumer_7_rotate_show_daily_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_rotate_daily_2 || "", 'consumer_7_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-            ${this._renderColorPicker('consumer_7_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+            ${[1, 2, 3].map((n) => html`
+                <div class="separator"></div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities[`consumer_7_rotate_daily_${n}`] || "", `consumer_7_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                ${this._renderColorPicker(`consumer_7_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), rotationSlotColors[n - 1])}
+            `)}
+        </ha-expansion-panel>
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_7_rotate_show_daily_3 === true}
-                    .configValue=${'consumer_7_rotate_show_daily_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_rotate_daily_3 || "", 'consumer_7_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-            ${this._renderColorPicker('consumer_7_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+        <!-- Sparkline -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
 
-            <!-- Phase 5.67.12: Sparkline / history graph for Pumpe.
-                 COMPLETES THE 7-BUBBLE SPARKLINE PARITY.
-                 Default colour #ec4899 (pink, matches the bubble's
-                 default consumer-7 colour). Same control set as all
-                 other consumer bubbles. -->
-            </ha-expansion-panel>
-
-            <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.sparkline_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_7_sparkline === true}
-                    .configValue=${'consumer_7_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
             </div>
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_7_sparkline_entity || "", 'consumer_7_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
@@ -4833,401 +3725,116 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.sparkline_entity_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h",  label: "1h"  },
-                    { value: "6h",  label: "6h"  },
-                    { value: "12h", label: "12h" },
-                    { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.consumer_7_sparkline_period || '24h'}
-                .configValue=${'consumer_7_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                ] } }}
-                .value=${this._config.consumer_7_sparkline_layer || 'back'}
-                .configValue=${'consumer_7_sparkline_layer'}
-                .label=${this._localize('editor.sparkline_layer')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.consumer_7_sparkline_style || 'area-line'}
-                .configValue=${'consumer_7_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.consumer_7_sparkline_opacity !== undefined ? this._config.consumer_7_sparkline_opacity : 0.35}
-                .configValue=${'consumer_7_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('consumer_7', 'sparkline')}
 
             ${this._renderColorPicker('consumer_7_sparkline_color', this._localize('editor.sparkline_color'), '#ec4899')}
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_7_sparkline_debug === true}
-                    .configValue=${'consumer_7_sparkline_debug'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
-            </div>
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_7_sparkline_test_mode === true}
-                    .configValue=${'consumer_7_sparkline_test_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-            </div>
-            </ha-expansion-panel>
-        </div>
-        `;
+        </ha-expansion-panel>
+      `;
     }
-
     // Phase 5.49: dedicated sub-view for BWWP (Consumer 5) -- pattern copied
     // from Tesla (Consumer 1), starting with the SoC donut feature. Rotation
     // and charge-mix ring will follow in phases 5.50 / 5.51. The donut uses
     // consumer_5_soc_max (default 65) to support a temperature-as-percentage
     // semantic for boiler-style sensors (22°C / 65°C = 33.8% filled).
+    // Phase editor-8: consumer 5 on the generic schema. All seven are built
+    // from one template -- 29 controls each, identical but for the colours and
+    // soc_max, which is the only thing that genuinely differs: what "full"
+    // means for a charge level, a temperature or a tank.
     _renderConsumer5View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const idx = 5;
+        const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
+        const mixTargets = ['pv', 'lg', 'venus', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
                 <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
             </div>
-            <h2>${this._consumerMenuLabel(5)}</h2>
+            <h2>${this._consumerMenuLabel(idx)}</h2>
         </div>
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #6366f1;">${this._localize('editor.consumer_5_title')}</div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_5_enabled !== false}
-                    .configValue=${'consumer_5_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5, 'consumer_5', this._localize('editor.entity'))}
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_5_label}
-                .configValue=${'consumer_5_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_5_icon}
-                .configValue=${'consumer_5_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_5 === true}
-                    .configValue=${'invert_consumer_5'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_5_hide_pipe === true}
-                    .configValue=${'consumer_5_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_5_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_5_pipe_threshold !== undefined ? this._config.consumer_5_pipe_threshold : 0}
-                .configValue=${'consumer_5_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_5_unit_kw === true}
-                    .configValue=${'consumer_5_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_5_show_power !== false}
-                    .configValue=${'consumer_5_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_5 === true}
-                    .configValue=${'show_flow_rate_consumer_5'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_5_label_offset_x !== undefined ? this._config.consumer_5_label_offset_x : 0}
-                .configValue=${'consumer_5_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_5_label_offset_y !== undefined ? this._config.consumer_5_label_offset_y : -25}
-                .configValue=${'consumer_5_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_5_animation_threshold !== undefined ? this._config.consumer_5_animation_threshold : 0}
-                .configValue=${'consumer_5_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_5 || "", 'secondary_consumer_5', this._localize('editor.secondary_sensor'))}
 
+            ${this._bubbleForm('consumer_5', 'sensors')}
+            ${this._bubbleForm('consumer_5', 'behavior')}
+            ${this._bubbleForm('consumer_5', 'offsets')}
+
             ${this._renderColorPickerQuint('color_consumer_5', 'color_pipe_consumer_5', 'color_text_consumer_5', 'color_icon_consumer_5', 'color_secondary_consumer_5', '#6366f1')}
+        </div>
 
-            <!-- Phase 5.49: SoC/temperature donut ring for BWWP bubble.
-                 Default soc_max = 65 (typical boiler ceiling in °C). User can
-                 change it if their boiler runs hotter or for a non-boiler use. -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_5_donut_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_5_donut_hint')}
+        <!-- Charge-level ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_5_donut_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:gauge"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_5_donut_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_5', 'soc')}
+        </ha-expansion-panel>
+
+        <!-- Charge-mix ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_5_mix_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_5_mix_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_5', 'mix')}
+
+            ${(() => {
+                const mixPeriod = this._config.consumer_5_mix_period || 'day';
+                return html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.consumer_1_mix_period_${mixPeriod}`)}
                 </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_5_soc_donut_mode === true}
-                    .configValue=${'consumer_5_soc_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_5_soc_donut_enable')}</div>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
-                .value=${this._config.consumer_5_soc_max !== undefined ? this._config.consumer_5_soc_max : 65}
-                .configValue=${'consumer_5_soc_max'}
-                .label=${this._localize('editor.consumer_5_soc_max')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Phase 5.51: Charge-mix outer ring for BWWP. Shows where the
-                 bubble's energy came from over the chosen period. -->
-            </ha-expansion-panel>
-
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_5_mix_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_5_mix_hint')}
+                ${mixTargets.map((consumerMixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`consumer_5_mix_${consumerMixTarget}_${mixPeriod}`] || "",
+                    `consumer_5_mix_${consumerMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.consumer_5_mix_${consumerMixTarget}_${mixPeriod}`)))}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
                 </div>
+                `;
+            })()}
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_5_mix_donut_mode === true}
-                    .configValue=${'consumer_5_mix_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_5_mix_enable')}</div>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
-                    { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
-                    { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
-                ] } }}
-                .value=${this._config.consumer_5_mix_period || 'day'}
-                .configValue=${'consumer_5_mix_period'}
-                .label=${this._localize('editor.consumer_1_mix_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_5_mix_ring_gap !== undefined ? this._config.consumer_5_mix_ring_gap : 8}
-                .configValue=${'consumer_5_mix_ring_gap'}
-                .label=${this._localize('editor.consumer_1_mix_ring_gap')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_5_mix_ring_thickness !== undefined ? this._config.consumer_5_mix_ring_thickness : 4}
-                .configValue=${'consumer_5_mix_ring_thickness'}
-                .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Tag -->
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_day')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_pv_day || "", 'consumer_5_mix_pv_day', this._localize('editor.consumer_5_mix_pv_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_lg_day || "", 'consumer_5_mix_lg_day', this._localize('editor.consumer_5_mix_lg_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_venus_day || "", 'consumer_5_mix_venus_day', this._localize('editor.consumer_5_mix_venus_day'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_grid_day || "", 'consumer_5_mix_grid_day', this._localize('editor.consumer_5_mix_grid_day'))}
-
-            <!-- Monat -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_month')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_pv_month || "", 'consumer_5_mix_pv_month', this._localize('editor.consumer_5_mix_pv_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_lg_month || "", 'consumer_5_mix_lg_month', this._localize('editor.consumer_5_mix_lg_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_venus_month || "", 'consumer_5_mix_venus_month', this._localize('editor.consumer_5_mix_venus_month'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_grid_month || "", 'consumer_5_mix_grid_month', this._localize('editor.consumer_5_mix_grid_month'))}
-
-            <!-- Jahr -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                ${this._localize('editor.consumer_1_mix_period_year')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_pv_year || "", 'consumer_5_mix_pv_year', this._localize('editor.consumer_5_mix_pv_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_lg_year || "", 'consumer_5_mix_lg_year', this._localize('editor.consumer_5_mix_lg_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_venus_year || "", 'consumer_5_mix_venus_year', this._localize('editor.consumer_5_mix_venus_year'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_mix_grid_year || "", 'consumer_5_mix_grid_year', this._localize('editor.consumer_5_mix_grid_year'))}
-
-            <!-- Phase 5.81: per-segment colors for the BWWP mix-ring.
-                 Each defaults to the matching pipe color when unset.
-                 Reuses the consumer_1 color labels (same PV/LG/Venus/Grid
-                 semantics) to avoid duplicate i18n keys. -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
                 ${this._localize('editor.consumer_1_mix_colors_section')}
             </div>
             ${this._renderColorPicker('consumer_5_mix_color_pv', this._localize('editor.consumer_1_mix_color_pv'), '#ffd900')}
             ${this._renderColorPicker('consumer_5_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
             ${this._renderColorPicker('consumer_5_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
             ${this._renderColorPicker('consumer_5_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
+        </ha-expansion-panel>
 
-            <!-- Phase 5.50: rotation for BWWP bubble (analog Tesla/Battery/Venus) -->
-            </ha-expansion-panel>
+        <!-- Value rotation -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
 
-            <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.rotation_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_5_rotate_show_live !== false}
-                    .configValue=${'consumer_5_rotate_show_live'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
             </div>
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_5_rotate_show_daily_1 === true}
-                    .configValue=${'consumer_5_rotate_show_daily_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_rotate_daily_1 || "", 'consumer_5_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-            ${this._renderColorPicker('consumer_5_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+            ${this._bubbleForm('consumer_5', 'rotation')}
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_5_rotate_show_daily_2 === true}
-                    .configValue=${'consumer_5_rotate_show_daily_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_rotate_daily_2 || "", 'consumer_5_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-            ${this._renderColorPicker('consumer_5_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+            ${[1, 2, 3].map((n) => html`
+                <div class="separator"></div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities[`consumer_5_rotate_daily_${n}`] || "", `consumer_5_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                ${this._renderColorPicker(`consumer_5_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), rotationSlotColors[n - 1])}
+            `)}
+        </ha-expansion-panel>
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_5_rotate_show_daily_3 === true}
-                    .configValue=${'consumer_5_rotate_show_daily_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_rotate_daily_3 || "", 'consumer_5_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-            ${this._renderColorPicker('consumer_5_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+        <!-- Sparkline -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
 
-            <!-- Phase 5.67.10: Sparkline / history graph for BWWP.
-                 Default colour #6366f1 (indigo, matches the bubble's
-                 default consumer-5 colour). Same control set as
-                 Tesla / Waschen / Trockner / Spüler. -->
-            </ha-expansion-panel>
-
-            <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.sparkline_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_5_sparkline === true}
-                    .configValue=${'consumer_5_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
             </div>
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_5_sparkline_entity || "", 'consumer_5_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
@@ -5235,395 +3842,115 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.sparkline_entity_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h",  label: "1h"  },
-                    { value: "6h",  label: "6h"  },
-                    { value: "12h", label: "12h" },
-                    { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.consumer_5_sparkline_period || '24h'}
-                .configValue=${'consumer_5_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                ] } }}
-                .value=${this._config.consumer_5_sparkline_layer || 'back'}
-                .configValue=${'consumer_5_sparkline_layer'}
-                .label=${this._localize('editor.sparkline_layer')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.consumer_5_sparkline_style || 'area-line'}
-                .configValue=${'consumer_5_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.consumer_5_sparkline_opacity !== undefined ? this._config.consumer_5_sparkline_opacity : 0.35}
-                .configValue=${'consumer_5_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('consumer_5', 'sparkline')}
 
             ${this._renderColorPicker('consumer_5_sparkline_color', this._localize('editor.sparkline_color'), '#6366f1')}
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_5_sparkline_debug === true}
-                    .configValue=${'consumer_5_sparkline_debug'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
-            </div>
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_5_sparkline_test_mode === true}
-                    .configValue=${'consumer_5_sparkline_test_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-            </div>
-            </ha-expansion-panel>
-        </div>
-        `;
+        </ha-expansion-panel>
+      `;
     }
-
     // Phase 5.45: dedicated sub-view for Tesla (Consumer 1) -- pulled out of
     // the consumers collective view so each major bubble has its own top-
     // level slot in the editor (Solar / Grid / Battery / Venus / Tesla / ...).
     // Future phases will give Tesla the SoC donut + charge-mix ring features.
+    // Phase editor-8: consumer 1 on the generic schema. All seven are built
+    // from one template -- 29 controls each, identical but for the colours and
+    // soc_max, which is the only thing that genuinely differs: what "full"
+    // means for a charge level, a temperature or a tank.
     _renderConsumer1View(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const idx = 1;
+        const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
+        const mixTargets = ['pv', 'lg', 'venus', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
                 <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
             </div>
-            <h2>${this._localize('editor.consumer_1_section')}</h2>
+            <h2>${this._consumerMenuLabel(idx)}</h2>
         </div>
 
         <div class="consumer-group">
             <div class="consumer-title" style="color: #a855f7;">${this._localize('editor.consumer_1_title')}</div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_1_enabled !== false}
-                    .configValue=${'consumer_1_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.consumer_enabled')}</div>
-            </div>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1, 'consumer_1', this._localize('editor.entity'))}
-            
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.consumer_1_label}
-                .configValue=${'consumer_1_label'}
-                .label=${this._localize('editor.label')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.consumer_1_icon}
-                .configValue=${'consumer_1_icon'}
-                .label=${this._localize('editor.icon')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.invert_consumer')}</span>
-                <ha-switch
-                    .checked=${this._config.invert_consumer_1 === true}
-                    .configValue=${'invert_consumer_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                <span>${this._localize('editor.consumer_hide_pipe')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_1_hide_pipe === true}
-                    .configValue=${'consumer_1_hide_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            ${this._config.consumer_1_hide_pipe === true ? html`
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 2000, step: 10, mode: "slider" } }}
-                .value=${this._config.consumer_1_pipe_threshold !== undefined ? this._config.consumer_1_pipe_threshold : 0}
-                .configValue=${'consumer_1_pipe_threshold'}
-                .label=${this._localize('editor.consumer_pipe_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-            ` : ''}
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_unit_kw')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_1_unit_kw === true}
-                    .configValue=${'consumer_1_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_power')}</span>
-                <ha-switch
-                    .checked=${this._config.consumer_1_show_power !== false}
-                    .configValue=${'consumer_1_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px;">
-                <span>${this._localize('editor.consumer_show_flow_rate')}</span>
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_consumer_1 === true}
-                    .configValue=${'show_flow_rate_consumer_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-            </div>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_1_label_offset_x !== undefined ? this._config.consumer_1_label_offset_x : 0}
-                .configValue=${'consumer_1_label_offset_x'}
-                .label=${this._localize('editor.consumer_label_offset_x')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_1_label_offset_y !== undefined ? this._config.consumer_1_label_offset_y : -25}
-                .configValue=${'consumer_1_label_offset_y'}
-                .label=${this._localize('editor.consumer_label_offset_y')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                .value=${this._config.consumer_1_animation_threshold !== undefined ? this._config.consumer_1_animation_threshold : 0}
-                .configValue=${'consumer_1_animation_threshold'}
-                .label=${this._localize('editor.consumer_animation_threshold')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_consumer_1 || "", 'secondary_consumer_1', this._localize('editor.secondary_sensor'))}
 
+            ${this._bubbleForm('consumer_1', 'sensors')}
+            ${this._bubbleForm('consumer_1', 'behavior')}
+            ${this._bubbleForm('consumer_1', 'offsets')}
+
             ${this._renderColorPickerQuint('color_consumer_1', 'color_pipe_consumer_1', 'color_text_consumer_1', 'color_icon_consumer_1', 'color_secondary_consumer_1', '#a855f7')}
+        </div>
 
-            <!-- Phase 5.47/5.82: SoC donut ring for Tesla bubble, now wrapped
-                 in a collapsible expansion panel. -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_1_donut_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_1_donut_hint')}
+        <!-- Charge-level ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_1_donut_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:gauge"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_1_donut_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_1', 'soc')}
+        </ha-expansion-panel>
+
+        <!-- Charge-mix ring -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.consumer_1_mix_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.consumer_1_mix_hint')}
+            </div>
+
+            ${this._bubbleForm('consumer_1', 'mix')}
+
+            ${(() => {
+                const mixPeriod = this._config.consumer_1_mix_period || 'day';
+                return html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.consumer_1_mix_period_${mixPeriod}`)}
                 </div>
-
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_1_soc_donut_mode === true}
-                        .configValue=${'consumer_1_soc_donut_mode'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.consumer_1_soc_donut_enable')}</div>
+                ${mixTargets.map((consumerMixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`consumer_1_mix_${consumerMixTarget}_${mixPeriod}`] || "",
+                    `consumer_1_mix_${consumerMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.consumer_1_mix_${consumerMixTarget}_${mixPeriod}`)))}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
                 </div>
+                `;
+            })()}
 
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 1, max: 1000, step: 1, mode: "box" } }}
-                    .value=${this._config.consumer_1_soc_max !== undefined ? this._config.consumer_1_soc_max : 100}
-                    .configValue=${'consumer_1_soc_max'}
-                    .label=${this._localize('editor.consumer_1_soc_max')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </ha-expansion-panel>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.consumer_1_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('consumer_1_mix_color_pv', this._localize('editor.consumer_1_mix_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('consumer_1_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
+            ${this._renderColorPicker('consumer_1_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
+            ${this._renderColorPicker('consumer_1_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
+        </ha-expansion-panel>
 
-            <!-- Phase 5.48/5.82: Charge-mix outer ring for Tesla, wrapped
-                 in a collapsible expansion panel. Includes the per-segment
-                 colors (5.80) as an internal sub-heading because they're
-                 logically part of the same outer-ring feature. -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.consumer_1_mix_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.consumer_1_mix_hint')}
-                </div>
+        <!-- Value rotation -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
 
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_1_mix_donut_mode === true}
-                        .configValue=${'consumer_1_mix_donut_mode'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.consumer_1_mix_enable')}</div>
-                </div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.rotation_hint')}
+            </div>
 
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ select: { mode: "dropdown", options: [
-                        { value: "day",   label: this._localize('editor.consumer_1_mix_period_day') },
-                        { value: "month", label: this._localize('editor.consumer_1_mix_period_month') },
-                        { value: "year",  label: this._localize('editor.consumer_1_mix_period_year') }
-                    ] } }}
-                    .value=${this._config.consumer_1_mix_period || 'day'}
-                    .configValue=${'consumer_1_mix_period'}
-                    .label=${this._localize('editor.consumer_1_mix_period')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
+            ${this._bubbleForm('consumer_1', 'rotation')}
 
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                    .value=${this._config.consumer_1_mix_ring_gap !== undefined ? this._config.consumer_1_mix_ring_gap : 8}
-                    .configValue=${'consumer_1_mix_ring_gap'}
-                    .label=${this._localize('editor.consumer_1_mix_ring_gap')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                    .value=${this._config.consumer_1_mix_ring_thickness !== undefined ? this._config.consumer_1_mix_ring_thickness : 4}
-                    .configValue=${'consumer_1_mix_ring_thickness'}
-                    .label=${this._localize('editor.consumer_1_mix_ring_thickness')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-
-                <!-- Tag -->
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                    ${this._localize('editor.consumer_1_mix_period_day')}
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_pv_day || "", 'consumer_1_mix_pv_day', this._localize('editor.consumer_1_mix_pv_day'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_lg_day || "", 'consumer_1_mix_lg_day', this._localize('editor.consumer_1_mix_lg_day'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_venus_day || "", 'consumer_1_mix_venus_day', this._localize('editor.consumer_1_mix_venus_day'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_grid_day || "", 'consumer_1_mix_grid_day', this._localize('editor.consumer_1_mix_grid_day'))}
-
-                <!-- Monat -->
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                    ${this._localize('editor.consumer_1_mix_period_month')}
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_pv_month || "", 'consumer_1_mix_pv_month', this._localize('editor.consumer_1_mix_pv_month'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_lg_month || "", 'consumer_1_mix_lg_month', this._localize('editor.consumer_1_mix_lg_month'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_venus_month || "", 'consumer_1_mix_venus_month', this._localize('editor.consumer_1_mix_venus_month'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_grid_month || "", 'consumer_1_mix_grid_month', this._localize('editor.consumer_1_mix_grid_month'))}
-
-                <!-- Jahr -->
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                    ${this._localize('editor.consumer_1_mix_period_year')}
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_pv_year || "", 'consumer_1_mix_pv_year', this._localize('editor.consumer_1_mix_pv_year'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_lg_year || "", 'consumer_1_mix_lg_year', this._localize('editor.consumer_1_mix_lg_year'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_venus_year || "", 'consumer_1_mix_venus_year', this._localize('editor.consumer_1_mix_venus_year'))}
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_mix_grid_year || "", 'consumer_1_mix_grid_year', this._localize('editor.consumer_1_mix_grid_year'))}
-
-                <!-- Phase 5.80: per-segment colors for the Tesla mix-ring.
-                     Each defaults to the matching pipe color when unset. -->
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-                    ${this._localize('editor.consumer_1_mix_colors_section')}
-                </div>
-                ${this._renderColorPicker('consumer_1_mix_color_pv', this._localize('editor.consumer_1_mix_color_pv'), '#ffd900')}
-                ${this._renderColorPicker('consumer_1_mix_color_lg', this._localize('editor.consumer_1_mix_color_lg'), '#e100ff')}
-                ${this._renderColorPicker('consumer_1_mix_color_venus', this._localize('editor.consumer_1_mix_color_venus'), '#8d07d5')}
-                ${this._renderColorPicker('consumer_1_mix_color_grid', this._localize('editor.consumer_1_mix_color_grid'), '#ff0040')}
-            </ha-expansion-panel>
-
-            <!-- Phase 5.44/5.82: rotation for Tesla bubble, wrapped in
-                 a collapsible expansion panel. -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.rotation_section')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:rotate-3d-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.rotation_hint')}
-                </div>
-
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_1_rotate_show_live !== false}
-                        .configValue=${'consumer_1_rotate_show_live'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
-                </div>
-
+            ${[1, 2, 3].map((n) => html`
                 <div class="separator"></div>
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_1_rotate_show_daily_1 === true}
-                        .configValue=${'consumer_1_rotate_show_daily_1'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_rotate_daily_1 || "", 'consumer_1_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-                ${this._renderColorPicker('consumer_1_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
+                ${this._renderEntitySelector(entitySelectorSchema, entities[`consumer_1_rotate_daily_${n}`] || "", `consumer_1_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                ${this._renderColorPicker(`consumer_1_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), rotationSlotColors[n - 1])}
+            `)}
+        </ha-expansion-panel>
 
-                <div class="separator"></div>
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_1_rotate_show_daily_2 === true}
-                        .configValue=${'consumer_1_rotate_show_daily_2'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_rotate_daily_2 || "", 'consumer_1_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-                ${this._renderColorPicker('consumer_1_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
+        <!-- Sparkline -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
 
-                <div class="separator"></div>
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.consumer_1_rotate_show_daily_3 === true}
-                        .configValue=${'consumer_1_rotate_show_daily_3'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-                </div>
-                ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_rotate_daily_3 || "", 'consumer_1_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-                ${this._renderColorPicker('consumer_1_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
-            </ha-expansion-panel>
-
-            <!-- Phase 5.67.7/5.82: Sparkline / history graph in bubble
-                 background, wrapped in a collapsible expansion panel. -->
-            <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
-                <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
-                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
-                    ${this._localize('editor.sparkline_hint')}
-                </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.consumer_1_sparkline === true}
-                    .configValue=${'consumer_1_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_hint')}
             </div>
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.consumer_1_sparkline_entity || "", 'consumer_1_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
@@ -5631,79 +3958,12 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.sparkline_entity_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h",  label: "1h"  },
-                    { value: "6h",  label: "6h"  },
-                    { value: "12h", label: "12h" },
-                    { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.consumer_1_sparkline_period || '24h'}
-                .configValue=${'consumer_1_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                ] } }}
-                .value=${this._config.consumer_1_sparkline_layer || 'back'}
-                .configValue=${'consumer_1_sparkline_layer'}
-                .label=${this._localize('editor.sparkline_layer')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.consumer_1_sparkline_style || 'area-line'}
-                .configValue=${'consumer_1_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.consumer_1_sparkline_opacity !== undefined ? this._config.consumer_1_sparkline_opacity : 0.35}
-                .configValue=${'consumer_1_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('consumer_1', 'sparkline')}
 
             ${this._renderColorPicker('consumer_1_sparkline_color', this._localize('editor.sparkline_color'), '#ff3333')}
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_1_sparkline_debug === true}
-                    .configValue=${'consumer_1_sparkline_debug'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_debug')}</div>
-            </div>
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.consumer_1_sparkline_test_mode === true}
-                    .configValue=${'consumer_1_sparkline_test_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-            </div>
-            </ha-expansion-panel>
-        </div>
-        `;
+        </ha-expansion-panel>
+      `;
     }
-
     // Phase editor-6: the house bubble's base fields. Its rings and curve live
     // in the donut sub-view; this is the sensor, the naming and the colours.
     // show_label_house joins them -- every other source bubble has a label

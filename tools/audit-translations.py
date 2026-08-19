@@ -38,6 +38,7 @@ DOMAINS = {
     'batteryMixTarget': ['pv', 'grid'],
     'venusMixTarget': ['pv', 'grid'],
     'houseMixTarget': ['self', 'grid'],
+    'consumerMixTarget': ['pv', 'lg', 'venus', 'grid'],
     'period': ['day', 'month', 'year'],
     'side': ['indoor', 'outdoor'],
 }

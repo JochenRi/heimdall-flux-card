@@ -63,6 +63,7 @@ DOMAINS = {
     'batteryMixTarget': ['pv', 'grid'],
     'venusMixTarget': ['pv', 'grid'],
     'houseMixTarget': ['self', 'grid'],
+    'consumerMixTarget': ['pv', 'lg', 'venus', 'grid'],
 }
 
 # Bubbles and the keys that belong to them but do not carry the prefix.
