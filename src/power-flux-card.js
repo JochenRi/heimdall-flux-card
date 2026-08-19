@@ -1701,8 +1701,12 @@ console.log(
       .node-venus { top: 80px; left: 495px; }   
       .node-bkw { top: 80px; left: 635px; }   /* phase BKW-1: garden plant, feeds the venus */
       .node-house { top: 245px; left: 355px; }   
-      .node-temp { top: calc(185px + var(--temp-offset-y, 0px)); left: calc(-90px + var(--temp-offset-x, 0px)); }  /* phase temp-1: mirrored to the power tile. At the same top edge,
-         anything right of left=-90 is crossed by pathHouseC6 -- verified
+      .node-temp { top: calc(185px + var(--temp-offset-y, 0px)); left: calc(-65px + var(--temp-offset-x, 0px)); }  /* phase portals-2: true mirror of the power tile.
+         Card centre is 400, power sits at 735..865 (centre 800), so the
+         mirror is -65..65 (centre 0) -- both exactly 400 from the middle.
+         -90 was a dodge around pathHouseC6 and left the pair 25px out of
+         true. The crossing is now marked with portals instead, which is
+         what they are for. Verified
          against all 19 paths and all 14 other bubbles at bubble_size 100.
          Needs background_padding_left to bring it into view. */
       /* phase power-1a: anchor moved 690 -> 735. The first sampling run missed
@@ -4587,7 +4591,7 @@ console.log(
       const num = (v, dflt) => (v !== undefined && v !== null && v !== '' ? parseFloat(v) : dflt);
       const portalTiles = [];
       if (this.config.temp_enabled === true) {
-        const ox = -90 + num(this.config.temp_offset_x, 0)
+        const ox = -65 + num(this.config.temp_offset_x, 0)
                        + num(this.config.temp_portal_offset_x, 0);
         const oy = 185 + num(this.config.temp_offset_y, 0)
                        + num(this.config.temp_portal_offset_y, 0);
