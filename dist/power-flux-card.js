@@ -7053,7 +7053,7 @@ console.log(
          Inner thermometer geometry (split columns, levels, marker) is 5.79b. */
       .bubble.temp {
         width: 130px;
-        height: 310px;
+        height: 400px;
         border-radius: 14px;
         margin-top: 0;
         margin-left: 0;
@@ -7077,7 +7077,7 @@ console.log(
       .bubble.temp .temp-body {
         position: relative;
         width: 130px;
-        height: 180px;
+        height: 270px;
         box-sizing: border-box;
         padding: 6px 8px;
         border-top: 1px solid var(--divider-color, #333);
@@ -7156,7 +7156,7 @@ console.log(
       .bubble.power.tinted { background: color-mix(in srgb, var(--power-glow, #5fff33), transparent 85%); }
       .bubble.power {
         width: 130px;
-        height: 310px;
+        height: 400px;
         border-radius: 14px;
         margin-top: 0;
         margin-left: 0;
@@ -7634,7 +7634,7 @@ console.log(
       .node-venus { top: 80px; left: 495px; }   
       .node-bkw { top: 80px; left: 635px; }   /* phase BKW-1: garden plant, feeds the venus */
       .node-house { top: 245px; left: 355px; }   
-      .node-temp { top: calc(185px + var(--temp-offset-y, 0px)); left: calc(-65px + var(--temp-offset-x, 0px)); }  /* phase portals-4: mirrored about 400, the axis the card
+      .node-temp { top: calc(100px + var(--temp-offset-y, 0px)); left: calc(-65px + var(--temp-offset-x, 0px)); }  /* phase portals-4: mirrored about 400, the axis the card
          actually uses. Four of its five bubble pairs mirror about 400
          (solar/bkw, grid/venus, c1/c3, c4/c5); only the outer consumers do
          not -- climate sits at 45, the pump at 725, an axis of 385. Rounds
@@ -7648,7 +7648,7 @@ console.log(
          x=725 on its way down and ran straight through the tile. Verified
          against all eighteen paths and all thirteen bubbles at bubble_size 100:
          735 is the first collision-free column, with 4 px clearance to C7. */
-      .node-power { top: calc(185px + var(--power-offset-y, 0px)); left: calc(735px + var(--power-offset-x, 0px)); }  /* phase portals-4: 400 from the axis, see the note on .node-temp. */
+      .node-power { top: calc(100px + var(--power-offset-y, 0px)); left: calc(735px + var(--power-offset-x, 0px)); }  /* phase portals-4: 400 from the axis, see the note on .node-temp. */
       .node-c1 { top: 400px; left: 130px; }
       .node-c2 { top: 400px; left: 355px; }
       .node-c3 { top: 400px; left: 580px; }
@@ -10644,16 +10644,16 @@ console.log(
       if (this.config.temp_enabled === true) {
         const ox = -65 + num(this.config.temp_offset_x, 0)
                        + num(this.config.temp_portal_offset_x, 0);
-        const oy = 185 + num(this.config.temp_offset_y, 0)
+        const oy = 100 + num(this.config.temp_offset_y, 0)
                        + num(this.config.temp_portal_offset_y, 0);
-        portalTiles.push({ rect: { x: ox, y: oy, w: 130, h: 310 }, ox: 0, oy: 0 });
+        portalTiles.push({ rect: { x: ox, y: oy, w: 130, h: 400 }, ox: 0, oy: 0 });
       }
       if (this.config.power_enabled === true) {
         const ox = 735 + num(this.config.power_offset_x, 0)
                        + num(this.config.power_portal_offset_x, 0);
-        const oy = 185 + num(this.config.power_offset_y, 0)
+        const oy = 100 + num(this.config.power_offset_y, 0)
                        + num(this.config.power_portal_offset_y, 0);
-        portalTiles.push({ rect: { x: ox, y: oy, w: 130, h: 310 }, ox: 0, oy: 0 });
+        portalTiles.push({ rect: { x: ox, y: oy, w: 130, h: 400 }, ox: 0, oy: 0 });
       }
 
       // Phase portals-7: one clipped copy per pipe, computed once and used by
