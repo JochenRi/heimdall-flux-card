@@ -363,6 +363,8 @@ export default {
     "editor.venus_soc_label": "{venus} Ladestand (%)",
     "editor.venus_charge_sensor": "{venus}-Ladung Sensor (W, Optional)",
     "editor.venus_discharge_sensor": "{venus}-Entladung Sensor (W, Optional)",
+    "editor.venus_pv_charge_sensor": "Sensor: PV-Ladung direkt (W, Optional)",
+    "editor.venus_pv_charge_hint": "Nur nötig, wenn der Speicher eigene PV-Eingänge hat. Bestimmt, wie viel der PV-Leistung direkt in den Speicher fließt statt über das Haus.",
     "editor.venus_separate_hint": "Optional: Separate Sensoren für Laden/Entladen. Überschreiben den Hauptsensor für die Berechnung.",
     "editor.venus_charge_via_house": "{venus}-Ladung über Hausverbrauch umleiten",
     "editor.venus_show_power": "Zeige Leistung statt SoC ({venus})",

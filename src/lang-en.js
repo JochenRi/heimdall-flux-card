@@ -363,6 +363,8 @@ export default {
     "editor.venus_soc_label": "{venus} State of Charge (%)",
     "editor.venus_charge_sensor": "{venus} Charge Sensor (W, Optional)",
     "editor.venus_discharge_sensor": "{venus} Discharge Sensor (W, Optional)",
+    "editor.venus_pv_charge_sensor": "Sensor: direct PV charge (W, optional)",
+    "editor.venus_pv_charge_hint": "Only needed when the storage system has its own PV inputs. Sets how much of the PV power goes straight into storage instead of through the house.",
     "editor.venus_separate_hint": "Optional: Separate sensors for charge/discharge. Override the main sensor for calculations.",
     "editor.venus_charge_via_house": "{venus} charge via house consumption",
     "editor.venus_show_power": "Show power instead of SoC ({venus})",

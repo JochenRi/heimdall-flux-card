@@ -57,7 +57,10 @@ def controls(body):
             default = 'false'
         else:
             default = f'UNKNOWN({expr.strip()})'
-        out.append(('switch', key, default, '', ''))
+        # The label lives in the sibling div, not on the switch.
+        lbl = re.match(r"[\s\S]{0,200}?switch-label\">\$\{this\._localize\("
+                       r"'editor\.([A-Za-z0-9_]+)'\)", body[i:])
+        out.append(('switch', key, default, '', lbl.group(1) if lbl else ''))
 
     # selectors: number / select / text / icon
     for m in re.finditer(r'<ha-selector(.*?)</ha-selector>', body, re.S):

@@ -60,6 +60,8 @@ DOMAINS = {
     # source. Solar splits four ways, the grid meter only two.
     'solarMixTarget': ['house', 'lg', 'venus', 'grid'],
     'gridMixTarget': ['import', 'export'],
+    'batteryMixTarget': ['pv', 'grid'],
+    'venusMixTarget': ['pv', 'grid'],
 }
 
 # Bubbles and the keys that belong to them but do not carry the prefix.
@@ -205,7 +207,7 @@ def read_editor_schema_keys():
         out = subprocess.run(
             ['node', '-e', f'''
 const {{bubbleFields,BUBBLE_CAPS}}=require({json.dumps(str(module))});
-const groups=['sensors','behavior','offsets','rotation','donut','mix','sparkline'];
+const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline'];
 const res={{}};
 for(const p of Object.keys(BUBBLE_CAPS)){{
   const keys=[];

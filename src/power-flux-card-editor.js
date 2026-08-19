@@ -181,6 +181,48 @@ const BUBBLE_CAPS = {
         sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
                      periods: SPARKLINE_PERIODS, periodDef: '24h', testMode: true },
     },
+    battery: {
+        label: true,
+        icon: true,
+        enabled: { key: 'battery_enabled', def: true, labelKey: 'storage_enabled' },
+        showLabel: { key: 'show_label_battery', def: false },
+        unitKw: { key: 'battery_unit_kw', def: false },
+        showFlowRate: { key: 'show_flow_rate_battery', def: true },
+        invert: true,
+        showPower: true,
+        chargeViaHouse: true,
+        hideSolarPipe: { key: 'hide_solar_to_battery_pipe' },
+        animationThreshold: { key: 'battery_animation_threshold', max: 200, def: 1 },
+        labelOffsets: { targets: [''], range: 100, labels: 'bubble' },
+        rotation: { slots: 3, showLiveDef: true },
+        socDonut: true,
+        mix: { toggleKey: 'battery_mix_donut_mode', toggleDef: false,
+               periodDef: 'day', gapDef: 8, gapMax: 30,
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15 },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h', testMode: true },
+    },
+    venus: {
+        label: true,
+        icon: true,
+        enabled: { key: 'venus_enabled', def: true, labelKey: 'storage_enabled' },
+        showLabel: { key: 'show_label_venus', def: false },
+        unitKw: { key: 'venus_unit_kw', def: false },
+        showFlowRate: { key: 'show_flow_rate_venus', def: true },
+        invert: true,
+        showPower: true,
+        chargeViaHouse: true,
+        hideSolarPipe: { key: 'hide_solar_to_venus_pipe' },
+        animationThreshold: { key: 'venus_animation_threshold', max: 200, def: 1 },
+        labelOffsets: { targets: [''], range: 100, labels: 'bubble' },
+        rotation: { slots: 3, showLiveDef: true },
+        socDonut: true,
+        mix: { toggleKey: 'venus_mix_donut_mode', toggleDef: false,
+               periodDef: 'day', gapDef: 8, gapMax: 30,
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15 },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h', testMode: true },
+    },
     grid: {
         label: true,
         icon: true,
@@ -221,14 +263,24 @@ const bubbleFields = (prefix, group) => {
     }
 
     if (group === 'behavior') {
-        if (caps.enabled) bool(caps.enabled.key, caps.enabled.def, `${prefix}_enabled`);
+        if (caps.enabled) bool(caps.enabled.key, caps.enabled.def,
+            caps.enabled.labelKey || `${prefix}_enabled`);
         if (caps.showLabel) bool(caps.showLabel.key, caps.showLabel.def, 'label_toggle');
         if (caps.unitKw) bool(caps.unitKw.key, caps.unitKw.def, `${prefix}_unit_kw`);
         if (caps.showFlowRate) bool(caps.showFlowRate.key, caps.showFlowRate.def, 'flow_rate_title');
+        // Storage-only switches, in the order the old markup had them.
+        if (caps.invert) bool(`invert_${prefix}`, false, `invert_${prefix}`);
+        if (caps.showPower) bool(`${prefix}_show_power`, false, `${prefix}_show_power`);
+        if (caps.chargeViaHouse) bool(`${prefix}_charge_via_house`, false, `${prefix}_charge_via_house`);
+        if (caps.hideSolarPipe) bool(caps.hideSolarPipe.key, false, 'hide_solar_arc');
         if (caps.animationThreshold) {
             const a = caps.animationThreshold;
             num(a.key, a.def, 0, a.max, 1, 'bubble_animation_threshold');
         }
+    }
+
+    if (group === 'soc' && caps.socDonut) {
+        bool(`${prefix}_soc_donut_mode`, false, `${prefix}_soc_donut_enabled`);
     }
 
     if (group === 'offsets' && caps.labelOffsets) {
@@ -1699,22 +1751,20 @@ class PowerFluxCardEditor extends LitElement {
       `;
     }
 
+    // Phase editor-5b: Storage 1 on the generic schema. The two storage bubbles
+    // are structurally identical -- same controls, same order, different prefix
+    // and colour defaults -- so they are built from one template. Six
+    // capabilities that no source bubble has: enable switch, invert, show
+    // power, charge-via-house, hide-solar-pipe, and the charge-level ring.
     _renderBatteryView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
+        const mixTargets = ['pv', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
                 <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
             </div>
             <h2>${this._localize('editor.battery_section')}</h2>
-        </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.battery_enabled !== false}
-                .configValue=${'battery_enabled'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.storage_enabled')}</div>
         </div>
 
         <!-- Group: Sensors & display -->
@@ -1729,35 +1779,19 @@ class PowerFluxCardEditor extends LitElement {
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 4px; margin-bottom: 8px;">
                 ${this._localize('editor.battery_separate_hint')}
             </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_charge || "", 'battery_charge', this._localize('editor.battery_charge_sensor'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_discharge || "", 'battery_discharge', this._localize('editor.battery_discharge_sensor'))}
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_soc, 'battery_soc', this._localize('editor.battery_soc_label'))}
 
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 4px; margin-bottom: 8px;">
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
                 ${this._localize('editor.grid_to_battery_hint')}
             </div>
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_to_battery || "", 'grid_to_battery', this._localize('editor.grid_to_battery_sensor'))}
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_battery || "", 'secondary_battery', this._localize('editor.secondary_sensor'))}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.battery_label}
-                .configValue=${'battery_label'}
-                .label=${this._localize('editor.label') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.battery_icon}
-                .configValue=${'battery_icon'}
-                .label=${this._localize('editor.icon') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('battery', 'sensors')}
 
             ${this._renderColorPickerQuint('color_battery', 'color_pipe_battery', 'color_text_battery', 'color_icon_battery', 'color_secondary_battery', '#00ff88')}
         </div>
@@ -1769,79 +1803,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_behavior')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_label_battery === true}
-                    .configValue=${'show_label_battery'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.label_toggle')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.battery_unit_kw === true}
-                    .configValue=${'battery_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.battery_unit_kw')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_battery !== false}
-                    .configValue=${'show_flow_rate_battery'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
-            </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                    .value=${this._config.battery_animation_threshold !== undefined ? this._config.battery_animation_threshold : 1}
-                    .configValue=${'battery_animation_threshold'}
-                    .label=${this._localize('editor.bubble_animation_threshold')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.invert_battery === true}
-                    .configValue=${'invert_battery'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.invert_battery')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.battery_show_power === true}
-                    .configValue=${'battery_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.battery_show_power')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.battery_charge_via_house === true}
-                    .configValue=${'battery_charge_via_house'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.battery_charge_via_house')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.hide_solar_to_battery_pipe === true}
-                    .configValue=${'hide_solar_to_battery_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
-            </div>
+            ${this._bubbleForm('battery', 'behavior')}
         </div>
 
         <!-- Group: Watt-label positioning -->
@@ -1851,29 +1813,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_label_positions')}
             </div>
 
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
-                ${this._localize('editor.battery_label_pos')}
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.battery_label_offset_x !== undefined ? this._config.battery_label_offset_x : 0}
-                    .configValue=${'battery_label_offset_x'}
-                    .label=${this._localize('editor.bubble_label_offset_x')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.battery_label_offset_y !== undefined ? this._config.battery_label_offset_y : 0}
-                    .configValue=${'battery_label_offset_y'}
-                    .label=${this._localize('editor.bubble_label_offset_y')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
+            ${this._bubbleForm('battery', 'offsets')}
         </div>
 
         <!-- Group: Value rotation -->
@@ -1884,73 +1824,25 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.rotation_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.battery_rotate_show_live !== false}
-                    .configValue=${'battery_rotate_show_live'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
-            </div>
+            ${this._bubbleForm('battery', 'rotation')}
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.battery_rotate_show_daily_1 === true}
-                    .configValue=${'battery_rotate_show_daily_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_rotate_daily_1 || "", 'battery_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-            ${this._renderColorPicker('battery_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
-
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.battery_rotate_show_daily_2 === true}
-                    .configValue=${'battery_rotate_show_daily_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_rotate_daily_2 || "", 'battery_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-            ${this._renderColorPicker('battery_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
-
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.battery_rotate_show_daily_3 === true}
-                    .configValue=${'battery_rotate_show_daily_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_rotate_daily_3 || "", 'battery_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-            ${this._renderColorPicker('battery_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+            ${[1, 2, 3].map((n) => html`
+                <div class="separator"></div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities[`battery_rotate_daily_${n}`] || "", `battery_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                ${this._renderColorPicker(`battery_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), rotationSlotColors[n - 1])}
+            `)}
                 </ha-expansion-panel>
 
-        <!-- Group: SoC donut -->
+        <!-- Group: charge-level ring and charge-mix ring -->
         <ha-expansion-panel outlined .header=${this._localize('editor.battery_soc_donut_section')}>
-            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:battery-charging"></ha-icon>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.battery_soc_donut_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.battery_soc_donut_mode === true}
-                    .configValue=${'battery_soc_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.battery_soc_donut_enabled')}</div>
-            </div>
+            ${this._bubbleForm('battery', 'soc')}
 
-            <!-- Phase 5.68: LG charge-source mix-ring -- an OUTER ring around the
-                 SoC donut, showing where LG's stored energy came from over the
-                 chosen period. Source-bubble semantics: only PV and Grid can
-                 charge LG, so 2 segments only. -->
             <div class="group-title">
                 <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
                 ${this._localize('editor.battery_mix_section')}
@@ -1960,79 +1852,31 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.battery_mix_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.battery_mix_donut_mode === true}
-                    .configValue=${'battery_mix_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.battery_mix_enabled')}</div>
-            </div>
+            ${this._bubbleForm('battery', 'mix')}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "day",   label: this._localize('editor.battery_mix_period_day')   },
-                    { value: "month", label: this._localize('editor.battery_mix_period_month') },
-                    { value: "year",  label: this._localize('editor.battery_mix_period_year')  }
-                ] } }}
-                .value=${this._config.battery_mix_period || 'day'}
-                .configValue=${'battery_mix_period'}
-                .label=${this._localize('editor.battery_mix_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${(() => {
+                const mixPeriod = this._config.battery_mix_period || 'day';
+                return html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.battery_mix_${mixPeriod}_section`)}
+                </div>
+                ${mixTargets.map((batteryMixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`battery_mix_${batteryMixTarget}_${mixPeriod}`] || "",
+                    `battery_mix_${batteryMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.battery_mix_${batteryMixTarget}_label`)))}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
+                </div>
+                `;
+            })()}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                .value=${this._config.battery_mix_gap !== undefined ? this._config.battery_mix_gap : 8}
-                .configValue=${'battery_mix_gap'}
-                .label=${this._localize('editor.battery_mix_gap')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                .value=${this._config.battery_mix_thickness !== undefined ? this._config.battery_mix_thickness : 4}
-                .configValue=${'battery_mix_thickness'}
-                .label=${this._localize('editor.battery_mix_thickness')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Day-period sensors (PV + Grid) -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.battery_mix_day_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_day || "", 'battery_mix_pv_day', this._localize('editor.battery_mix_pv_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_day || "", 'battery_mix_grid_day', this._localize('editor.battery_mix_grid_label'))}
-
-            <!-- Month-period sensors -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.battery_mix_month_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_month || "", 'battery_mix_pv_month', this._localize('editor.battery_mix_pv_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_month || "", 'battery_mix_grid_month', this._localize('editor.battery_mix_grid_label'))}
-
-            <!-- Year-period sensors -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.battery_mix_year_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_pv_year || "", 'battery_mix_pv_year', this._localize('editor.battery_mix_pv_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.battery_mix_grid_year || "", 'battery_mix_grid_year', this._localize('editor.battery_mix_grid_label'))}
-
-            <!-- Phase 5.84: per-segment colors for the battery mix-ring.
-                 Each defaults to the matching pipe color when unset. -->
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
                 ${this._localize('editor.source_mix_colors_section')}
             </div>
             ${this._renderColorPicker('battery_mix_color_pv', this._localize('editor.battery_mix_color_pv'), '#ffd900')}
             ${this._renderColorPicker('battery_mix_color_grid', this._localize('editor.battery_mix_color_grid'), '#ff0040')}
 
-            <!-- Phase 5.69: LG sparkline section. Same control set as the 7
-                 consumer sparklines, but driven by source-prefix keys
-                 (battery_sparkline_* instead of consumer_X_sparkline_*).
-                 Default colour matches the bubble's pipe colour. -->
             <div class="group-title">
                 <ha-icon icon="mdi:chart-line-variant"></ha-icon>
                 ${this._localize('editor.sparkline_title')}
@@ -2041,89 +1885,17 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.sparkline_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.battery_sparkline === true}
-                    .configValue=${'battery_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
-            </div>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.battery_sparkline_entity || "", 'battery_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
             <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
                 ${this._localize('editor.sparkline_entity_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h",  label: "1h"  },
-                    { value: "6h",  label: "6h"  },
-                    { value: "12h", label: "12h" },
-                    { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.battery_sparkline_period || '24h'}
-                .configValue=${'battery_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                ] } }}
-                .value=${this._config.battery_sparkline_layer || 'back'}
-                .configValue=${'battery_sparkline_layer'}
-                .label=${this._localize('editor.sparkline_layer')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.battery_sparkline_style || 'area-line'}
-                .configValue=${'battery_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.battery_sparkline_opacity !== undefined ? this._config.battery_sparkline_opacity : 0.35}
-                .configValue=${'battery_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('battery', 'sparkline')}
 
             ${this._renderColorPicker('battery_sparkline_color', this._localize('editor.sparkline_color'), '#e100ff')}
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.battery_sparkline_test_mode === true}
-                    .configValue=${'battery_sparkline_test_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-            </div>
                 </ha-expansion-panel>
       `;
     }
-
-    // Phase editor-1: first legacy section rebuilt on the generic schema.
-    // Switches, numbers, text, icon and dropdowns come from BUBBLE_CAPS via
-    // _bubbleForm(); colour pickers and entity pickers stay as markup in place
-    // (see the note above BUBBLE_CAPS). 300 lines -> ~75, and the section
-    // gains bkw_sparkline_test_mode, which the card has always read but no
-    // editor copy ever offered.
     _renderBkwView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
         <div class="header">
@@ -2223,22 +1995,20 @@ class PowerFluxCardEditor extends LitElement {
         `;
     }
 
+    // Phase editor-5b: Storage 2 on the generic schema. The two storage bubbles
+    // are structurally identical -- same controls, same order, different prefix
+    // and colour defaults -- so they are built from one template. Six
+    // capabilities that no source bubble has: enable switch, invert, show
+    // power, charge-via-house, hide-solar-pipe, and the charge-level ring.
     _renderVenusView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
+        const mixTargets = ['pv', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
                 <ha-icon icon="mdi:arrow-left"></ha-icon> ${this._localize('editor.back')}
             </div>
             <h2>${this._localize('editor.venus_section')}</h2>
-        </div>
-
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.venus_enabled !== false}
-                .configValue=${'venus_enabled'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.storage_enabled')}</div>
         </div>
 
         <!-- Group: Sensors & display -->
@@ -2248,35 +2018,24 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_sensors_display')}
             </div>
 
-            ${this._renderEntitySelector(entitySelectorSchema, entities.venus || "", 'venus', this._localize('editor.venus_entity'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus, 'venus', this._localize('editor.venus_entity'))}
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 4px; margin-bottom: 8px;">
                 ${this._localize('editor.venus_separate_hint')}
             </div>
+
             ${this._renderEntitySelector(entitySelectorSchema, entities.venus_charge || "", 'venus_charge', this._localize('editor.venus_charge_sensor'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.venus_discharge || "", 'venus_discharge', this._localize('editor.venus_discharge_sensor'))}
 
-            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_soc || "", 'venus_soc', this._localize('editor.venus_soc_label'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_soc, 'venus_soc', this._localize('editor.venus_soc_label'))}
 
-            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_venus || "", 'secondary_venus', this._localize('editor.venus_secondary_sensor'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_pv_charge || "", 'venus_pv_charge', this._localize('editor.venus_pv_charge_sensor'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.venus_pv_charge_hint')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_venus || "", 'secondary_venus', this._localize('editor.secondary_sensor'))}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.venus_label}
-                .configValue=${'venus_label'}
-                .label=${this._localize('editor.label') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.venus_icon}
-                .configValue=${'venus_icon'}
-                .label=${this._localize('editor.icon') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('venus', 'sensors')}
 
             ${this._renderColorPickerQuint('color_venus', 'color_pipe_venus', 'color_text_venus', 'color_icon_venus', 'color_secondary_venus', '#06b6d4')}
         </div>
@@ -2288,79 +2047,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_behavior')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_label_venus === true}
-                    .configValue=${'show_label_venus'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.label_toggle')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.venus_unit_kw === true}
-                    .configValue=${'venus_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.venus_unit_kw')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_venus !== false}
-                    .configValue=${'show_flow_rate_venus'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
-            </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                    .value=${this._config.venus_animation_threshold !== undefined ? this._config.venus_animation_threshold : 1}
-                    .configValue=${'venus_animation_threshold'}
-                    .label=${this._localize('editor.bubble_animation_threshold')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.invert_venus === true}
-                    .configValue=${'invert_venus'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.invert_venus')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.venus_show_power === true}
-                    .configValue=${'venus_show_power'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.venus_show_power')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.venus_charge_via_house === true}
-                    .configValue=${'venus_charge_via_house'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.venus_charge_via_house')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.hide_solar_to_venus_pipe === true}
-                    .configValue=${'hide_solar_to_venus_pipe'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.hide_solar_arc')}</div>
-            </div>
+            ${this._bubbleForm('venus', 'behavior')}
         </div>
 
         <!-- Group: Watt-label positioning -->
@@ -2370,29 +2057,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_label_positions')}
             </div>
 
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
-                ${this._localize('editor.venus_label_pos')}
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.venus_label_offset_x !== undefined ? this._config.venus_label_offset_x : 0}
-                    .configValue=${'venus_label_offset_x'}
-                    .label=${this._localize('editor.bubble_label_offset_x')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.venus_label_offset_y !== undefined ? this._config.venus_label_offset_y : 0}
-                    .configValue=${'venus_label_offset_y'}
-                    .label=${this._localize('editor.bubble_label_offset_y')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
+            ${this._bubbleForm('venus', 'offsets')}
         </div>
 
         <!-- Group: Value rotation -->
@@ -2403,71 +2068,25 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.rotation_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.venus_rotate_show_live !== false}
-                    .configValue=${'venus_rotate_show_live'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
-            </div>
+            ${this._bubbleForm('venus', 'rotation')}
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.venus_rotate_show_daily_1 === true}
-                    .configValue=${'venus_rotate_show_daily_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_rotate_daily_1 || "", 'venus_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-            ${this._renderColorPicker('venus_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
-
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.venus_rotate_show_daily_2 === true}
-                    .configValue=${'venus_rotate_show_daily_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_rotate_daily_2 || "", 'venus_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-            ${this._renderColorPicker('venus_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
-
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.venus_rotate_show_daily_3 === true}
-                    .configValue=${'venus_rotate_show_daily_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_rotate_daily_3 || "", 'venus_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-            ${this._renderColorPicker('venus_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+            ${[1, 2, 3].map((n) => html`
+                <div class="separator"></div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities[`venus_rotate_daily_${n}`] || "", `venus_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                ${this._renderColorPicker(`venus_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), rotationSlotColors[n - 1])}
+            `)}
                 </ha-expansion-panel>
 
-        <!-- Group: SoC donut -->
+        <!-- Group: charge-level ring and charge-mix ring -->
         <ha-expansion-panel outlined .header=${this._localize('editor.venus_soc_donut_section')}>
-            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:donut-small"></ha-icon>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:battery-charging"></ha-icon>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.venus_soc_donut_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.venus_soc_donut_mode === true}
-                    .configValue=${'venus_soc_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.venus_soc_donut_enabled')}</div>
-            </div>
+            ${this._bubbleForm('venus', 'soc')}
 
-            <!-- Phase 5.70: Venus charge-source mix-ring. Mirror of LG mix-ring
-                 (phase 5.68) -- same 2-segment semantics (PV + Grid only). -->
             <div class="group-title">
                 <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
                 ${this._localize('editor.venus_mix_section')}
@@ -2477,79 +2096,31 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.venus_mix_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.venus_mix_donut_mode === true}
-                    .configValue=${'venus_mix_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.venus_mix_enabled')}</div>
-            </div>
+            ${this._bubbleForm('venus', 'mix')}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "day",   label: this._localize('editor.venus_mix_period_day')   },
-                    { value: "month", label: this._localize('editor.venus_mix_period_month') },
-                    { value: "year",  label: this._localize('editor.venus_mix_period_year')  }
-                ] } }}
-                .value=${this._config.venus_mix_period || 'day'}
-                .configValue=${'venus_mix_period'}
-                .label=${this._localize('editor.venus_mix_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${(() => {
+                const mixPeriod = this._config.venus_mix_period || 'day';
+                return html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.venus_mix_${mixPeriod}_section`)}
+                </div>
+                ${mixTargets.map((venusMixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`venus_mix_${venusMixTarget}_${mixPeriod}`] || "",
+                    `venus_mix_${venusMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.venus_mix_${venusMixTarget}_label`)))}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
+                </div>
+                `;
+            })()}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                .value=${this._config.venus_mix_gap !== undefined ? this._config.venus_mix_gap : 8}
-                .configValue=${'venus_mix_gap'}
-                .label=${this._localize('editor.venus_mix_gap')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                .value=${this._config.venus_mix_thickness !== undefined ? this._config.venus_mix_thickness : 4}
-                .configValue=${'venus_mix_thickness'}
-                .label=${this._localize('editor.venus_mix_thickness')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Day-period sensors (PV + Grid) -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.venus_mix_day_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_pv_day || "", 'venus_mix_pv_day', this._localize('editor.venus_mix_pv_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_grid_day || "", 'venus_mix_grid_day', this._localize('editor.venus_mix_grid_label'))}
-
-            <!-- Month-period sensors -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.venus_mix_month_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_pv_month || "", 'venus_mix_pv_month', this._localize('editor.venus_mix_pv_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_grid_month || "", 'venus_mix_grid_month', this._localize('editor.venus_mix_grid_label'))}
-
-            <!-- Year-period sensors -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.venus_mix_year_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_pv_year || "", 'venus_mix_pv_year', this._localize('editor.venus_mix_pv_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.venus_mix_grid_year || "", 'venus_mix_grid_year', this._localize('editor.venus_mix_grid_label'))}
-
-            <!-- Phase 5.84: per-segment colors for the venus mix-ring.
-                 Each defaults to the matching pipe color when unset. -->
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
                 ${this._localize('editor.source_mix_colors_section')}
             </div>
             ${this._renderColorPicker('venus_mix_color_pv', this._localize('editor.venus_mix_color_pv'), '#ffd900')}
             ${this._renderColorPicker('venus_mix_color_grid', this._localize('editor.venus_mix_color_grid'), '#ff0040')}
 
-            <!-- Phase 5.71: Venus sparkline. Same control set as LG sparkline
-                 (phase 5.69), driven by venus_sparkline_* keys via the
-                 _renderSparklineForSource('venus') helper. Default colour matches
-                 the Venus bubble pipe colour (violet #8d07d5). -->
             <div class="group-title">
                 <ha-icon icon="mdi:chart-line-variant"></ha-icon>
                 ${this._localize('editor.sparkline_title')}
@@ -2558,83 +2129,17 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.sparkline_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.venus_sparkline === true}
-                    .configValue=${'venus_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
-            </div>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.venus_sparkline_entity || "", 'venus_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
             <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
                 ${this._localize('editor.sparkline_entity_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h",  label: "1h"  },
-                    { value: "6h",  label: "6h"  },
-                    { value: "12h", label: "12h" },
-                    { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.venus_sparkline_period || '24h'}
-                .configValue=${'venus_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                ] } }}
-                .value=${this._config.venus_sparkline_layer || 'back'}
-                .configValue=${'venus_sparkline_layer'}
-                .label=${this._localize('editor.sparkline_layer')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.venus_sparkline_style || 'area-line'}
-                .configValue=${'venus_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.venus_sparkline_opacity !== undefined ? this._config.venus_sparkline_opacity : 0.35}
-                .configValue=${'venus_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('venus', 'sparkline')}
 
             ${this._renderColorPicker('venus_sparkline_color', this._localize('editor.sparkline_color'), '#8d07d5')}
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.venus_sparkline_test_mode === true}
-                    .configValue=${'venus_sparkline_test_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-            </div>
                 </ha-expansion-panel>
       `;
     }
-
     _renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
         <div class="header">

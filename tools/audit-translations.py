@@ -35,6 +35,8 @@ DOMAINS = {
     'mixPeriod': ['day', 'month', 'year'],
     'solarMixTarget': ['house', 'lg', 'venus', 'grid'],
     'gridMixTarget': ['import', 'export'],
+    'batteryMixTarget': ['pv', 'grid'],
+    'venusMixTarget': ['pv', 'grid'],
     'period': ['day', 'month', 'year'],
     'side': ['indoor', 'outdoor'],
 }
@@ -91,7 +93,7 @@ def keys_from_schema():
     try:
         out = subprocess.run(['node', '-e', f'''
 const {{bubbleFields,BUBBLE_CAPS}}=require({json.dumps(str(module))});
-const groups=['sensors','behavior','offsets','rotation','donut','mix','sparkline'];
+const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline'];
 const keys=new Set();
 for(const p of Object.keys(BUBBLE_CAPS))
  for(const g of groups)
