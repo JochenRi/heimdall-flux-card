@@ -472,6 +472,57 @@ console.log(
       `)}`;
     }
 
+    // Phase portals-7: cut the pipe at its portals.
+    //
+    // The slit marked where the pipe went in, and then the pipe carried on
+    // regardless and slid under the tile -- so the marker sat next to a pipe
+    // that plainly ignored it. A portal has to swallow the pipe: the line ends
+    // at the entry slit and picks up again at the exit one.
+    //
+    // The result is a polyline rather than the original curve. At the sampling
+    // density used here the two are indistinguishable on screen, and it keeps
+    // this to one pass with no curve-splitting arithmetic to get wrong.
+    //
+    // Cached per (path, tile rectangles): the geometry only changes when a tile
+    // moves or the gap is retuned, not on every state update.
+    _clipPipeAtPortals(d, tiles) {
+      if (!tiles || !tiles.length) return d;
+      if (this.config.portals_enabled === false) return d;
+
+      const key = d + '|' + tiles.map((t) => `${t.rect.x},${t.rect.y},${t.rect.w},${t.rect.h}`).join(';')
+                + '|' + (this.config.portal_gap !== undefined ? this.config.portal_gap : 14);
+      this._clipCache = this._clipCache || {};
+      if (this._clipCache[key] !== undefined) return this._clipCache[key];
+
+      // Collect the stretches to remove: from entry slit to exit slit.
+      const cuts = [];
+      for (const tile of tiles) {
+        const hit = this._portalPoints(d, tile.rect, true);
+        if (hit && hit.entryIndex !== undefined) cuts.push([hit.entryIndex, hit.exitIndex]);
+      }
+      if (!cuts.length) {
+        this._clipCache[key] = d;
+        return d;
+      }
+
+      const pts = this._samplePath(d);
+      const hidden = new Array(pts.length).fill(false);
+      for (const [a, b] of cuts) {
+        for (let i = Math.max(0, a); i <= Math.min(pts.length - 1, b); i++) hidden[i] = true;
+      }
+
+      let out = '', drawing = false;
+      for (let i = 0; i < pts.length; i++) {
+        if (hidden[i]) { drawing = false; continue; }
+        const [x, y] = pts[i];
+        out += (drawing ? ' L ' : ' M ') + x.toFixed(1) + ' ' + y.toFixed(1);
+        drawing = true;
+      }
+      const result = out.trim() || d;
+      this._clipCache[key] = result;
+      return result;
+    }
+
     // Walk an M/L/Q path and return points along it. Same sampling the
     // collision check uses, so a portal can never land where the audit says
     // there is no crossing.
@@ -555,6 +606,7 @@ console.log(
       return {
         entry: pts[ei], exit: pts[xi],
         entryAngle: angleAt(ei), exitAngle: angleAt(xi),
+        entryIndex: ei, exitIndex: xi,
       };
     }
 
@@ -4656,6 +4708,30 @@ console.log(
         portalTiles.push({ rect: { x: ox, y: oy, w: 130, h: 310 }, ox: 0, oy: 0 });
       }
 
+      // Phase portals-7: one clipped copy per pipe, computed once and used by
+      // both the background line and the animated one, so they can never
+      // disagree about where the pipe stops.
+      const clip = {};
+      clip.pathBattHouse = this._clipPipeAtPortals(pathBattHouse, portalTiles);
+      clip.pathBkwGrid = this._clipPipeAtPortals(pathBkwGrid, portalTiles);
+      clip.pathBkwHouse = this._clipPipeAtPortals(pathBkwHouse, portalTiles);
+      clip.pathBkwVenus = this._clipPipeAtPortals(pathBkwVenus, portalTiles);
+      clip.pathGridImport = this._clipPipeAtPortals(pathGridImport, portalTiles);
+      clip.pathHouseC1 = this._clipPipeAtPortals(pathHouseC1, portalTiles);
+      clip.pathHouseC2 = this._clipPipeAtPortals(pathHouseC2, portalTiles);
+      clip.pathHouseC3 = this._clipPipeAtPortals(pathHouseC3, portalTiles);
+      clip.pathHouseC4 = this._clipPipeAtPortals(pathHouseC4, portalTiles);
+      clip.pathHouseC5 = this._clipPipeAtPortals(pathHouseC5, portalTiles);
+      clip.pathHouseC6 = this._clipPipeAtPortals(pathHouseC6, portalTiles);
+      clip.pathHouseC7 = this._clipPipeAtPortals(pathHouseC7, portalTiles);
+      clip.pathHouseToBatt = this._clipPipeAtPortals(pathHouseToBatt, portalTiles);
+      clip.pathHouseToVenus = this._clipPipeAtPortals(pathHouseToVenus, portalTiles);
+      clip.pathSolarBatt = this._clipPipeAtPortals(pathSolarBatt, portalTiles);
+      clip.pathSolarHouse = this._clipPipeAtPortals(pathSolarHouse, portalTiles);
+      clip.pathSolarVenus = this._clipPipeAtPortals(pathSolarVenus, portalTiles);
+      clip.pathVenusHouse = this._clipPipeAtPortals(pathVenusHouse, portalTiles);
+
+
       const houseTextStyle = this.config.color_text_house
         ? 'color: var(--text-house-color);'
         : (houseTextCol ? `color: ${houseTextCol};` : '');
@@ -4681,54 +4757,54 @@ console.log(
             <div class="absolute-container" style="height: ${baseHeight}px; top: -${topShift}px;">
                 <svg height="${baseHeight}" viewBox="0 0 800 ${baseHeight}" preserveAspectRatio="xMidYMid meet">
                     
-                    <path class="bg-path bg-solar" d="${pathSolarHouse}" style="${getPipeStyle(solarToHouse, '--pipe-solar-opacity', 'solar')} ${styleSolar}" />
-                    <path class="bg-path bg-solar" d="${pathSolarBatt}" style="${getPipeStyle(solarToBatt, '--pipe-solar-opacity', 'solar')} ${styleSolarBatt}" />
+                    <path class="bg-path bg-solar" d="${clip.pathSolarHouse}" style="${getPipeStyle(solarToHouse, '--pipe-solar-opacity', 'solar')} ${styleSolar}" />
+                    <path class="bg-path bg-solar" d="${clip.pathSolarBatt}" style="${getPipeStyle(solarToBatt, '--pipe-solar-opacity', 'solar')} ${styleSolarBatt}" />
                     
-                    <path class="bg-path bg-grid" d="${pathGridImport}" style="${getPipeStyle(gridToHouse, '--pipe-grid-opacity', 'grid')} ${styleGrid}" />
+                    <path class="bg-path bg-grid" d="${clip.pathGridImport}" style="${getPipeStyle(gridToHouse, '--pipe-grid-opacity', 'grid')} ${styleGrid}" />
                     <path class="bg-path bg-export" d="${activeExportPath}" style="${getPipeStyle(gridExport, '--pipe-grid-opacity', 'grid')} ${styleGrid}" />
-                    <path class="bg-path bg-battery" d="${pathBattHouse}" style="${getPipeStyle(batteryDischarge, '--pipe-battery-opacity', 'battery')} ${styleBattery}" />
+                    <path class="bg-path bg-battery" d="${clip.pathBattHouse}" style="${getPipeStyle(batteryDischarge, '--pipe-battery-opacity', 'battery')} ${styleBattery}" />
 
-                    <path class="bg-path bg-battery" d="${pathHouseToBatt}" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getPipeStyle(batteryCharge, '--pipe-battery-opacity', 'battery') + ' ' + styleBattery : 'display:none;'}" />
+                    <path class="bg-path bg-battery" d="${clip.pathHouseToBatt}" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getPipeStyle(batteryCharge, '--pipe-battery-opacity', 'battery') + ' ' + styleBattery : 'display:none;'}" />
 
-                    <path class="bg-path bg-venus" d="${pathSolarVenus}" style="${getPipeStyle(solarToVenus, '--pipe-solar-opacity', 'solar')} ${styleSolarVenus}" />
-                    <path class="bg-path bg-venus" d="${pathVenusHouse}" style="${getPipeStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
-                    <path class="bg-path bg-solar" d="${pathBkwVenus}" style="${getPipeStyle(bkwToVenus, '--pipe-solar-opacity', 'solar')}" />
-                    <path class="bg-path bg-solar" d="${pathBkwHouse}" style="${getPipeStyle(bkwToHouse, '--pipe-solar-opacity', 'solar')}" />
-                    <path class="bg-path bg-export" d="${pathBkwGrid}" style="${getPipeStyle(bkwToGrid, '--pipe-grid-opacity', 'grid')}" />
-                    <path class="bg-path bg-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getPipeStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
+                    <path class="bg-path bg-venus" d="${clip.pathSolarVenus}" style="${getPipeStyle(solarToVenus, '--pipe-solar-opacity', 'solar')} ${styleSolarVenus}" />
+                    <path class="bg-path bg-venus" d="${clip.pathVenusHouse}" style="${getPipeStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
+                    <path class="bg-path bg-solar" d="${clip.pathBkwVenus}" style="${getPipeStyle(bkwToVenus, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="bg-path bg-solar" d="${clip.pathBkwHouse}" style="${getPipeStyle(bkwToHouse, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="bg-path bg-export" d="${clip.pathBkwGrid}" style="${getPipeStyle(bkwToGrid, '--pipe-grid-opacity', 'grid')}" />
+                    <path class="bg-path bg-venus" d="${clip.pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getPipeStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
-                    <path d="${pathHouseC1}" fill="none" stroke="${this._getConsumerPipeColor(1)}" stroke-width="6" style="${getConsumerPipeStyle(c1PipeActive, c1Val, 1)}" />
-                    <path d="${pathHouseC2}" fill="none" stroke="${this._getConsumerPipeColor(2)}" stroke-width="6" style="${getConsumerPipeStyle(c2PipeActive, c2Val, 2)}" />
-                    <path d="${pathHouseC3}" fill="none" stroke="${this._getConsumerPipeColor(3)}" stroke-width="6" style="${getConsumerPipeStyle(c3PipeActive, c3Val, 3)}" />
-                    <path d="${pathHouseC4}" fill="none" stroke="${this._getConsumerPipeColor(4)}" stroke-width="6" style="${getConsumerPipeStyle(c4PipeActive, c4Val, 4)}" />
-                    <path d="${pathHouseC5}" fill="none" stroke="${this._getConsumerPipeColor(5)}" stroke-width="6" style="${getConsumerPipeStyle(c5PipeActive, c5Val, 5)}" />
-                    <path d="${pathHouseC6}" fill="none" stroke="${this._getConsumerPipeColor(6)}" stroke-width="6" style="${getConsumerPipeStyle(c6PipeActive, c6Val, 6)}" />
-                    <path d="${pathHouseC7}" fill="none" stroke="${this._getConsumerPipeColor(7)}" stroke-width="6" style="${getConsumerPipeStyle(c7PipeActive, c7Val, 7)}" />
+                    <path d="${clip.pathHouseC1}" fill="none" stroke="${this._getConsumerPipeColor(1)}" stroke-width="6" style="${getConsumerPipeStyle(c1PipeActive, c1Val, 1)}" />
+                    <path d="${clip.pathHouseC2}" fill="none" stroke="${this._getConsumerPipeColor(2)}" stroke-width="6" style="${getConsumerPipeStyle(c2PipeActive, c2Val, 2)}" />
+                    <path d="${clip.pathHouseC3}" fill="none" stroke="${this._getConsumerPipeColor(3)}" stroke-width="6" style="${getConsumerPipeStyle(c3PipeActive, c3Val, 3)}" />
+                    <path d="${clip.pathHouseC4}" fill="none" stroke="${this._getConsumerPipeColor(4)}" stroke-width="6" style="${getConsumerPipeStyle(c4PipeActive, c4Val, 4)}" />
+                    <path d="${clip.pathHouseC5}" fill="none" stroke="${this._getConsumerPipeColor(5)}" stroke-width="6" style="${getConsumerPipeStyle(c5PipeActive, c5Val, 5)}" />
+                    <path d="${clip.pathHouseC6}" fill="none" stroke="${this._getConsumerPipeColor(6)}" stroke-width="6" style="${getConsumerPipeStyle(c6PipeActive, c6Val, 6)}" />
+                    <path d="${clip.pathHouseC7}" fill="none" stroke="${this._getConsumerPipeColor(7)}" stroke-width="6" style="${getConsumerPipeStyle(c7PipeActive, c7Val, 7)}" />
 
-                    <path class="flow-line flow-solar" d="${pathSolarHouse}" style="${getAnimStyle(solarToHouse, '--pipe-solar-opacity', 'solar')} ${styleSolar}" />
-                    <path class="flow-line flow-solar" d="${pathSolarBatt}" style="${getAnimStyle(solarToBatt, '--pipe-solar-opacity', 'solar')} ${styleSolarBatt}" />
+                    <path class="flow-line flow-solar" d="${clip.pathSolarHouse}" style="${getAnimStyle(solarToHouse, '--pipe-solar-opacity', 'solar')} ${styleSolar}" />
+                    <path class="flow-line flow-solar" d="${clip.pathSolarBatt}" style="${getAnimStyle(solarToBatt, '--pipe-solar-opacity', 'solar')} ${styleSolarBatt}" />
                     
-                    <path class="flow-line flow-grid" d="${pathGridImport}" style="${getAnimStyle(gridToHouse, '--pipe-grid-opacity', 'grid')} ${styleGrid}" />
+                    <path class="flow-line flow-grid" d="${clip.pathGridImport}" style="${getAnimStyle(gridToHouse, '--pipe-grid-opacity', 'grid')} ${styleGrid}" />
                     <path class="flow-line flow-export" d="${activeExportPath}" style="${getAnimStyle(gridExport, '--pipe-grid-opacity', 'grid')} ${styleGrid}" />
                     
-                    <path class="flow-line flow-battery" d="${pathBattHouse}" style="${getAnimStyle(batteryDischarge, '--pipe-battery-opacity', 'battery')} ${styleBattery}" />
+                    <path class="flow-line flow-battery" d="${clip.pathBattHouse}" style="${getAnimStyle(batteryDischarge, '--pipe-battery-opacity', 'battery')} ${styleBattery}" />
 
-                    <path class="flow-line flow-battery" d="${pathHouseToBatt}" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getAnimStyle(batteryCharge, '--pipe-battery-opacity', 'battery') + ' ' + styleBattery : 'display:none;'}" />
+                    <path class="flow-line flow-battery" d="${clip.pathHouseToBatt}" style="${(batteryChargeViaHouse && batteryCharge > 0) ? getAnimStyle(batteryCharge, '--pipe-battery-opacity', 'battery') + ' ' + styleBattery : 'display:none;'}" />
 
-                    <path class="flow-line flow-venus" d="${pathSolarVenus}" style="${getAnimStyle(solarToVenus, '--pipe-solar-opacity', 'solar')} ${styleSolarVenus}" />
-                    <path class="flow-line flow-venus" d="${pathVenusHouse}" style="${getAnimStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
-                    <path class="flow-line flow-solar" d="${pathBkwVenus}" style="${getAnimStyle(bkwToVenus, '--pipe-solar-opacity', 'solar')}" />
-                    <path class="flow-line flow-solar" d="${pathBkwHouse}" style="${getAnimStyle(bkwToHouse, '--pipe-solar-opacity', 'solar')}" />
-                    <path class="flow-line flow-export" d="${pathBkwGrid}" style="${getAnimStyle(bkwToGrid, '--pipe-grid-opacity', 'grid')}" />
-                    <path class="flow-line flow-venus" d="${pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getAnimStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
+                    <path class="flow-line flow-venus" d="${clip.pathSolarVenus}" style="${getAnimStyle(solarToVenus, '--pipe-solar-opacity', 'solar')} ${styleSolarVenus}" />
+                    <path class="flow-line flow-venus" d="${clip.pathVenusHouse}" style="${getAnimStyle(venusDischarge, '--pipe-venus-opacity', 'venus')} ${styleVenus}" />
+                    <path class="flow-line flow-solar" d="${clip.pathBkwVenus}" style="${getAnimStyle(bkwToVenus, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="flow-line flow-solar" d="${clip.pathBkwHouse}" style="${getAnimStyle(bkwToHouse, '--pipe-solar-opacity', 'solar')}" />
+                    <path class="flow-line flow-export" d="${clip.pathBkwGrid}" style="${getAnimStyle(bkwToGrid, '--pipe-grid-opacity', 'grid')}" />
+                    <path class="flow-line flow-venus" d="${clip.pathHouseToVenus}" style="${(venusChargeViaHouse && venusCharge > 0) ? getAnimStyle(venusCharge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus : 'display:none;'}" />
 
-                    <path class="flow-line" d="${pathHouseC1}" stroke="${this._getConsumerPipeColor(1)}" style="${getConsumerAnimStyle(c1PipeActive, c1Val, 1)}" />
-                    <path class="flow-line" d="${pathHouseC2}" stroke="${this._getConsumerPipeColor(2)}" style="${getConsumerAnimStyle(c2PipeActive, c2Val, 2)}" />
-                    <path class="flow-line" d="${pathHouseC3}" stroke="${this._getConsumerPipeColor(3)}" style="${getConsumerAnimStyle(c3PipeActive, c3Val, 3)}" />
-                    <path class="flow-line" d="${pathHouseC4}" stroke="${this._getConsumerPipeColor(4)}" style="${getConsumerAnimStyle(c4PipeActive, c4Val, 4)}" />
-                    <path class="flow-line" d="${pathHouseC5}" stroke="${this._getConsumerPipeColor(5)}" style="${getConsumerAnimStyle(c5PipeActive, c5Val, 5)}" />
-                    <path class="flow-line" d="${pathHouseC6}" stroke="${this._getConsumerPipeColor(6)}" style="${getConsumerAnimStyle(c6PipeActive, c6Val, 6)}" />
-                    <path class="flow-line" d="${pathHouseC7}" stroke="${this._getConsumerPipeColor(7)}" style="${getConsumerAnimStyle(c7PipeActive, c7Val, 7)}" />
+                    <path class="flow-line" d="${clip.pathHouseC1}" stroke="${this._getConsumerPipeColor(1)}" style="${getConsumerAnimStyle(c1PipeActive, c1Val, 1)}" />
+                    <path class="flow-line" d="${clip.pathHouseC2}" stroke="${this._getConsumerPipeColor(2)}" style="${getConsumerAnimStyle(c2PipeActive, c2Val, 2)}" />
+                    <path class="flow-line" d="${clip.pathHouseC3}" stroke="${this._getConsumerPipeColor(3)}" style="${getConsumerAnimStyle(c3PipeActive, c3Val, 3)}" />
+                    <path class="flow-line" d="${clip.pathHouseC4}" stroke="${this._getConsumerPipeColor(4)}" style="${getConsumerAnimStyle(c4PipeActive, c4Val, 4)}" />
+                    <path class="flow-line" d="${clip.pathHouseC5}" stroke="${this._getConsumerPipeColor(5)}" style="${getConsumerAnimStyle(c5PipeActive, c5Val, 5)}" />
+                    <path class="flow-line" d="${clip.pathHouseC6}" stroke="${this._getConsumerPipeColor(6)}" style="${getConsumerAnimStyle(c6PipeActive, c6Val, 6)}" />
+                    <path class="flow-line" d="${clip.pathHouseC7}" stroke="${this._getConsumerPipeColor(7)}" style="${getConsumerAnimStyle(c7PipeActive, c7Val, 7)}" />
                     <text x="${165 + (this.config.solar_label_offset_x !== undefined ? this.config.solar_label_offset_x : 0)}" y="${235 + (this.config.solar_label_offset_y !== undefined ? this.config.solar_label_offset_y : 0)}" class="${textClass} text-solar" style="${getTextStyle(solarToHouse, 'solar')} ${styleSolar}">${this._formatPower(solarToHouse)}</text>
                     <text x="260" y="45" class="${textClass} text-solar" style="${getTextStyle(solarToBatt, 'solar')} ${styleSolarBatt}">${this._formatPower(solarToBatt)}</text>
                     
