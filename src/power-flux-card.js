@@ -1695,13 +1695,13 @@ console.log(
       .glow.c6 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-6-color), transparent 60%); }
       .glow.c7 { box-shadow: 0 0 15px color-mix(in srgb, var(--consumer-7-color), transparent 60%); }
 
-      .node-solar { top: 80px; left: calc(75px + var(--content-shift, 0px)); }     
-      .node-grid { top: 80px; left: calc(215px + var(--content-shift, 0px)); }     
-      .node-battery { top: 80px; left: calc(355px + var(--content-shift, 0px)); }  
-      .node-venus { top: 80px; left: calc(495px + var(--content-shift, 0px)); }   
-      .node-bkw { top: 80px; left: calc(635px + var(--content-shift, 0px)); }   /* phase BKW-1: garden plant, feeds the venus */
-      .node-house { top: 245px; left: calc(355px + var(--content-shift, 0px)); }   
-      .node-temp { top: calc(185px + var(--temp-offset-y, 0px)); left: calc((-65px + var(--temp-offset-x, 0px)) + var(--content-shift, 0px)); }  /* phase portals-4: mirrored about 400, the axis the card
+      .node-solar { top: 80px; left: 75px; }     
+      .node-grid { top: 80px; left: 215px; }     
+      .node-battery { top: 80px; left: 355px; }  
+      .node-venus { top: 80px; left: 495px; }   
+      .node-bkw { top: 80px; left: 635px; }   /* phase BKW-1: garden plant, feeds the venus */
+      .node-house { top: 245px; left: 355px; }   
+      .node-temp { top: calc(185px + var(--temp-offset-y, 0px)); left: calc(-65px + var(--temp-offset-x, 0px)); }  /* phase portals-4: mirrored about 400, the axis the card
          actually uses. Four of its five bubble pairs mirror about 400
          (solar/bkw, grid/venus, c1/c3, c4/c5); only the outer consumers do
          not -- climate sits at 45, the pump at 725, an axis of 385. Rounds
@@ -1715,14 +1715,14 @@ console.log(
          x=725 on its way down and ran straight through the tile. Verified
          against all eighteen paths and all thirteen bubbles at bubble_size 100:
          735 is the first collision-free column, with 4 px clearance to C7. */
-      .node-power { top: calc(185px + var(--power-offset-y, 0px)); left: calc((735px + var(--power-offset-x, 0px)) + var(--content-shift, 0px)); }  /* phase portals-4: 400 from the axis, see the note on .node-temp. */
-      .node-c1 { top: 400px; left: calc(130px + var(--content-shift, 0px)); }
-      .node-c2 { top: 400px; left: calc(355px + var(--content-shift, 0px)); }
-      .node-c3 { top: 400px; left: calc(580px + var(--content-shift, 0px)); }
-      .node-c4 { top: 510px; left: calc(240px + var(--content-shift, 0px)); }
-      .node-c5 { top: 510px; left: calc(470px + var(--content-shift, 0px)); }
-      .node-c6 { top: 510px; left: calc(0px + var(--content-shift, 0px)); }
-      .node-c7 { top: 510px; left: calc(680px + var(--content-shift, 0px)); }
+      .node-power { top: calc(185px + var(--power-offset-y, 0px)); left: calc(735px + var(--power-offset-x, 0px)); }  /* phase portals-4: 400 from the axis, see the note on .node-temp. */
+      .node-c1 { top: 400px; left: 130px; }
+      .node-c2 { top: 400px; left: 355px; }
+      .node-c3 { top: 400px; left: 580px; }
+      .node-c4 { top: 510px; left: 240px; }
+      .node-c5 { top: 510px; left: 470px; }
+      .node-c6 { top: 510px; left: 0px; }
+      .node-c7 { top: 510px; left: 680px; }
 
       svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
       
@@ -3003,32 +3003,7 @@ console.log(
       let baseHeight = anyRow2Visible ? 620 : (anyBottomVisible ? 520 : 340);
       const contentHeight = baseHeight - topShift;
 
-      // Phase width-1: the design surface follows the content.
-      //
-      // 800 was hard-coded, and everything downstream scales the card so that
-      // number fits the container. Right until the two tiles arrived: the
-      // climate tile starts at -65 and the power tile ends at 865, so the real
-      // content spans 930. The card kept fitting 800 into view and cut off the
-      // rest -- which is why the climate tile was missing in the editor
-      // preview, where the container is narrowest.
-      //
-      // The fix is not a smaller tile. It is telling the card how wide it
-      // actually is. Bounds come from the tiles that are switched on, so the
-      // surface is 800 again the moment they are off and every existing zoom
-      // value keeps its meaning.
-      const TILE_W = 130;
-      const tileBounds = [[0, 800]];
-      if (this.config.temp_enabled === true) {
-        const l = -65 + (this.config.temp_offset_x !== undefined ? parseFloat(this.config.temp_offset_x) : 0);
-        tileBounds.push([l, l + TILE_W]);
-      }
-      if (this.config.power_enabled === true) {
-        const l = 735 + (this.config.power_offset_x !== undefined ? parseFloat(this.config.power_offset_x) : 0);
-        tileBounds.push([l, l + TILE_W]);
-      }
-      const contentLeft = Math.min(...tileBounds.map((b) => b[0]));
-      const contentRight = Math.max(...tileBounds.map((b) => b[1]));
-      const designWidth = contentRight - contentLeft;
+      const designWidth = 800;
       // Phase A1.4: in side-panels mode the center column has a FIXED width =
       // host - 2*panelW - 2*gap. Subtract the same reserve here so the card
       // scales to fit the center. _cardWidth is the HOST width (stable, never
@@ -3081,7 +3056,7 @@ console.log(
       }
 
       const finalCardHeightPx = contentHeight * scale;
-      const visualWidth = designWidth * scale;
+      const visualWidth = 800 * scale;
       const centerMarginLeft = Math.max(0, (availableWidth - visualWidth) / 2);
       
       // Phase 5.40: card background padding is now fully manual via 4 sliders.
@@ -4653,8 +4628,8 @@ console.log(
         
         <div class="scale-wrapper" style="transform: translate(${sidePanelsOn ? 0 : (this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0)}px, ${sidePanelsStacked ? 0 : (this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0)}px) scale(${scale}); margin-top: ${-padTop}px;">
             
-            <div class="absolute-container" style="height: ${baseHeight}px; top: -${topShift}px; --content-shift: ${-contentLeft}px;">
-                <svg height="${baseHeight}" viewBox="${contentLeft} 0 ${designWidth} ${baseHeight}" preserveAspectRatio="xMidYMid meet">
+            <div class="absolute-container" style="height: ${baseHeight}px; top: -${topShift}px;">
+                <svg height="${baseHeight}" viewBox="0 0 800 ${baseHeight}" preserveAspectRatio="xMidYMid meet">
                     
                     <path class="bg-path bg-solar" d="${pathSolarHouse}" style="${getPipeStyle(solarToHouse, '--pipe-solar-opacity', 'solar')} ${styleSolar}" />
                     <path class="bg-path bg-solar" d="${pathSolarBatt}" style="${getPipeStyle(solarToBatt, '--pipe-solar-opacity', 'solar')} ${styleSolarBatt}" />
