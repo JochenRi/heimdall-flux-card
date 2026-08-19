@@ -92,6 +92,17 @@ def methods(text):
     return set(re.findall(r'^    (\w+)\(', text, re.M))
 
 
+def top_level(text):
+    """Module-level const names.
+
+    Class methods are not the only thing a range edit can swallow: replacing
+    everything "from this function to that one" took out a whole block of
+    top-level helpers once, and the method check saw nothing because none of
+    them are methods.
+    """
+    return set(re.findall(r'^const (\w+)\s*=', text, re.M))
+
+
 def main():
     harness = build_harness()
     try:
@@ -116,15 +127,18 @@ def main():
             ['git', 'show', f'{ref}:src/power-flux-card-editor.js'],
             capture_output=True, text=True, cwd=ROOT)
         if before.returncode == 0:
-            lost = sorted(methods(before.stdout) - methods(EDITOR.read_text()))
+            now = EDITOR.read_text()
+            lost = sorted(methods(before.stdout) - methods(now))
+            lost_const = sorted(top_level(before.stdout) - top_level(now))
             print()
-            if lost:
+            if lost or lost_const:
                 failed = True
-                print(f'methods lost since {ref}:')
                 for m in lost:
-                    print(f'    {m}')
+                    print(f'    method lost since {ref}: {m}')
+                for c in lost_const:
+                    print(f'    top-level lost since {ref}: {c}')
             else:
-                print(f'no methods lost since {ref}')
+                print(f'nothing lost since {ref}')
 
     print('-' * 46)
     print('FAILED' if failed else 'every view renders')

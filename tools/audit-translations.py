@@ -72,12 +72,12 @@ def keys_from_markup():
     for m in re.finditer(r'_localize\(\s*`editor\.([^`]+)`\s*\)', src):
         tpl = m.group(1)
         # The generic schema builder resolves its own labels from field data
-        # (_bubbleSchema, _bubbleLabel, and the power section's computeLabel), so
-        # those call sites cannot be read statically. They are covered in
+        # (_bubbleSchema, _bubbleLabel, _bubbleHelper, and the power section's
+        # computeLabel), so those call sites cannot be read statically. They are covered in
         # full by keys_from_schema() for the generic sections, and the power
         # section's five keys are checked separately below -- these are the
         # only places where skipping loses no coverage.
-        if any(x in tpl for x in ('fld.', 's.name', '${k}')):
+        if any(x in tpl for x in ('fld.', 'item.', 's.name', 'schemaEntry.', '${k}')):
             continue
         line = src[:m.start()].count('\n') + 1
         keys.update(expand(tpl, f'{EDITOR.name}:{line}'))
@@ -90,21 +90,26 @@ def keys_from_schema():
     a = ed.index('const SPARKLINE_LAYERS')
     b = ed.index('const fireEvent')
     module = ROOT / '.audit-translations.cjs'
-    module.write_text(ed[a:b] + '\nmodule.exports={bubbleFields,BUBBLE_CAPS};\n')
+    module.write_text(ed[a:b] + '\nmodule.exports={bubbleFields,BUBBLE_CAPS,flattenFields};\n')
     try:
+        editor = str(EDITOR)
         out = subprocess.run(['node', '-e', f'''
-const {{bubbleFields,BUBBLE_CAPS}}=require({json.dumps(str(module))});
+const {{bubbleFields,BUBBLE_CAPS,flattenFields}}=require({json.dumps(str(module))});
 const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline'];
 const keys=new Set();
 for(const p of Object.keys(BUBBLE_CAPS))
  for(const g of groups)
-  for(const f of bubbleFields(p,g)){{
+  for(const f of flattenFields(bubbleFields(p,g))){{
     if(f.labelKey && !f.labelKey.startsWith('__axis')) keys.add(f.labelKey);
     // An empty optionLabels prefix means literal values, shown untranslated.
     if(f.optionLabels)
       for(const v of f.selector.select.options)
         keys.add(f.optionLabels + String(v).replace(/-/g,''));
   }}
+// Panel titles and helper keys live in the tables, not in a template literal.
+const src = require('fs').readFileSync({editor!r}, 'utf8');
+for (const m of src.matchAll(/collapsible\('([A-Za-z0-9_]+)'/g)) keys.add(m[1]);
+for (const m of src.matchAll(/: '(help_[A-Za-z0-9_]+)'/g)) keys.add(m[1]);
 process.stdout.write(JSON.stringify([...keys]));
 '''], capture_output=True, text=True, check=True)
     finally:

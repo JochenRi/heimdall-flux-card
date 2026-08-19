@@ -221,6 +221,33 @@ const lang_de = {
     "editor.side_panel_no_cards": "Noch keine Karten",
     "editor.side_panel_card_yaml": "Karten-Konfiguration (YAML)",
     "editor.group_sizing": "Größen & Position",
+    // Phase editor-7: collapsible block titles and field guidance.
+    "editor.group_sizing_scale": "Größe",
+    "editor.group_sizing_position": "Position der Karte",
+    "editor.group_sizing_padding": "Ränder",
+    "editor.group_sparkline_look": "Aussehen der Kurve",
+    "editor.help_offset_x": "Negative Werte verschieben nach links, positive nach rechts.",
+    "editor.help_offset_y": "Negative Werte verschieben nach oben, positive nach unten.",
+    "editor.help_animation_threshold": "Unterhalb dieses Werts gilt die Leitung als inaktiv und wird nicht animiert. Höher setzen, wenn ein Gerät im Ruhezustand ein paar Watt zieht.",
+    "editor.help_background_padding": "Vergrößert die Fläche hinter der Karte. Negative Werte ziehen den Rand nach innen.",
+    "editor.help_bubble_size": "Größere Blasen brauchen mehr Platz — bei aktiven Seiten-Panels schrumpft die Karte dann früher.",
+    "editor.help_pipe_label_size": "Schriftgröße der Watt-Angaben an den Leitungen.",
+    "editor.help_zoom": "Skaliert die gesamte Karte. Unter 1 wird alles kleiner, über 1 größer.",
+    "editor.help_mix_gap": "Abstand des Rings zur Blase. Höher rückt ihn weiter nach außen.",
+    "editor.help_mix_thickness": "Strichstärke des Rings.",
+    "editor.help_sparkline_opacity": "Deckkraft der Kurve. Niedriger lässt sie stärker in den Hintergrund treten.",
+    "editor.help_sparkline_period": "Wie weit die Kurve zurückreicht. Kürzere Zeiträume zeigen mehr Details, längere mehr Verlauf.",
+    "editor.help_sparkline_layer": "Legt fest, ob die Kurve hinter oder vor den Blaseninhalt gezeichnet wird.",
+    "editor.help_test_mode": "Ersetzt die echten Werte durch eine künstliche Wellenlinie. Nur zur Fehlersuche — danach wieder ausschalten.",
+    "editor.help_soc_max": "Der Wert, bei dem der Ring voll ist. Bei Prozent 100, bei Temperatur die Obergrenze, bei Füllständen das Fassungsvermögen.",
+    "editor.help_pipe_threshold": "Unterhalb dieses Werts wird die Leitung ausgeblendet.",
+    "editor.help_unit_kw": "Einschalten, wenn der Sensor Kilowatt statt Watt liefert.",
+    "editor.help_rotation_interval": "Wie lange jeder Wert stehen bleibt, bevor der nächste erscheint.",
+    "editor.help_side_panel_width": "Breite je Panel. Zusammen mit dem Abstand bestimmt sie, ab welcher Fensterbreite die Karte zu schrumpfen beginnt.",
+    "editor.help_side_panel_gap": "Abstand zwischen Panel und Karte. Höhere Werte verkleinern die Karte — der Regler endet deshalb bei 120.",
+    "editor.help_show_flow_rates": "Blendet die Watt-Angaben an allen Leitungen ein oder aus. Einzelne Blasen können das überschreiben.",
+    "editor.help_demo_mode": "Zeigt erfundene Werte statt der echten Sensoren. Zum Ausprobieren des Aussehens.",
+    "editor.help_transparent_background": "Entfernt den Kartenhintergrund, sodass das Dashboard durchscheint.",
     "editor.background_padding_section": "Hintergrund-Padding (manuell)",
     "editor.background_padding_top": "Hintergrund-Padding oben (px)",
     "editor.background_padding_bottom": "Hintergrund-Padding unten (px)",
@@ -747,6 +774,33 @@ const lang_en = {
     "editor.side_panel_no_cards": "No cards yet",
     "editor.side_panel_card_yaml": "Card configuration (YAML)",
     "editor.group_sizing": "Size & Position",
+    // Phase editor-7: collapsible block titles and field guidance.
+    "editor.group_sizing_scale": "Size",
+    "editor.group_sizing_position": "Card position",
+    "editor.group_sizing_padding": "Margins",
+    "editor.group_sparkline_look": "Curve appearance",
+    "editor.help_offset_x": "Negative values move left, positive values move right.",
+    "editor.help_offset_y": "Negative values move up, positive values move down.",
+    "editor.help_animation_threshold": "Below this value the pipe counts as idle and is not animated. Raise it when a device draws a few watts at rest.",
+    "editor.help_background_padding": "Enlarges the area behind the card. Negative values pull the edge inwards.",
+    "editor.help_bubble_size": "Larger bubbles need more room — with side panels on, the card starts shrinking sooner.",
+    "editor.help_pipe_label_size": "Font size of the watt readings on the pipes.",
+    "editor.help_zoom": "Scales the whole card. Below 1 everything shrinks, above 1 it grows.",
+    "editor.help_mix_gap": "Distance between ring and bubble. Higher moves it further out.",
+    "editor.help_mix_thickness": "Line weight of the ring.",
+    "editor.help_sparkline_opacity": "Opacity of the curve. Lower lets it recede into the background.",
+    "editor.help_sparkline_period": "How far back the curve reaches. Shorter shows more detail, longer more trend.",
+    "editor.help_sparkline_layer": "Whether the curve is drawn behind or in front of the bubble contents.",
+    "editor.help_test_mode": "Replaces real values with a synthetic wave. For troubleshooting only — switch it off afterwards.",
+    "editor.help_soc_max": "The value at which the ring is full. 100 for a percentage, the upper limit for a temperature, the capacity for a level.",
+    "editor.help_pipe_threshold": "Below this value the pipe is hidden.",
+    "editor.help_unit_kw": "Turn on when the sensor reports kilowatts instead of watts.",
+    "editor.help_rotation_interval": "How long each value stays before the next one appears.",
+    "editor.help_side_panel_width": "Width per panel. Together with the gap it sets the window width below which the card starts to shrink.",
+    "editor.help_side_panel_gap": "Space between panel and card. Higher values shrink the card — which is why the slider stops at 120.",
+    "editor.help_show_flow_rates": "Shows or hides the watt readings on all pipes. Individual bubbles can override this.",
+    "editor.help_demo_mode": "Shows invented values instead of real sensors. For trying out the look.",
+    "editor.help_transparent_background": "Removes the card background so the dashboard shows through.",
     "editor.background_padding_section": "Background padding (manual)",
     "editor.background_padding_top": "Background padding top (px)",
     "editor.background_padding_bottom": "Background padding bottom (px)",
@@ -1740,15 +1794,131 @@ const GLOBAL_FIELDS = {
     ],
 };
 
-const globalFields = (group) => (GLOBAL_FIELDS[group] || []).map(
-    ([key, def, labelKey, range]) => (range
-        ? { key, def, labelKey,
-            selector: { number: { min: range[0], max: range[1], step: range[2], mode: 'slider' } } }
-        : { key, def, labelKey, selector: { boolean: {} } }));
+// ---------------------------------------------------------------------------
+// Phase editor-7: layout and guidance.
+//
+// Three rules, applied once here and inherited by every section:
+//
+//   A. Arrangement -- x/y pairs sit side by side, switches run two columns.
+//      ha-form's grid container does this and was never used. On a dialog Home
+//      Assistant keeps at roughly half the screen width (a years-old open
+//      request on the frontend, not something a card can change), using the
+//      width that IS there is the only lever available.
+//
+//   B. Grouping -- more than six fields in a group become collapsible blocks.
+//      What gets touched often stays open, fine adjustment folds away.
+//
+//   C. Guidance -- computeHelper, offered by ha-form and unused until now.
+//      A helper is written only where the effect is not self-evident, and it
+//      says what MORE does and what LESS does. Everywhere else it would be
+//      noise, and noise is what makes people stop reading.
+// ---------------------------------------------------------------------------
 
-// A field: { key, def, selector, labelKey }. def is the value the legacy
-// markup used as its fallback -- reproduced exactly so no switch flips on
-// first open, and so the handler can avoid writing defaults into the YAML.
+// Helper text per field, keyed by the suffix after the bubble prefix so one
+// entry serves all twelve bubbles. Card-wide fields are keyed by full name.
+const FIELD_HELP = {
+    label_offset_x: 'help_offset_x',
+    label_offset_y: 'help_offset_y',
+    animation_threshold: 'help_animation_threshold',
+    sparkline_opacity: 'help_sparkline_opacity',
+    mix_gap: 'help_mix_gap',
+    mix_thickness: 'help_mix_thickness',
+    mix_ring_gap: 'help_mix_gap',
+    mix_ring_thickness: 'help_mix_thickness',
+    sparkline_period: 'help_sparkline_period',
+    sparkline_layer: 'help_sparkline_layer',
+    sparkline_test_mode: 'help_test_mode',
+    soc_max: 'help_soc_max',
+    pipe_threshold: 'help_pipe_threshold',
+    unit_kw: 'help_unit_kw',
+    zoom: 'help_zoom',
+    bubble_size: 'help_bubble_size',
+    pipe_label_size: 'help_pipe_label_size',
+    card_offset_x: 'help_offset_x',
+    card_offset_y: 'help_offset_y',
+    background_padding_top: 'help_background_padding',
+    background_padding_bottom: 'help_background_padding',
+    background_padding_left: 'help_background_padding',
+    background_padding_right: 'help_background_padding',
+    rotation_interval_sec: 'help_rotation_interval',
+    side_panel_width: 'help_side_panel_width',
+    side_panel_gap: 'help_side_panel_gap',
+    show_flow_rates: 'help_show_flow_rates',
+    demo_mode: 'help_demo_mode',
+    transparent_background: 'help_transparent_background',
+};
+
+// Look a field's helper up: exact name first, then the suffix after the
+// bubble prefix, so battery_label_offset_x and consumer_3_label_offset_x share
+// one entry.
+const fieldHelpKey = (key) => {
+    if (FIELD_HELP[key]) return FIELD_HELP[key];
+    const parts = key.split('_');
+    for (let i = 1; i < parts.length; i++) {
+        const suffix = parts.slice(i).join('_');
+        if (FIELD_HELP[suffix]) return FIELD_HELP[suffix];
+    }
+    return undefined;
+};
+
+// Wrap fields in a grid so they render side by side. minWidth decides how many
+// columns fit -- narrow for number pairs, wider for switch labels.
+const sideBySide = (fields, minWidth) => ({
+    __grid: true, minWidth: minWidth || '160px', fields,
+});
+
+// Wrap fields in a collapsible block.
+const collapsible = (titleKey, fields, expanded) => ({
+    __panel: true, titleKey, fields, expanded: expanded === true,
+});
+
+const globalField = ([key, def, labelKey, range]) => (range
+    ? { key, def, labelKey,
+        selector: { number: { min: range[0], max: range[1], step: range[2], mode: 'slider' } } }
+    : { key, def, labelKey, selector: { boolean: {} } });
+
+// Rules A and B for the card-wide groups, where the scrolling was worst:
+// sizing splits into three blocks, appearance and display run two columns.
+const globalFields = (group) => {
+    const list = (GLOBAL_FIELDS[group] || []).map(globalField);
+    const pick = (...keys) => keys.map((k) => list.find((x) => x.key === k)).filter(Boolean);
+
+    if (group === 'sizing') {
+        return [
+            collapsible('group_sizing_scale',
+                pick('zoom', 'bubble_size', 'pipe_label_size'), true),
+            collapsible('group_sizing_position',
+                [sideBySide(pick('card_offset_x', 'card_offset_y'))]),
+            collapsible('group_sizing_padding', [
+                sideBySide(pick('background_padding_top', 'background_padding_bottom')),
+                sideBySide(pick('background_padding_left', 'background_padding_right')),
+            ]),
+        ];
+    }
+    if (group === 'appearance') return [sideBySide(list, '240px')];
+    if (group === 'display') {
+        const sliders = pick('animation_threshold', 'rotation_interval_sec');
+        const switches = list.filter((x) => !sliders.includes(x));
+        return [sideBySide(switches, '240px'), ...sliders];
+    }
+    if (group === 'panels') {
+        const [enabled, ...rest] = list;
+        return [enabled, sideBySide(rest, '180px')];
+    }
+    return list;
+};
+
+// Containers nest, but data, schema and the write whitelist all need the flat
+// list of real fields. One walker, so the three can never see different sets.
+const flattenFields = (items) => {
+    const out = [];
+    for (const item of items) {
+        if (item && (item.__grid || item.__panel)) out.push(...flattenFields(item.fields));
+        else out.push(item);
+    }
+    return out;
+};
+
 const bubbleFields = (prefix, group) => {
     if (prefix === '__global__') return globalFields(group);
     const caps = BUBBLE_CAPS[prefix];
@@ -1789,22 +1959,29 @@ const bubbleFields = (prefix, group) => {
 
     if (group === 'offsets' && caps.labelOffsets) {
         const o = caps.labelOffsets;
+        // Rule A: x and y belong together and are adjusted together, so they
+        // sit on one row rather than stacked with a slider's width between.
         for (const target of o.targets) {
             const stem = target ? `${prefix}_${target}` : prefix;
-            for (const axis of ['x', 'y']) {
-                num(`${stem}_label_offset_${axis}`, 0, -o.range, o.range, 1,
-                    o.labels === 'bubble'
-                        ? `bubble_label_offset_${axis}`
-                        : `__axis_${axis.toUpperCase()}`);
-            }
+            const pair = ['x', 'y'].map((axis) => ({
+                key: `${stem}_label_offset_${axis}`, def: 0,
+                selector: { number: { min: -o.range, max: o.range, step: 1, mode: 'slider' } },
+                labelKey: o.labels === 'bubble'
+                    ? `bubble_label_offset_${axis}`
+                    : `__axis_${axis.toUpperCase()}`,
+            }));
+            f.push(sideBySide(pair));
         }
     }
 
     if (group === 'rotation' && caps.rotation) {
         bool(`${prefix}_rotate_show_live`, caps.rotation.showLiveDef, 'rotation_show_live');
+        const slots = [];
         for (let n = 1; n <= caps.rotation.slots; n++) {
-            bool(`${prefix}_rotate_show_daily_${n}`, false, `rotation_show_slot_${n}`);
+            slots.push({ key: `${prefix}_rotate_show_daily_${n}`, def: false,
+                         selector: { boolean: {} }, labelKey: `rotation_show_slot_${n}` });
         }
+        f.push(sideBySide(slots, '200px'));
     }
 
     if (group === 'donut' && caps.donutToday) {
@@ -1818,9 +1995,13 @@ const bubbleFields = (prefix, group) => {
         f.push({ key: `${prefix}_mix_period`, def: m.periodDef,
             selector: { select: { mode: 'dropdown', options: MIX_PERIODS } },
             labelKey: `${prefix}_mix_period`, optionLabels: `${prefix}_mix_period_` });
-        num(`${prefix}_mix_gap`, m.gapDef, 0, m.gapMax, 1, `${prefix}_mix_gap`);
-        num(`${prefix}_mix_thickness`, m.thicknessDef, m.thicknessMin, m.thicknessMax, 1,
-            `${prefix}_mix_thickness`);
+        f.push(sideBySide([
+            { key: `${prefix}_mix_gap`, def: m.gapDef, labelKey: `${prefix}_mix_gap`,
+              selector: { number: { min: 0, max: m.gapMax, step: 1, mode: 'slider' } } },
+            { key: `${prefix}_mix_thickness`, def: m.thicknessDef,
+              labelKey: `${prefix}_mix_thickness`,
+              selector: { number: { min: m.thicknessMin, max: m.thicknessMax, step: 1, mode: 'slider' } } },
+        ]));
     }
 
     if (group === 'sparkline' && caps.sparkline) {
@@ -1835,14 +2016,23 @@ const bubbleFields = (prefix, group) => {
             f.push({ key: `${prefix}_sparkline_period`, def: s.periodDef,
                 selector: { text: {} }, labelKey: 'sparkline_period' });
         }
-        f.push({ key: `${prefix}_sparkline_layer`, def: s.layerDef,
-            selector: { select: { mode: 'dropdown', options: SPARKLINE_LAYERS } },
-            labelKey: 'sparkline_layer', optionLabels: 'sparkline_layer_' });
-        f.push({ key: `${prefix}_sparkline_style`, def: s.styleDef,
-            selector: { select: { mode: 'dropdown', options: SPARKLINE_STYLES } },
-            labelKey: 'sparkline_style', optionLabels: 'sparkline_style_' });
-        num(`${prefix}_sparkline_opacity`, s.opacityDef, 0.05, 1, 0.05, 'sparkline_opacity');
-        if (s.testMode) bool(`${prefix}_sparkline_test_mode`, false, 'sparkline_test_mode');
+        // Rule B: appearance is fine adjustment -- folded away, the two
+        // everyday controls (on, period) stay in reach above it.
+        const fine = [
+            sideBySide([
+                { key: `${prefix}_sparkline_layer`, def: s.layerDef,
+                  selector: { select: { mode: 'dropdown', options: SPARKLINE_LAYERS } },
+                  labelKey: 'sparkline_layer', optionLabels: 'sparkline_layer_' },
+                { key: `${prefix}_sparkline_style`, def: s.styleDef,
+                  selector: { select: { mode: 'dropdown', options: SPARKLINE_STYLES } },
+                  labelKey: 'sparkline_style', optionLabels: 'sparkline_style_' },
+            ], '200px'),
+            { key: `${prefix}_sparkline_opacity`, def: s.opacityDef, labelKey: 'sparkline_opacity',
+              selector: { number: { min: 0.05, max: 1, step: 0.05, mode: 'slider' } } },
+        ];
+        if (s.testMode) fine.push({ key: `${prefix}_sparkline_test_mode`, def: false,
+            selector: { boolean: {} }, labelKey: 'sparkline_test_mode' });
+        f.push(collapsible('group_sparkline_look', fine));
     }
 
     return f;
@@ -2131,7 +2321,7 @@ class PowerFluxCardEditor extends LitElement {
     // them, so opening a section never flips a switch.
     _bubbleFormData(prefix, group) {
         const data = {};
-        for (const fld of bubbleFields(prefix, group)) {
+        for (const fld of flattenFields(bubbleFields(prefix, group))) {
             const cur = this._config[fld.key];
             data[fld.key] = cur !== undefined ? cur : fld.def;
         }
@@ -2139,22 +2329,43 @@ class PowerFluxCardEditor extends LitElement {
     }
 
     _bubbleSchema(prefix, group) {
-        return bubbleFields(prefix, group).map((fld) => {
-            const entry = { name: fld.key, selector: fld.selector,
-                            labelKey: fld.labelKey, optional: fld.optional };
-            if (fld.optionLabels !== undefined) {
+        const build = (items) => items.map((item) => {
+            // Grid: children side by side. flatten:true keeps their values at
+            // the top of the data object, where the handler expects them.
+            if (item.__grid) {
+                return { type: 'grid', name: '', flatten: true,
+                         column_min_width: item.minWidth, schema: build(item.fields) };
+            }
+            // Expandable: a collapsible block. flatten:true for the same reason.
+            if (item.__panel) {
+                return { type: 'expandable', name: '', flatten: true,
+                         expanded: item.expanded,
+                         title: this._localize(`editor.${item.titleKey}`),
+                         schema: build(item.fields) };
+            }
+            const entry = { name: item.key, selector: item.selector,
+                            labelKey: item.labelKey, optional: item.optional,
+                            helpKey: fieldHelpKey(item.key) };
+            if (item.optionLabels !== undefined) {
                 // An empty optionLabels prefix means the values are literals
                 // (durations such as "6h") and are shown unchanged. Otherwise
                 // the legacy keys drop the hyphen: "area-line" -> ..._arealine.
                 entry.selector = { select: { mode: 'dropdown',
-                    options: fld.selector.select.options.map((v) => ({
+                    options: item.selector.select.options.map((v) => ({
                         value: v,
-                        label: fld.optionLabels === '' ? v : this._localize(
-                            `editor.${fld.optionLabels}${v.replace(/-/g, '')}`),
+                        label: item.optionLabels === '' ? v : this._localize(
+                            `editor.${item.optionLabels}${v.replace(/-/g, '')}`),
                     })) } };
             }
             return entry;
         });
+        return build(bubbleFields(prefix, group));
+    }
+
+    // Guidance under a field, where the effect is not self-evident.
+    _bubbleHelper(schemaEntry) {
+        if (!schemaEntry || !schemaEntry.helpKey) return undefined;
+        return this._localize(`editor.${schemaEntry.helpKey}`);
     }
 
     _bubbleLabel(schemaEntry) {
@@ -2174,7 +2385,7 @@ class PowerFluxCardEditor extends LitElement {
         const v = (ev.detail && ev.detail.value) || {};
         const cfg = { ...this._config };
 
-        for (const fld of bubbleFields(prefix, group)) {
+        for (const fld of flattenFields(bubbleFields(prefix, group))) {
             if (!(fld.key in v)) continue;
             const val = v[fld.key];
             const isDefault = (val === fld.def) || (val === undefined) || (val === '');
@@ -2202,6 +2413,7 @@ class PowerFluxCardEditor extends LitElement {
                 .data=${this._bubbleFormData(prefix, group)}
                 .schema=${this._bubbleSchema(prefix, group)}
                 .computeLabel=${(s) => this._bubbleLabel(s)}
+                .computeHelper=${(s) => this._bubbleHelper(s)}
                 @value-changed=${(ev) => this._bubbleFormChanged(prefix, group, ev)}
             ></ha-form>
         `;

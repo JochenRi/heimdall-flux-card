@@ -254,20 +254,20 @@ def read_editor_schema_keys():
     a = ed.index('const SPARKLINE_LAYERS')
     b = ed.index('const fireEvent')
     module = ROOT / '.audit-bubblefields.cjs'
-    module.write_text(ed[a:b] + '\nmodule.exports={bubbleFields,BUBBLE_CAPS};\n')
+    module.write_text(ed[a:b] + '\nmodule.exports={bubbleFields,BUBBLE_CAPS,flattenFields};\n')
     try:
         out = subprocess.run(
             ['node', '-e', f'''
-const {{bubbleFields,BUBBLE_CAPS}}=require({json.dumps(str(module))});
+const {{bubbleFields,BUBBLE_CAPS,flattenFields}}=require({json.dumps(str(module))});
 const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline'];
 const res={{}};
 for(const p of Object.keys(BUBBLE_CAPS)){{
   const keys=[];
-  for(const g of groups) for(const f of bubbleFields(p,g)) keys.push(f.key);
+  for(const g of groups) for(const f of flattenFields(bubbleFields(p,g))) keys.push(f.key);
   res[p]=keys;
 }}
 for(const g of ['sizing','appearance','display','debug','panels'])
-  res['__global__:'+g]=bubbleFields('__global__',g).map(f=>f.key);
+  res['__global__:'+g]=flattenFields(bubbleFields('__global__',g)).map(f=>f.key);
 process.stdout.write(JSON.stringify(res));
 '''], capture_output=True, text=True, check=True)
     finally:
