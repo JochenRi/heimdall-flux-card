@@ -278,6 +278,8 @@ export default {
     "editor.label_toggle": "Show Label in Bubble",
     "editor.side_panels_enabled": "Side panels (left/right)",
     "editor.hide_inactive": "Hide Inactive Pipes",
+    "editor.show_flow_rates": "Show flow values on all pipes",
+    "editor.global_animation_threshold": "Global animation threshold (W)",
     "editor.entity": "Combined Battery Sensor (W)",
     "editor.suggest_entity": "Suggest a matching sensor",
     "editor.suggest_none": "No matching sensor found. Please pick one by hand.",

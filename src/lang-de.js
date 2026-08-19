@@ -278,6 +278,8 @@ export default {
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.side_panels_enabled": "Seiten-Panels (links/rechts)",
     "editor.hide_inactive": "Inaktive Röhren ausblenden",
+    "editor.show_flow_rates": "Durchflusswerte an allen Leitungen anzeigen",
+    "editor.global_animation_threshold": "Animationsschwelle global (W)",
     "editor.entity": "Kombinierter Batterie Sensor (W)",
     "editor.suggest_entity": "Passenden Sensor vorschlagen",
     "editor.suggest_none": "Kein passender Sensor gefunden. Bitte von Hand auswählen.",

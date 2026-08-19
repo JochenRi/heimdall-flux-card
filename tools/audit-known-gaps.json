@@ -7,9 +7,12 @@
     "Nothing goes in here to make the audit quiet."
   ],
   "missing_in_editor": {
-    "show_label_house": "Every other source bubble has a label toggle; the house bubble's is read but never offered. Close when the house section is rebuilt.",
-    "animation_threshold": "Global fallback threshold (default 1). Only the per-consumer variant is offered. Close with the global settings section.",
-    "show_flow_rates": "Global flow-rate toggle. Only the per-bubble variants are offered. Close with the global settings section."
+    "left_panel_cards": "Managed by _renderPanelCardList, a dedicated YAML card list rather than a field. Not missing, just not a picker -- listed so the audit stays quiet without pretending it checked it.",
+    "right_panel_cards": "Same as left_panel_cards.",
+    "temp_indoor_entity": "Top-level legacy fallback read alongside entities.temp_*. The entities.* form is what the editor offers and what the card prefers; these remain readable so old YAML keeps working. Clean-up candidate for when the climate section is rebuilt.",
+    "temp_outdoor_entity": "Top-level legacy fallback read alongside entities.temp_*. The entities.* form is what the editor offers and what the card prefers; these remain readable so old YAML keeps working. Clean-up candidate for when the climate section is rebuilt.",
+    "temp_forecast_high_entity": "Top-level legacy fallback read alongside entities.temp_*. The entities.* form is what the editor offers and what the card prefers; these remain readable so old YAML keeps working. Clean-up candidate for when the climate section is rebuilt.",
+    "temp_forecast_low_entity": "Top-level legacy fallback read alongside entities.temp_*. The entities.* form is what the editor offers and what the card prefers; these remain readable so old YAML keeps working. Clean-up candidate for when the climate section is rebuilt."
   },
   "surplus_in_editor": {
     "venus_charge": "Offered as a sensor picker, but the renderer only names it in the top-level-to-entities migration list -- no code path displays it. The battery bubble's equivalents (battery_charge / battery_discharge) ARE read, so this is an inconsistency in the CARD, not the editor. Kept visible rather than silently removed: a user may have one configured. Needs a decision -- wire it up in the renderer, or drop both controls.",

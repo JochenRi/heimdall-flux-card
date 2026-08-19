@@ -283,6 +283,8 @@ const lang_de = {
     "editor.label_toggle": "Label im Kreis anzeigen",
     "editor.side_panels_enabled": "Seiten-Panels (links/rechts)",
     "editor.hide_inactive": "Inaktive Röhren ausblenden",
+    "editor.show_flow_rates": "Durchflusswerte an allen Leitungen anzeigen",
+    "editor.global_animation_threshold": "Animationsschwelle global (W)",
     "editor.entity": "Kombinierter Batterie Sensor (W)",
     "editor.suggest_entity": "Passenden Sensor vorschlagen",
     "editor.suggest_none": "Kein passender Sensor gefunden. Bitte von Hand auswählen.",
@@ -807,6 +809,8 @@ const lang_en = {
     "editor.label_toggle": "Show Label in Bubble",
     "editor.side_panels_enabled": "Side panels (left/right)",
     "editor.hide_inactive": "Hide Inactive Pipes",
+    "editor.show_flow_rates": "Show flow values on all pipes",
+    "editor.global_animation_threshold": "Global animation threshold (W)",
     "editor.entity": "Combined Battery Sensor (W)",
     "editor.suggest_entity": "Suggest a matching sensor",
     "editor.suggest_none": "No matching sensor found. Please pick one by hand.",
@@ -1646,6 +1650,23 @@ const BUBBLE_CAPS = {
         sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
                      periods: SPARKLINE_PERIODS, periodDef: '24h', testMode: true },
     },
+    house: {
+        label: true,
+        icon: true,
+        showLabel: { key: 'show_label_house', def: false },
+        // No rotation: _getBubbleRotationDisplay is never called with 'house'.
+        // No unit switch, no offsets, no threshold -- the house bubble sits in
+        // the centre and has none of those.
+        donutToday: { toggleKey: 'donut_today_mode', toggleDef: false,
+                      labelKey: 'donut_today_mode',
+                      entities: ['donut_today_solar', 'donut_today_battery',
+                                 'donut_today_venus', 'donut_today_grid'] },
+        mix: { toggleKey: 'house_mix_donut_mode', toggleDef: false,
+               periodDef: 'day', gapDef: 8, gapMax: 30,
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15 },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h', testMode: true },
+    },
     grid: {
         label: true,
         icon: true,
@@ -1666,10 +1687,70 @@ const BUBBLE_CAPS = {
     },
 };
 
+// The main view is not a bubble -- it holds the card-wide switches and
+// sliders. Same machinery, its own list. Three keys the card has always read
+// and no editor copy ever offered are included: show_flow_rates and
+// animation_threshold (only the per-bubble variants existed) and
+// show_label_house (every other source bubble had a label toggle).
+const GLOBAL_FIELDS = {
+    sizing: [
+        ['zoom', 0.9, 'zoom_label', [0.5, 2, 0.05]],
+        ['bubble_size', 90, 'bubble_size', [70, 130, 2]],
+        ['pipe_label_size', 10, 'pipe_label_size', [8, 20, 1]],
+        ['card_offset_x', 0, 'card_offset_x', [-100, 100, 1]],
+        ['card_offset_y', 0, 'card_offset_y', [-100, 100, 1]],
+        ['background_padding_top', 0, 'background_padding_top', [0, 200, 1]],
+        ['background_padding_bottom', 0, 'background_padding_bottom', [0, 200, 1]],
+        ['background_padding_left', 0, 'background_padding_left', [0, 200, 1]],
+        ['background_padding_right', 0, 'background_padding_right', [0, 200, 1]],
+    ],
+    appearance: [
+        ['show_neon_glow', true, 'neon_glow'],
+        ['show_donut_border', false, 'donut_chart'],
+        ['show_comet_tail', false, 'comet_tail'],
+        ['show_dashed_line', false, 'dashed_line'],
+        ['show_tinted_background', false, 'tinted_background'],
+        ['use_colored_values', false, 'colored_values'],
+        ['always_color_bubbles', false, 'always_color_bubbles'],
+        ['transparent_background', false, 'transparent_background'],
+    ],
+    display: [
+        ['hide_consumer_icons', false, 'hide_consumer_icons'],
+        ['hide_inactive_flows', true, 'hide_inactive'],
+        ['show_consumer_always', false, 'show_consumer_always'],
+        // Card-wide flow-rate toggle. The card has always read it; only the
+        // per-bubble variants were ever offered.
+        ['show_flow_rates', true, 'show_flow_rates'],
+        // Card-wide animation threshold, likewise -- only the per-consumer
+        // variant existed in the editor.
+        ['animation_threshold', 1, 'global_animation_threshold', [0, 200, 1]],
+        ['side_panels_enabled', false, 'side_panels_enabled'],
+        ['rotation_interval_sec', 10, 'rotation_interval_sec', [2, 60, 1]],
+    ],
+    debug: [
+        ['demo_mode', false, 'demo_mode'],
+    ],
+    panels: [
+        ['side_panels_enabled', false, 'side_panels_enabled'],
+        ['side_panel_width', 320, 'side_panel_width', [150, 500, 10]],
+        // The slider stops at 120 on purpose: bubble size depends on the sum of
+        // panel width and gap, so a larger gap shrinks the whole card. A YAML
+        // value above 120 is silently clamped the next time this is touched.
+        ['side_panel_gap', 40, 'side_panel_gap', [0, 120, 4]],
+    ],
+};
+
+const globalFields = (group) => (GLOBAL_FIELDS[group] || []).map(
+    ([key, def, labelKey, range]) => (range
+        ? { key, def, labelKey,
+            selector: { number: { min: range[0], max: range[1], step: range[2], mode: 'slider' } } }
+        : { key, def, labelKey, selector: { boolean: {} } }));
+
 // A field: { key, def, selector, labelKey }. def is the value the legacy
 // markup used as its fallback -- reproduced exactly so no switch flips on
 // first open, and so the handler can avoid writing defaults into the YAML.
 const bubbleFields = (prefix, group) => {
+    if (prefix === '__global__') return globalFields(group);
     const caps = BUBBLE_CAPS[prefix];
     if (!caps) return [];
     const f = [];
@@ -2100,6 +2181,13 @@ class PowerFluxCardEditor extends LitElement {
             if (isDefault && !(fld.key in this._config)) continue;
             if (val === undefined || val === '') delete cfg[fld.key];
             else cfg[fld.key] = val;
+
+            // Comet tail and dashed line draw the same pipe two ways, so the
+            // hand-wired handler switched one off when the other came on. That
+            // rule lives in the markup handler and would have been lost
+            // silently on the way into the schema.
+            if (fld.key === 'show_comet_tail' && val === true) cfg.show_dashed_line = false;
+            if (fld.key === 'show_dashed_line' && val === true) cfg.show_comet_tail = false;
         }
 
         this._config = cfg;
@@ -2755,49 +2843,19 @@ class PowerFluxCardEditor extends LitElement {
         </div>
 
         <div class="option-group">
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.side_panels_enabled === true}
-                    .configValue=${'side_panels_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.side_panels_enabled')}</div>
-            </div>
+            ${this._bubbleForm('__global__', 'panels')}
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin: 8px 0 12px 0;">
                 ${this._localize('editor.side_panels_hint')}
             </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 150, max: 500, step: 10, mode: "slider" } }}
-                    .value=${this._config.side_panel_width !== undefined ? this._config.side_panel_width : 320}
-                    .configValue=${'side_panel_width'}
-                    .label=${this._localize('editor.side_panel_width')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 120, step: 4, mode: "slider" } }}
-                    .value=${this._config.side_panel_gap !== undefined ? this._config.side_panel_gap : 40}
-                    .configValue=${'side_panel_gap'}
-                    .label=${this._localize('editor.side_panel_gap')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
         </div>
 
         ${(() => {
-            // Phase power-1b: the width/gap pair silently drives the whole card
-            // scale -- scale = min(zoom, (host - 2*width - 2*gap) / 800). Turning
-            // the gap up shrinks every bubble, and nothing in the editor said so.
-            // This block makes the trade visible while dragging.
-            const w = Number(this._config.side_panel_width !== undefined ? this._config.side_panel_width : 320);
-            const g = Number(this._config.side_panel_gap !== undefined ? this._config.side_panel_gap : 40);
+            // Live arithmetic on the space the panels claim, and the window
+            // width below which the card starts shrinking. Free text, so it
+            // stays markup -- a schema renders fields, not sentences.
+            const w = this._config.side_panel_width !== undefined ? this._config.side_panel_width : 320;
+            const g = this._config.side_panel_gap !== undefined ? this._config.side_panel_gap : 40;
             const reserve = 2 * w + 2 * g;
             const threshold = 800 + reserve;
             const tight = threshold > 1920;
@@ -3563,7 +3621,12 @@ class PowerFluxCardEditor extends LitElement {
                 </ha-expansion-panel>
       `;
     }
+    // Phase editor-6: the house bubble's rings and curve. The house has no
+    // rotation (the rotation helper is never called with 'house'), no unit
+    // switch and no offsets -- it sits in the centre. Its base fields (sensor,
+    // label, icon, colours) live in the main view, where they always have.
     _renderDonutView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const houseMixTargets = ['self', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
@@ -3572,213 +3635,70 @@ class PowerFluxCardEditor extends LitElement {
             <h2>${this._localize('editor.donut_section')}</h2>
         </div>
 
-        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-bottom: 8px;">
+        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 12px;">
             ${this._localize('editor.donut_hint')}
         </div>
 
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.donut_today_mode === true}
-                .configValue=${'donut_today_mode'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.donut_today_mode')}</div>
-        </div>
-
-        <div class="separator"></div>
+        ${this._bubbleForm('house', 'donut')}
 
         ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_solar || "", 'donut_today_solar', this._localize('editor.donut_today_solar'))}
         ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_battery || "", 'donut_today_battery', this._localize('editor.donut_today_battery'))}
         ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_venus || "", 'donut_today_venus', this._localize('editor.donut_today_venus'))}
         ${this._renderEntitySelector(entitySelectorSchema, entities.donut_today_grid || "", 'donut_today_grid', this._localize('editor.donut_today_grid'))}
 
-        <div class="separator"></div>
-
-        <!-- Phase 5.74: House self-sufficiency (Autarkie) mix-ring. Second
-             outer ring around the consumption-origin donut. 2 segments:
-             self-supplied (PV+battery) vs grid. -->
+        <!-- House charge-mix ring: self-supply versus grid -->
         <ha-expansion-panel outlined .header=${this._localize('editor.house_mix_section')}>
             <ha-icon class="section-icon" slot="leading-icon" icon="mdi:circle-multiple-outline"></ha-icon>
+
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.house_mix_hint')}
             </div>
 
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.house_mix_donut_mode === true}
-                .configValue=${'house_mix_donut_mode'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.house_mix_enabled')}</div>
-        </div>
+            ${this._bubbleForm('house', 'mix')}
 
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${{ select: { mode: "dropdown", options: [
-                { value: "day",   label: this._localize('editor.house_mix_period_day')   },
-                { value: "month", label: this._localize('editor.house_mix_period_month') },
-                { value: "year",  label: this._localize('editor.house_mix_period_year')  }
-            ] } }}
-            .value=${this._config.house_mix_period || 'day'}
-            .configValue=${'house_mix_period'}
-            .label=${this._localize('editor.house_mix_period')}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
+            ${(() => {
+                const mixPeriod = this._config.house_mix_period || 'day';
+                return html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.house_mix_${mixPeriod}_section`)}
+                </div>
+                ${houseMixTargets.map((houseMixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`house_mix_${houseMixTarget}_${mixPeriod}`] || "",
+                    `house_mix_${houseMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.house_mix_${houseMixTarget}_label`)))}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
+                </div>
+                `;
+            })()}
 
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-            .value=${this._config.house_mix_gap !== undefined ? this._config.house_mix_gap : 8}
-            .configValue=${'house_mix_gap'}
-            .label=${this._localize('editor.house_mix_gap')}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-            .value=${this._config.house_mix_thickness !== undefined ? this._config.house_mix_thickness : 4}
-            .configValue=${'house_mix_thickness'}
-            .label=${this._localize('editor.house_mix_thickness')}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-
-        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-            ${this._localize('editor.house_mix_day_section')}
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_self_day || "", 'house_mix_self_day', this._localize('editor.house_mix_self_label'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_grid_day || "", 'house_mix_grid_day', this._localize('editor.house_mix_grid_label'))}
-
-        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-            ${this._localize('editor.house_mix_month_section')}
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_self_month || "", 'house_mix_self_month', this._localize('editor.house_mix_self_label'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_grid_month || "", 'house_mix_grid_month', this._localize('editor.house_mix_grid_label'))}
-
-        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-            ${this._localize('editor.house_mix_year_section')}
-        </div>
-        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_self_year || "", 'house_mix_self_year', this._localize('editor.house_mix_self_label'))}
-        ${this._renderEntitySelector(entitySelectorSchema, entities.house_mix_grid_year || "", 'house_mix_grid_year', this._localize('editor.house_mix_grid_label'))}
-
-        <!-- Phase 5.84: per-segment colors for the house mix-ring.
-             Each defaults to the matching pipe color when unset. -->
-        <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
-            ${this._localize('editor.source_mix_colors_section')}
-        </div>
-        ${this._renderColorPicker('house_mix_color_self', this._localize('editor.house_mix_color_self'), '#ffd900')}
-        ${this._renderColorPicker('house_mix_color_grid', this._localize('editor.house_mix_color_grid'), '#ff0040')}
-
-        <div class="separator"></div>
-
-        <!-- Phase 5.74: House sparkline. Default sensor is entities.house
-             (the home consumption sensor). Default colour house pink. -->
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.source_mix_colors_section')}
+            </div>
+            ${this._renderColorPicker('house_mix_color_self', this._localize('editor.house_mix_color_self'), '#ffd900')}
+            ${this._renderColorPicker('house_mix_color_grid', this._localize('editor.house_mix_color_grid'), '#ff0040')}
         </ha-expansion-panel>
 
+        <!-- House sparkline -->
         <ha-expansion-panel outlined .header=${this._localize('editor.sparkline_title')}>
             <ha-icon class="section-icon" slot="leading-icon" icon="mdi:chart-line-variant"></ha-icon>
+
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
                 ${this._localize('editor.sparkline_hint')}
             </div>
 
-        <div class="switch-row">
-            <ha-switch
-                .checked=${this._config.house_sparkline === true}
-                .configValue=${'house_sparkline'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
-        </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.house_sparkline_entity || "", 'house_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
+                ${this._localize('editor.sparkline_entity_hint')}
+            </div>
 
-        ${this._renderEntitySelector(entitySelectorSchema, entities.house_sparkline_entity || "", 'house_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
-        <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
-            ${this._localize('editor.sparkline_entity_hint')}
-        </div>
+            ${this._bubbleForm('house', 'sparkline')}
 
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${{ select: { mode: "dropdown", options: [
-                { value: "1h",  label: "1h"  },
-                { value: "6h",  label: "6h"  },
-                { value: "12h", label: "12h" },
-                { value: "24h", label: "24h" }
-            ] } }}
-            .value=${this._config.house_sparkline_period || '24h'}
-            .configValue=${'house_sparkline_period'}
-            .label=${this._localize('editor.sparkline_period')}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${{ select: { mode: "dropdown", options: [
-                { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                { value: "front", label: this._localize('editor.sparkline_layer_front') }
-            ] } }}
-            .value=${this._config.house_sparkline_layer || 'back'}
-            .configValue=${'house_sparkline_layer'}
-            .label=${this._localize('editor.sparkline_layer')}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${{ select: { mode: "dropdown", options: [
-                { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-            ] } }}
-            .value=${this._config.house_sparkline_style || 'area-line'}
-            .configValue=${'house_sparkline_style'}
-            .label=${this._localize('editor.sparkline_style')}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-
-        <ha-selector
-            .hass=${this.hass}
-            .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-            .value=${this._config.house_sparkline_opacity !== undefined ? this._config.house_sparkline_opacity : 0.35}
-            .configValue=${'house_sparkline_opacity'}
-            .label=${this._localize('editor.sparkline_opacity')}
-            @value-changed=${this._valueChanged}
-        ></ha-selector>
-
-        ${this._renderColorPicker('house_sparkline_color', this._localize('editor.sparkline_color'), '#ff2d78')}
-
-        <div class="switch-row" style="margin-top: 8px;">
-            <ha-switch
-                .checked=${this._config.house_sparkline_test_mode === true}
-                .configValue=${'house_sparkline_test_mode'}
-                @change=${this._valueChanged}
-            ></ha-switch>
-            <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-        </div>
+            ${this._renderColorPicker('house_sparkline_color', this._localize('editor.sparkline_color'), '#ff2d78')}
         </ha-expansion-panel>
       `;
     }
-
-    // Phase 5.46: helper -- consumer menu label.
-    // Returns the user-set consumer_N_label if non-empty, otherwise a
-    // generic "Bubble N" fallback. Keeps the main menu universal: tesla
-    // owners see "Tesla", pool owners see "Pool", everyone else just
-    // sees their bubbles numbered.
-    _consumerMenuLabel(idx) {
-        const userLabel = this._config[`consumer_${idx}_label`];
-        if (userLabel && typeof userLabel === 'string' && userLabel.trim() !== '') {
-            return userLabel;
-        }
-        return this._localize('editor.bubble_fallback').replace('{n}', idx);
-    }
-
-    // Phase 5.46: per-bubble menu-icon resolver.
-    // Returns the user-set consumer_N_icon if configured, otherwise the
-    // generic bubble icon. Used for the main menu items so users see
-    // their actual chosen icon next to each bubble entry.
-    _consumerMenuIcon(idx) {
-        return this._config[`consumer_${idx}_icon`] || 'mdi:circle-outline';
-    }
-
     // Phase 5.46: generic sub-view renderer for Consumer 2..7.
     // Consumer 1 (Tesla) gets its own _renderConsumer1View because it has
     // the rotation block added in phase 5.44; the rest share this generic
@@ -7032,6 +6952,10 @@ class PowerFluxCardEditor extends LitElement {
         `;
     }
 
+    // Phase editor-6: the house bubble's base fields. Its rings and curve live
+    // in the donut sub-view; this is the sensor, the naming and the colours.
+    // show_label_house joins them -- every other source bubble has a label
+    // toggle, the card has always read this one, and no editor copy offered it.
     _renderConsumersView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
         <div class="header">
@@ -7048,23 +6972,8 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.house_sensor_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.house_label}
-                .configValue=${'house_label'}
-                .label=${this._localize('editor.label') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.house_icon}
-                .configValue=${'house_icon'}
-                .label=${this._localize('editor.icon') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('house', 'sensors')}
+            ${this._bubbleForm('house', 'behavior')}
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_house || "", 'secondary_house', this._localize('editor.secondary_sensor'))}
             ${this._renderColorPickerQuint('color_house', null, 'color_text_house', 'color_icon_house', 'color_secondary_house', '#ff0080')}
@@ -7204,104 +7113,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_sizing')}
             </div>
 
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0.5, max: 2.0, step: 0.05, mode: "slider" } }}
-                    .value=${this._config.zoom !== undefined ? this._config.zoom : 0.9}
-                    .configValue=${'zoom'}
-                    .label=${this._localize('editor.zoom_label')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 70, max: 130, step: 2, mode: "slider" } }}
-                    .value=${this._config.bubble_size !== undefined ? this._config.bubble_size : 90}
-                    .configValue=${'bubble_size'}
-                    .label=${this._localize('editor.bubble_size')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 8, max: 20, step: 1, mode: "slider" } }}
-                    .value=${this._config.pipe_label_size !== undefined ? this._config.pipe_label_size : 10}
-                    .configValue=${'pipe_label_size'}
-                    .label=${this._localize('editor.pipe_label_size')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.card_offset_x !== undefined ? this._config.card_offset_x : 0}
-                    .configValue=${'card_offset_x'}
-                    .label=${this._localize('editor.card_offset_x')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.card_offset_y !== undefined ? this._config.card_offset_y : 0}
-                    .configValue=${'card_offset_y'}
-                    .label=${this._localize('editor.card_offset_y')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 12px;">
-                ${this._localize('editor.background_padding_section')}
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                    .value=${this._config.background_padding_top !== undefined ? this._config.background_padding_top : 0}
-                    .configValue=${'background_padding_top'}
-                    .label=${this._localize('editor.background_padding_top')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                    .value=${this._config.background_padding_bottom !== undefined ? this._config.background_padding_bottom : 0}
-                    .configValue=${'background_padding_bottom'}
-                    .label=${this._localize('editor.background_padding_bottom')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                    .value=${this._config.background_padding_left !== undefined ? this._config.background_padding_left : 0}
-                    .configValue=${'background_padding_left'}
-                    .label=${this._localize('editor.background_padding_left')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                    .value=${this._config.background_padding_right !== undefined ? this._config.background_padding_right : 0}
-                    .configValue=${'background_padding_right'}
-                    .label=${this._localize('editor.background_padding_right')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
+            ${this._bubbleForm('__global__', 'sizing')}
         </div>
 
         <!-- Group: Appearance / visual effects -->
@@ -7311,77 +7123,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_appearance')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_neon_glow !== false}
-                    .configValue=${'show_neon_glow'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.neon_glow')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_donut_border === true}
-                    .configValue=${'show_donut_border'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.donut_chart')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_comet_tail === true}
-                    .configValue=${'show_comet_tail'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.comet_tail')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_dashed_line === true}
-                    .configValue=${'show_dashed_line'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.dashed_line')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_tinted_background === true}
-                    .configValue=${'show_tinted_background'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.tinted_background')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.use_colored_values === true}
-                    .configValue=${'use_colored_values'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.colored_values')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.always_color_bubbles === true}
-                    .configValue=${'always_color_bubbles'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.always_color_bubbles')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.transparent_background === true}
-                    .configValue=${'transparent_background'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.transparent_background')}</div>
-            </div>
+            ${this._bubbleForm('__global__', 'appearance')}
         </div>
 
         <!-- Group: Display behavior -->
@@ -7391,52 +7133,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_display')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.hide_consumer_icons === true}
-                    .configValue=${'hide_consumer_icons'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.hide_consumer_icons')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.hide_inactive_flows !== false}
-                    .configValue=${'hide_inactive_flows'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.hide_inactive')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_consumer_always === true}
-                    .configValue=${'show_consumer_always'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.show_consumer_always')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.side_panels_enabled === true}
-                    .configValue=${'side_panels_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.side_panels_enabled')}</div>
-            </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 2, max: 60, step: 1, mode: "slider" } }}
-                    .value=${this._config.rotation_interval_sec !== undefined ? this._config.rotation_interval_sec : 10}
-                    .configValue=${'rotation_interval_sec'}
-                    .label=${this._localize('editor.rotation_interval_sec')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
+            ${this._bubbleForm('__global__', 'display')}
         </div>
 
 
@@ -7447,14 +7144,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_debug')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.demo_mode === true}
-                    .configValue=${'demo_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.demo_mode')}</div>
-            </div>
+            ${this._bubbleForm('__global__', 'debug')}
         </div>
 
       </div>

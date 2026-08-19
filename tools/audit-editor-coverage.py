@@ -62,10 +62,26 @@ DOMAINS = {
     'gridMixTarget': ['import', 'export'],
     'batteryMixTarget': ['pv', 'grid'],
     'venusMixTarget': ['pv', 'grid'],
+    'houseMixTarget': ['self', 'grid'],
 }
 
 # Bubbles and the keys that belong to them but do not carry the prefix.
-BUBBLES = ['solar', 'grid', 'battery', 'venus', 'bkw', 'house'] + CONSUMERS
+BUBBLES = ['solar', 'grid', 'battery', 'venus', 'bkw', 'house', 'power'] + CONSUMERS
+
+# Keys that belong to a section without carrying its prefix. Each one verified
+# in the markup of the section named.
+SECTION_OWNED = {
+    'house': {'donut_today_mode', 'donut_today_solar', 'donut_today_battery',
+              'donut_today_venus', 'donut_today_grid'},
+    'solar': {'pv_donut_today_mode', 'pv_donut_produced_today',
+              'pv_donut_forecast_today'},
+    'battery': {'hide_solar_to_battery_pipe'},
+    'venus': {'hide_solar_to_venus_pipe'},
+    'power': {'power_enabled', 'power_offset_x', 'power_offset_y',
+              'power_pulse_enabled', 'power_pulse_threshold', 'power_autarkie',
+              'power_lg_nutzbar', 'power_lg_reichweite', 'power_venus_nutzbar',
+              'power_venus_reichweite'},
+}
 
 EXTRA_KEYS = {
     b: {f'color_{b}', f'color_pipe_{b}', f'color_text_{b}', f'color_icon_{b}',
@@ -102,16 +118,40 @@ def expand(tpl, where):
     return out
 
 
+def strip_comments(src):
+    """Remove // and /* */ comments.
+
+    Prose is not code: "e.g. toggling panels" made the alias pattern read an
+    entity key called "g", and a catch block's e.message became a config key.
+    Harmless while every result was intersected with the entity-key universe,
+    not harmless once card-wide keys are checked too.
+    """
+    src = re.sub(r'/\*.*?\*/', '', src, flags=re.S)
+    return re.sub(r'(^|[^:])//[^\n]*', r'\1', src)
+
+
 def read_card_keys():
     """Everything the card reads: config.<key> and config.entities.<key>."""
-    src = CARD.read_text()
+    src = strip_comments(CARD.read_text())
     keys = set()
 
     for pat in [r'\bthis\.config\??\.(?!entities\b)([A-Za-z_]\w*)',
                 r'\bcfg\??\.(?!entities\b)([A-Za-z_]\w*)',
                 r'\.entities\??\.([A-Za-z_]\w*)',
-                r'\b(?:ent|e|tEnts|entities)\??\.([A-Za-z_]\w*)']:
+                r'\b(?:ent|tEnts|entities)\??\.([A-Za-z_]\w*)']:
         keys.update(m.group(1) for m in re.finditer(pat, src))
+
+    # The one-letter alias `e` is also the conventional name for an error and
+    # for an event, so `e.message` in a catch block read as a config key. It is
+    # only honoured inside a function that actually assigns it from
+    # config.entities.
+    for fn in re.finditer(r'\n    \w+\([^)]*\)\s*\{', src):
+        start = fn.end()
+        nxt = re.search(r'\n    \w+\([^)]*\)\s*\{', src[start:])
+        body = src[start:start + (nxt.start() if nxt else len(src) - start)]
+        if not re.search(r'(?:const|let)\s+e\s*=\s*[\w.?]*entities', body):
+            continue
+        keys.update(m.group(1) for m in re.finditer(r'\be\??\.([A-Za-z_]\w*)', body))
 
     for pat in [r"\b(?:this\.config|cfg)\??\.?\[\s*'([A-Za-z0-9_]+)'\s*\]",
                 r"\.entities\s*(?:\|\|\s*\{\})?\s*\)?\??\.?\[\s*'([A-Za-z0-9_]+)'\s*\]",
@@ -124,6 +164,18 @@ def read_card_keys():
 
     # _pv('key') -- the tile's generic entity reader
     keys.update(re.findall(r"_pv\('([A-Za-z0-9_]+)'\)", src))
+
+    # Local helpers that wrap a reader take the key as an argument, so the
+    # literal sits at the CALL site, not next to any config access. The power
+    # tile's runtime(hKey, kKey) is one; finding it by name would only work
+    # until the next one appears. Any local arrow function whose body calls
+    # _pv( is treated as a reader and its call-site literals collected.
+    for fn in re.finditer(r'const (\w+) = \([^)]*\) => \{(.*?)\n        \};', src, re.S):
+        name, body = fn.group(1), fn.group(2)
+        if '_pv(' not in body:
+            continue
+        for call in re.finditer(r'\b%s\(([^)]*)\)' % re.escape(name), src):
+            keys.update(re.findall(r"'([A-Za-z0-9_]+)'", call.group(1)))
 
     # Every key-shaped template literal, wherever it sits. Keys are built into
     # variables before use (const sensorKey = `...`), so restricting this to
@@ -214,6 +266,8 @@ for(const p of Object.keys(BUBBLE_CAPS)){{
   for(const g of groups) for(const f of bubbleFields(p,g)) keys.push(f.key);
   res[p]=keys;
 }}
+for(const g of ['sizing','appearance','display','debug','panels'])
+  res['__global__:'+g]=bubbleFields('__global__',g).map(f=>f.key);
 process.stdout.write(JSON.stringify(res));
 '''], capture_output=True, text=True, check=True)
     finally:
@@ -221,9 +275,25 @@ process.stdout.write(JSON.stringify(res));
     return {p: set(v) for p, v in json.loads(out.stdout).items()}
 
 
+def keys_from_power_section():
+    """The power section predates bubbleFields and builds its own ha-form
+    schema, so neither the markup walk nor the schema call sees it."""
+    src = EDITOR.read_text()
+    keys = set()
+    block = re.search(r'const POWER_FLUX_EDITOR_POWER_KEYS = \[(.*?)\];', src, re.S)
+    if block:
+        keys.update(re.findall(r"'([A-Za-z0-9_]+)'", block.group(1)))
+    schema = re.search(r'_powerSchema\(\) \{(.*?)\n    \}', src, re.S)
+    if schema:
+        keys.update(re.findall(r"name: '([A-Za-z0-9_]+)'", schema.group(1)))
+    return keys
+
+
 def keys_for(bubble, pool):
     own = {k for k in pool
-           if k == bubble or k.startswith(bubble + '_') or k in EXTRA_KEYS[bubble]}
+           if k == bubble or k.startswith(bubble + '_')
+           or k in EXTRA_KEYS.get(bubble, set())
+           or k in SECTION_OWNED.get(bubble, set())}
     # consumer_1 must not swallow keys of consumer_1x -- no such bubble exists,
     # but guard anyway so a future rename cannot corrupt the comparison.
     return own
@@ -237,6 +307,7 @@ SECTION_OF = {
     'consumer_3': '_renderConsumer3View', 'consumer_4': '_renderConsumer4View',
     'consumer_5': '_renderConsumer5View', 'consumer_6': '_renderConsumer6View',
     'consumer_7': '_renderConsumer7View',
+    'power': '_renderPowerView',
 }
 
 
@@ -252,6 +323,11 @@ def main(argv):
     # question this audit answers is whether the editor offers it AT ALL, so
     # the markup side is the union over every section.
     all_markup = set().union(*markup.values()) if markup else set()
+    all_markup |= keys_from_power_section()
+
+    global_schema = set()
+    for g in ('sizing', 'appearance', 'display', 'debug', 'panels'):
+        global_schema |= set(schema.get('__global__:' + g, []))
 
     gaps = json.loads((ROOT / 'tools' / 'audit-known-gaps.json').read_text())
     known_missing = set(gaps['missing_in_editor'])
@@ -286,6 +362,29 @@ def main(argv):
         for k in overlap:
             print(f'    offered twice (markup and schema) : {k}')
         for k in old:
+            print(f'    known, still open                 : {k}')
+
+    # Card-wide keys belong to no bubble. Without this block a global option
+    # the card reads could go missing from the editor and no per-bubble check
+    # would ever notice -- which is how show_flow_rates and animation_threshold
+    # stayed unreachable for as long as they did.
+    if set(wanted) == set(BUBBLES):
+        bubble_keys = set()
+        for b in BUBBLES:
+            bubble_keys |= keys_for(b, card) | keys_for(b, all_markup)
+        g_want = {k for k in card if k not in bubble_keys}
+        g_have = {k for k in (all_markup | global_schema) if k not in bubble_keys}
+        g_missing = sorted(k for k in g_want - g_have if k not in known_missing)
+        g_old = sorted(k for k in g_want - g_have if k in known_missing)
+        verdict = 'ok' if not g_missing else 'MISMATCH'
+        if g_missing:
+            failed = True
+        elif g_old:
+            verdict = f'ok ({len(g_old)} known)'
+        print(f'{"(card-wide)":<12}{len(g_want):>6}{len(g_have):>8}   {verdict}')
+        for k in g_missing:
+            print(f'    card reads, editor does not offer : {k}')
+        for k in g_old:
             print(f'    known, still open                 : {k}')
 
     print('-' * 62)

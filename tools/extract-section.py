@@ -26,7 +26,10 @@ def section(name):
     src = EDITOR.read_text()
     start = src.index(f'    {name}(')
     rest = src[start + 10:]
-    nxt = re.search(r'\n    _render\w+\(', rest)
+    # render() is a boundary too -- it is not named _render*, and without it a
+    # section reads on into the main render body. That is how the global
+    # options first appeared to belong to _renderConsumersView.
+    nxt = re.search(r'\n    (?:_render\w+|render)\(', rest)
     return src[start:start + 10 + (nxt.start() if nxt else len(rest))]
 
 
