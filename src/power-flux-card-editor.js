@@ -16,6 +16,117 @@ const POWER_FLUX_EDITOR_POWER_KEYS = [
     'power_venus_nutzbar', 'power_venus_reichweite',
 ];
 
+// ---------------------------------------------------------------------------
+// Phase editor-1: schema-driven bubble sections.
+//
+// Every bubble section in this editor is a hand-written copy of the same
+// controls. Twelve copies, 5954 lines, and every new option has to be added
+// twelve times -- which is how bkw_sparkline_test_mode, show_label_house,
+// animation_threshold and show_flow_rates ended up readable by the card but
+// not settable in the editor.
+//
+// BUBBLE_CAPS holds what each bubble can do. bubbleFields() turns that into a
+// field list, and the field list is the SINGLE source for three things:
+// the ha-form data, the ha-form schema, and the write whitelist in the
+// change handler. They cannot drift apart because they are the same array.
+//
+// Deliberately NOT in the schema (see session notes 18.08.2026, section 3.4):
+//   - colours: ha-form only offers color_rgb (number arrays), the config uses
+//     hex strings, and color_rgb has no empty state so the reset button would
+//     be lost. Colour pickers stay as markup, in place.
+//   - entity pickers: they keep _renderEntitySelector, except for the donut
+//     group, which is the flatten:false probe (see _bubbleEntitySchema).
+// ---------------------------------------------------------------------------
+
+const SPARKLINE_LAYERS = ['back', 'mid', 'front'];
+const SPARKLINE_STYLES = ['area', 'line', 'area-line'];
+
+const BUBBLE_CAPS = {
+    bkw: {
+        label: true,
+        icon: true,
+        enabled: { key: 'bkw_enabled', def: true },
+        showLabel: { key: 'show_label_bkw', def: true },
+        unitKw: { key: 'bkw_unit_kw', def: false },
+        showFlowRate: { key: 'show_flow_rate_bkw', def: true },
+        animationThreshold: { key: 'bkw_animation_threshold', max: 200, def: 1 },
+        labelOffsets: ['house', 'venus', 'grid'],
+        rotation: { slots: 3, showLiveDef: true },
+        donutToday: { toggleKey: 'bkw_donut_today_mode', toggleDef: false,
+                      entities: ['bkw_donut_produced_today', 'bkw_donut_forecast_today'] },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     testMode: true },
+    },
+};
+
+// A field: { key, def, selector, labelKey }. def is the value the legacy
+// markup used as its fallback -- reproduced exactly so no switch flips on
+// first open, and so the handler can avoid writing defaults into the YAML.
+const bubbleFields = (prefix, group) => {
+    const caps = BUBBLE_CAPS[prefix];
+    if (!caps) return [];
+    const f = [];
+    const bool = (key, def, labelKey) =>
+        f.push({ key, def, selector: { boolean: {} }, labelKey });
+    const num = (key, def, min, max, step, labelKey) =>
+        f.push({ key, def, selector: { number: { min, max, step, mode: 'slider' } }, labelKey });
+
+    if (group === 'sensors') {
+        if (caps.label) f.push({ key: `${prefix}_label`, def: undefined,
+            selector: { text: {} }, labelKey: 'label', optional: true });
+        if (caps.icon) f.push({ key: `${prefix}_icon`, def: undefined,
+            selector: { icon: {} }, labelKey: 'icon', optional: true });
+    }
+
+    if (group === 'behavior') {
+        if (caps.enabled) bool(caps.enabled.key, caps.enabled.def, `${prefix}_enabled`);
+        if (caps.showLabel) bool(caps.showLabel.key, caps.showLabel.def, 'label_toggle');
+        if (caps.unitKw) bool(caps.unitKw.key, caps.unitKw.def, `${prefix}_unit_kw`);
+        if (caps.showFlowRate) bool(caps.showFlowRate.key, caps.showFlowRate.def, 'flow_rate_title');
+        if (caps.animationThreshold) {
+            const a = caps.animationThreshold;
+            num(a.key, a.def, 0, a.max, 1, 'bubble_animation_threshold');
+        }
+    }
+
+    if (group === 'offsets' && caps.labelOffsets) {
+        for (const target of caps.labelOffsets) {
+            for (const axis of ['x', 'y']) {
+                num(`${prefix}_${target}_label_offset_${axis}`, 0, -150, 150, 1,
+                    `__axis_${axis.toUpperCase()}`);
+            }
+        }
+    }
+
+    if (group === 'rotation' && caps.rotation) {
+        bool(`${prefix}_rotate_show_live`, caps.rotation.showLiveDef, 'rotation_show_live');
+        for (let n = 1; n <= caps.rotation.slots; n++) {
+            bool(`${prefix}_rotate_show_daily_${n}`, false, `rotation_show_slot_${n}`);
+        }
+    }
+
+    if (group === 'donut' && caps.donutToday) {
+        bool(caps.donutToday.toggleKey, caps.donutToday.toggleDef, `${prefix}_donut_enabled`);
+    }
+
+    if (group === 'sparkline' && caps.sparkline) {
+        const s = caps.sparkline;
+        bool(`${prefix}_sparkline`, false, 'sparkline_enabled');
+        f.push({ key: `${prefix}_sparkline_period`, def: undefined,
+            selector: { text: {} }, labelKey: 'sparkline_period' });
+        f.push({ key: `${prefix}_sparkline_layer`, def: s.layerDef,
+            selector: { select: { mode: 'dropdown', options: SPARKLINE_LAYERS } },
+            labelKey: 'sparkline_layer', optionLabels: 'sparkline_layer_' });
+        f.push({ key: `${prefix}_sparkline_style`, def: s.styleDef,
+            selector: { select: { mode: 'dropdown', options: SPARKLINE_STYLES } },
+            labelKey: 'sparkline_style', optionLabels: 'sparkline_style_' });
+        num(`${prefix}_sparkline_opacity`, s.opacityDef, 0.05, 1, 0.05, 'sparkline_opacity');
+        if (s.testMode) bool(`${prefix}_sparkline_test_mode`, false, 'sparkline_test_mode');
+    }
+
+    return f;
+};
+
 const fireEvent = (node, type, detail, options) => {
     options = options || {};
     detail = detail === null || detail === undefined ? {} : detail;
@@ -244,6 +355,83 @@ class PowerFluxCardEditor extends LitElement {
         delete newConfig[key];
         this._config = newConfig;
         fireEvent(this, "config-changed", { config: this._config });
+    }
+
+    // -----------------------------------------------------------------------
+    // Phase editor-1: the three consumers of bubbleFields(). Data, schema and
+    // write whitelist all come from the same array, so a field cannot exist in
+    // one and be missing from another.
+    // -----------------------------------------------------------------------
+
+    // Form data. Defaults are reproduced exactly as the legacy markup computed
+    // them, so opening a section never flips a switch.
+    _bubbleFormData(prefix, group) {
+        const data = {};
+        for (const fld of bubbleFields(prefix, group)) {
+            const cur = this._config[fld.key];
+            data[fld.key] = cur !== undefined ? cur : fld.def;
+        }
+        return data;
+    }
+
+    _bubbleSchema(prefix, group) {
+        return bubbleFields(prefix, group).map((fld) => {
+            const entry = { name: fld.key, selector: fld.selector,
+                            labelKey: fld.labelKey, optional: fld.optional };
+            if (fld.optionLabels) {
+                // Translate the option values into {value,label} pairs. The
+                // legacy keys drop the hyphen: "area-line" -> ..._arealine.
+                entry.selector = { select: { mode: 'dropdown',
+                    options: fld.selector.select.options.map((v) => ({
+                        value: v,
+                        label: this._localize(`editor.${fld.optionLabels}${v.replace(/-/g, '')}`),
+                    })) } };
+            }
+            return entry;
+        });
+    }
+
+    _bubbleLabel(schemaEntry) {
+        const k = schemaEntry.labelKey || schemaEntry.name;
+        if (k === '__axis_X') return 'X';
+        if (k === '__axis_Y') return 'Y';
+        const txt = this._localize(`editor.${k}`);
+        return schemaEntry.optional ? `${txt} (Optional)` : txt;
+    }
+
+    // Never assigns a whole object back -- only the keys this group declares.
+    // A default is written only when the key already exists in the config, so
+    // opening a section does not materialise thirty defaults into the YAML.
+    _bubbleFormChanged(prefix, group, ev) {
+        ev.stopPropagation();
+        if (!this._config) return;
+        const v = (ev.detail && ev.detail.value) || {};
+        const cfg = { ...this._config };
+
+        for (const fld of bubbleFields(prefix, group)) {
+            if (!(fld.key in v)) continue;
+            const val = v[fld.key];
+            const isDefault = (val === fld.def) || (val === undefined) || (val === '');
+            if (isDefault && !(fld.key in this._config)) continue;
+            if (val === undefined || val === '') delete cfg[fld.key];
+            else cfg[fld.key] = val;
+        }
+
+        this._config = cfg;
+        fireEvent(this, "config-changed", { config: this._config });
+    }
+
+    // Shorthand so a section can drop in one line per group.
+    _bubbleForm(prefix, group) {
+        return html`
+            <ha-form
+                .hass=${this.hass}
+                .data=${this._bubbleFormData(prefix, group)}
+                .schema=${this._bubbleSchema(prefix, group)}
+                .computeLabel=${(s) => this._bubbleLabel(s)}
+                @value-changed=${(ev) => this._bubbleFormChanged(prefix, group, ev)}
+            ></ha-form>
+        `;
     }
 
     // Phase A3.2a: side-panel card-list management. Each panel is an array under
@@ -1950,6 +2138,12 @@ class PowerFluxCardEditor extends LitElement {
       `;
     }
 
+    // Phase editor-1: first legacy section rebuilt on the generic schema.
+    // Switches, numbers, text, icon and dropdowns come from BUBBLE_CAPS via
+    // _bubbleForm(); colour pickers and entity pickers stay as markup in place
+    // (see the note above BUBBLE_CAPS). 300 lines -> ~75, and the section
+    // gains bkw_sparkline_test_mode, which the card has always read but no
+    // editor copy ever offered.
     _renderBkwView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
         <div class="header">
@@ -1968,23 +2162,7 @@ class PowerFluxCardEditor extends LitElement {
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.bkw || "", 'bkw', this._localize('editor.entity'))}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.bkw_label}
-                .configValue=${'bkw_label'}
-                .label=${this._localize('editor.label') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.bkw_icon}
-                .configValue=${'bkw_icon'}
-                .label=${this._localize('editor.icon') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('bkw', 'sensors')}
 
             ${this._renderColorPicker('color_bkw', this._localize('editor.bkw_color_bubble'), '#ffdd00')}
             ${this._renderColorPicker('color_pipe_bkw', this._localize('editor.bkw_color_pipe'), '#ffdd00')}
@@ -1999,52 +2177,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_behavior')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.bkw_enabled !== false}
-                    .configValue=${'bkw_enabled'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.bkw_enabled')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_label_bkw !== false}
-                    .configValue=${'show_label_bkw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.label_toggle')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.bkw_unit_kw === true}
-                    .configValue=${'bkw_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.bkw_unit_kw')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_bkw !== false}
-                    .configValue=${'show_flow_rate_bkw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
-            </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                    .value=${this._config.bkw_animation_threshold !== undefined ? this._config.bkw_animation_threshold : 1}
-                    .configValue=${'bkw_animation_threshold'}
-                    .label=${this._localize('editor.bubble_animation_threshold')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
+            ${this._bubbleForm('bkw', 'behavior')}
         </div>
 
         <!-- Group: Pipe label positions -->
@@ -2055,76 +2188,10 @@ class PowerFluxCardEditor extends LitElement {
             </div>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
-                ${this._localize('editor.bkw_label_pos_house')}
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
-                    .value=${this._config.bkw_house_label_offset_x !== undefined ? this._config.bkw_house_label_offset_x : 0}
-                    .configValue=${'bkw_house_label_offset_x'}
-                    .label=${"X"}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
-                    .value=${this._config.bkw_house_label_offset_y !== undefined ? this._config.bkw_house_label_offset_y : 0}
-                    .configValue=${'bkw_house_label_offset_y'}
-                    .label=${"Y"}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
+                ${this._localize('editor.bkw_label_pos_house')} / ${this._localize('editor.bkw_label_pos_venus')} / ${this._localize('editor.bkw_label_pos_grid')}
             </div>
 
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
-                ${this._localize('editor.bkw_label_pos_venus')}
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
-                    .value=${this._config.bkw_venus_label_offset_x !== undefined ? this._config.bkw_venus_label_offset_x : 0}
-                    .configValue=${'bkw_venus_label_offset_x'}
-                    .label=${"X"}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
-                    .value=${this._config.bkw_venus_label_offset_y !== undefined ? this._config.bkw_venus_label_offset_y : 0}
-                    .configValue=${'bkw_venus_label_offset_y'}
-                    .label=${"Y"}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
-                ${this._localize('editor.bkw_label_pos_grid')}
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
-                    .value=${this._config.bkw_grid_label_offset_x !== undefined ? this._config.bkw_grid_label_offset_x : 0}
-                    .configValue=${'bkw_grid_label_offset_x'}
-                    .label=${"X"}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -150, max: 150, step: 1, mode: "slider" } }}
-                    .value=${this._config.bkw_grid_label_offset_y !== undefined ? this._config.bkw_grid_label_offset_y : 0}
-                    .configValue=${'bkw_grid_label_offset_y'}
-                    .label=${"Y"}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
+            ${this._bubbleForm('bkw', 'offsets')}
         </div>
 
         <!-- Rotation -->
@@ -2134,24 +2201,9 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.rotation_section')}
             </div>
             <div class="panel-content">
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.bkw_rotate_show_live !== false}
-                        .configValue=${'bkw_rotate_show_live'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
-                </div>
+                ${this._bubbleForm('bkw', 'rotation')}
 
                 ${[1, 2, 3].map((n) => html`
-                    <div class="switch-row">
-                        <ha-switch
-                            .checked=${this._config[`bkw_rotate_show_daily_${n}`] === true}
-                            .configValue=${`bkw_rotate_show_daily_${n}`}
-                            @change=${this._valueChanged}
-                        ></ha-switch>
-                        <div class="switch-label">${this._localize(`editor.rotation_show_slot_${n}`)}</div>
-                    </div>
                     ${this._renderEntitySelector(entitySelectorSchema, entities[`bkw_rotate_daily_${n}`] || "", `bkw_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
                     ${this._renderColorPicker(`bkw_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), '#f7e364')}
                 `)}
@@ -2165,14 +2217,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.bkw_donut_section')}
             </div>
             <div class="panel-content">
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.bkw_donut_today_mode === true}
-                        .configValue=${'bkw_donut_today_mode'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.bkw_donut_enabled')}</div>
-                </div>
+                ${this._bubbleForm('bkw', 'donut')}
 
                 <div class="hint">${this._localize('editor.bkw_donut_hint')}</div>
 
@@ -2188,62 +2233,9 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.sparkline_title')}
             </div>
             <div class="panel-content">
-                <div class="switch-row">
-                    <ha-switch
-                        .checked=${this._config.bkw_sparkline === true}
-                        .configValue=${'bkw_sparkline'}
-                        @change=${this._valueChanged}
-                    ></ha-switch>
-                    <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
-                </div>
-
                 ${this._renderEntitySelector(entitySelectorSchema, entities.bkw_sparkline_entity || "", 'bkw_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
 
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${textSelectorSchema}
-                    .value=${this._config.bkw_sparkline_period}
-                    .configValue=${'bkw_sparkline_period'}
-                    .label=${this._localize('editor.sparkline_period')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ select: { mode: "dropdown", options: [
-                        { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                        { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                        { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                    ] } }}
-                    .value=${this._config.bkw_sparkline_layer || 'back'}
-                    .configValue=${'bkw_sparkline_layer'}
-                    .label=${this._localize('editor.sparkline_layer')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ select: { mode: "dropdown", options: [
-                        { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                        { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                        { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                    ] } }}
-                    .value=${this._config.bkw_sparkline_style || 'area-line'}
-                    .configValue=${'bkw_sparkline_style'}
-                    .label=${this._localize('editor.sparkline_style')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-
-                <div>
-                    <ha-selector
-                        .hass=${this.hass}
-                        .selector=${{ number: { min: 0.05, max: 1, step: 0.05, mode: "slider" } }}
-                        .value=${this._config.bkw_sparkline_opacity !== undefined ? this._config.bkw_sparkline_opacity : 0.35}
-                        .configValue=${'bkw_sparkline_opacity'}
-                        .label=${this._localize('editor.sparkline_opacity')}
-                        @value-changed=${this._valueChanged}
-                    ></ha-selector>
-                </div>
+                ${this._bubbleForm('bkw', 'sparkline')}
 
                 ${this._renderColorPicker('bkw_sparkline_color', this._localize('editor.sparkline_color'), '#ffdd00')}
             </div>
