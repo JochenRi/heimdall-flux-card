@@ -41,6 +41,17 @@ export default {
     "editor.power_venus_nutzbar": "{venus} — nutzbare Restenergie (kWh)",
     "editor.power_venus_reichweite": "{venus} — Reichweite (h)",
     "editor.temp_section": "Klima (Temperatur)",
+    // Phase temp-body: the info panel in the lower two thirds.
+    "editor.temp_body_section": "Untere Tafel",
+    "editor.temp_body_hint": "Der untere Teil der Kachel zeigt Ladeanteile als Balken und darunter Temperaturen. Ein Balken bleibt leer, solange keine Zählerstände hinterlegt sind.",
+    "editor.temp_body_mix_consumer_1": "Mix Verbraucher 1",
+    "editor.temp_body_mix_consumer_5": "Mix Verbraucher 5",
+    "editor.temp_body_temps_section": "Temperaturen",
+    "editor.temp_body_temps_hint": "Leer gelassene Felder erzeugen keine Zeile.",
+    "editor.temp_body_battery_temp": "Temperatur {battery}",
+    "editor.temp_body_venus_temp": "Temperatur {venus}",
+    "editor.temp_body_bwwp_temp": "Temperatur Warmwasser",
+    "editor.help_temp_body_mix": "Zeigt den Balken hier statt als Ring um die Blase. Den Ring an der Blase dann dort abschalten.",
     // Phase editor-9: climate section on the schema.
     "editor.temp_sensors_section": "Sensoren",
     "editor.temp_scales_section": "Skalen",
@@ -571,7 +582,14 @@ export default {
     "card.label_consumer_4": "Verbr. 4",
     "card.label_consumer_5": "Verbr. 5",
     "card.label_import": "Import",
-    "card.temp_body_placeholder": "Platz für Raumklima —\nInhalt folgt",
+    "card.temp_mix_pv": "PV",
+    "card.temp_mix_lg": "{battery}",
+    "card.temp_mix_venus": "{venus}",
+    "card.temp_mix_grid": "Netz",
+    "card.temp_row_title": "Temperaturen",
+    "card.temp_row_battery": "{battery}",
+    "card.temp_row_venus": "{venus}",
+    "card.temp_row_bwwp": "BWWP",
     "card.label_export": "Export",
   }
 };

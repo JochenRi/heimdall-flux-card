@@ -489,6 +489,11 @@ const BUBBLE_CAPS = {
         // card, not nudged within one.
         labelOffsets: { targets: [''], range: 300, labels: 'temp',
                         keyStem: 'offset', defaults: { x: 0, y: 0 } },
+        // Phase temp-body: what the lower two thirds carry.
+        bodyToggles: [
+            ['temp_body_mix_consumer_1', true, 'temp_body_mix_consumer_1'],
+            ['temp_body_mix_consumer_5', true, 'temp_body_mix_consumer_5'],
+        ],
         scales: [
             ['temp_outdoor_min', -10, -40, 20],
             ['temp_outdoor_max', 40, 20, 60],
@@ -634,6 +639,8 @@ const FIELD_HELP = {
     side_panel_gap: 'help_side_panel_gap',
     show_flow_rates: 'help_show_flow_rates',
     portals_enabled: 'help_portals_enabled',
+    temp_body_mix_consumer_1: 'help_temp_body_mix',
+    temp_body_mix_consumer_5: 'help_temp_body_mix',
     temp_offset_x: 'help_temp_offset',
     temp_offset_y: 'help_temp_offset',
     temp_outdoor_min: 'help_temp_scale_min',
@@ -775,6 +782,11 @@ const bubbleFields = (prefix, group) => {
 
     // Scale ends for the two thermometer columns. Paired so min and max of one
     // column sit on a row -- they are only ever set together.
+    if (group === 'body' && caps.bodyToggles) {
+        f.push(sideBySide(caps.bodyToggles.map(([key, def, labelKey]) =>
+            ({ key, def, labelKey, selector: { boolean: {} } })), '200px'));
+    }
+
     if (group === 'scales' && caps.scales) {
         for (let i = 0; i < caps.scales.length; i += 2) {
             f.push(sideBySide(caps.scales.slice(i, i + 2).map(([key, def, min, max]) => ({
@@ -3066,6 +3078,27 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.temp_outdoor || "", 'temp_outdoor', this._localize('editor.temp_outdoor'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.temp_forecast_high || "", 'temp_forecast_high', this._localize('editor.temp_forecast_high'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.temp_forecast_low || "", 'temp_forecast_low', this._localize('editor.temp_forecast_low'))}
+        </ha-expansion-panel>
+
+        <!-- Lower panel -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.temp_body_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:view-list"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.temp_body_hint')}
+            </div>
+
+            ${this._bubbleForm('temp', 'body')}
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.temp_body_temps_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_battery_temp || "", 'temp_body_battery_temp', this._localize('editor.temp_body_battery_temp'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_venus_temp || "", 'temp_body_venus_temp', this._localize('editor.temp_body_venus_temp'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_bwwp_temp || "", 'temp_body_bwwp_temp', this._localize('editor.temp_body_bwwp_temp'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                ${this._localize('editor.temp_body_temps_hint')}
+            </div>
         </ha-expansion-panel>
 
         <!-- Scale ends -->

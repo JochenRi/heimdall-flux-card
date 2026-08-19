@@ -41,6 +41,17 @@ export default {
     "editor.power_venus_nutzbar": "{venus} — usable energy left (kWh)",
     "editor.power_venus_reichweite": "{venus} — runtime left (h)",
     "editor.temp_section": "Climate (Temperature)",
+    // Phase temp-body: the info panel in the lower two thirds.
+    "editor.temp_body_section": "Lower panel",
+    "editor.temp_body_hint": "The lower part of the tile shows charge shares as bars, with temperatures below. A bar stays empty until meter readings are set.",
+    "editor.temp_body_mix_consumer_1": "Mix consumer 1",
+    "editor.temp_body_mix_consumer_5": "Mix consumer 5",
+    "editor.temp_body_temps_section": "Temperatures",
+    "editor.temp_body_temps_hint": "A field left empty produces no row.",
+    "editor.temp_body_battery_temp": "Temperature {battery}",
+    "editor.temp_body_venus_temp": "Temperature {venus}",
+    "editor.temp_body_bwwp_temp": "Temperature water heater",
+    "editor.help_temp_body_mix": "Shows the bar here instead of a ring around the bubble. Switch the ring off at that bubble afterwards.",
     // Phase editor-9: climate section on the schema.
     "editor.temp_sensors_section": "Sensors",
     "editor.temp_scales_section": "Scales",
@@ -571,7 +582,14 @@ export default {
     "card.label_consumer_4": "Cons. 4",
     "card.label_consumer_5": "Cons. 5",
     "card.label_import": "Import",
-    "card.temp_body_placeholder": "Room climate goes here —\ncontent to follow",
+    "card.temp_mix_pv": "PV",
+    "card.temp_mix_lg": "{battery}",
+    "card.temp_mix_venus": "{venus}",
+    "card.temp_mix_grid": "Grid",
+    "card.temp_row_title": "Temperatures",
+    "card.temp_row_battery": "{battery}",
+    "card.temp_row_venus": "{venus}",
+    "card.temp_row_bwwp": "Water heater",
     "card.label_export": "Export",
   }
 };

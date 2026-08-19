@@ -53,7 +53,25 @@ console.log(
     _localize(key) {
       const lang = this.hass && this.hass.language ? this.hass.language : 'en';
       const dict = cardTranslations[lang] || cardTranslations['en'];
-      return dict[key] || cardTranslations['en'][key] || key;
+      const text = dict[key] || cardTranslations['en'][key] || key;
+      // Phase temp-body: hardware-free labels. {battery} and {venus} resolve to
+      // whatever the two storage bubbles are actually called, so a text never
+      // names a device this installation may not have. The editor does the same
+      // thing; the two dictionaries share the convention.
+      if (typeof text !== 'string' || text.indexOf('{') === -1) return text;
+      const names = {
+        battery: this.config?.battery_label || this._localizeRawCard('card.label_battery') || 'Speicher 1',
+        venus: this.config?.venus_label || this._localizeRawCard('card.label_venus') || 'Speicher 2',
+      };
+      return text.replace(/\{([a-z_]+)\}/g, (m, k) => (names[k] !== undefined ? names[k] : m));
+    }
+
+    // The dictionary lookup without placeholder resolution -- used by
+    // _localize itself for the fallback names, so it cannot recurse.
+    _localizeRawCard(key) {
+      const lang = this.hass && this.hass.language ? this.hass.language : 'en';
+      const dict = cardTranslations[lang] || cardTranslations['en'];
+      return dict[key] || cardTranslations['en'][key];
     }
 
     static async getConfigElement() {
@@ -1300,16 +1318,16 @@ console.log(
         width: 130px;
         height: 180px;
         box-sizing: border-box;
-        padding: 6px 8px;
+        padding: 5px 7px;
         border-top: 1px solid var(--divider-color, #333);
+        overflow: hidden;
       }
-      .bubble.temp .temp-placeholder {
-        font-size: 11px;
-        color: var(--secondary-text-color, #888);
-        text-align: center;
-        padding-top: 70px;
-        line-height: 1.5;
-      }
+      /* The power tile's row styles are reused verbatim -- same kind of
+         statement, same look. Only the scale differs: this column is 130px
+         against the power tile's full height, so the rows tighten up. */
+      .bubble.temp .temp-body .pw-title { margin-top: 3px; }
+      .bubble.temp .temp-body .pw-row { line-height: 1.25; }
+      .bubble.temp .temp-body .pw-sep { margin: 4px 0; }
       /* phase power-1: power tile. Rectangular data panel, 130x310, anchored
          top-left like the temp panel. Skeleton only in this phase — head,
          origin, PV and storage sections follow in power-2. The green glow
@@ -2332,6 +2350,92 @@ console.log(
       ].join(';');
 
       return html`<div class="temp-sparkline-wrap" style="${wrapperStyle}"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.85"></stop><stop offset="100%" stop-color="${color}" stop-opacity="0"></stop></linearGradient></defs><path d="${effectiveAreaPath}" fill="url(#${gradId})" stroke="none"></path><path d="${effectiveLinePath}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></path></svg></div>`;
+    }
+
+    // Phase temp-body: the lower two thirds of the climate tile.
+    //
+    // A ring around a bubble shows a ratio but cannot be read; a bar with a
+    // number does both. So the charge-mix rings move off the two consumers
+    // that carry them and become bars here, built from the same _pRow and
+    // pw-bar the power tile's origin section uses -- one visual language for
+    // the same kind of statement.
+    //
+    // The storage temperatures come along because they were displacing the
+    // charge level in their own bubbles: both storage bubbles were showing a
+    // temperature instead of a percentage. They belong in a climate tile
+    // anyway.
+    _renderTempBody() {
+      const e = this.config.entities || {};
+      const num = (entId) => {
+        if (!entId || !this.hass || !this.hass.states[entId]) return null;
+        const v = parseFloat(this.hass.states[entId].state);
+        return isNaN(v) ? null : v;
+      };
+      const C = {
+        pv: this.config.consumer_1_mix_color_pv || '#ffd900',
+        lg: this.config.consumer_1_mix_color_lg || '#e100ff',
+        venus: this.config.consumer_1_mix_color_venus || '#8d07d5',
+        grid: this.config.consumer_1_mix_color_grid || '#ff0040',
+      };
+
+      // One mix bar. Sources with no reading are dropped rather than drawn as
+      // a zero-width sliver, so a two-source setup does not carry two ghosts.
+      const mixBar = (idx, label) => {
+        const period = this.config[`consumer_${idx}_mix_period`] || 'day';
+        const parts = [
+          { key: 'pv', c: C.pv, l: this._localize('card.temp_mix_pv') },
+          { key: 'lg', c: C.lg, l: this._localize('card.temp_mix_lg') },
+          { key: 'venus', c: C.venus, l: this._localize('card.temp_mix_venus') },
+          { key: 'grid', c: C.grid, l: this._localize('card.temp_mix_grid') },
+        ].map((p) => ({ ...p, v: num(e[`consumer_${idx}_mix_${p.key}_${period}`]) || 0 }))
+         .filter((p) => p.v > 0);
+        const total = parts.reduce((a, p) => a + p.v, 0);
+        if (!parts.length) return '';
+        // Rounded shares do not have to add up: 62.5 and 37.5 both round up and
+        // read as 101%. The last row takes the remainder, so the column always
+        // totals 100 and no one has to wonder which number is wrong.
+        const pct = parts.map((p) => Math.round((p.v / total) * 100));
+        pct[pct.length - 1] = 100 - pct.slice(0, -1).reduce((a, b) => a + b, 0);
+        return html`
+          <div class="pw-title">${label} · ${this._pFmt(total, 1)} kWh</div>
+          <div class="pw-bar">
+            ${parts.map((p, i) => html`<span style="width:${pct[i]}%;background:${p.c};"></span>`)}
+          </div>
+          ${parts.map((p, i) => this._pRow(p.c, p.l, this._pFmt(p.v), pct[i]))}
+        `;
+      };
+
+      // Temperatures, one row each, only where a sensor is configured.
+      const temps = [
+        [e.temp_body_battery_temp, this.config.color_battery || '#e100ff', this._localize('card.temp_row_battery')],
+        [e.temp_body_venus_temp, this.config.color_venus || '#8d07d5', this._localize('card.temp_row_venus')],
+        [e.temp_body_bwwp_temp, this.config.color_consumer_5 || '#6366f1', this._localize('card.temp_row_bwwp')],
+      ].filter(([id]) => id && num(id) !== null);
+
+      const showMix1 = this.config.temp_body_mix_consumer_1 !== false;
+      const showMix5 = this.config.temp_body_mix_consumer_5 !== false;
+
+      return html`
+        ${showMix1 ? mixBar(1, this._consumerName(1)) : ''}
+        ${showMix1 && (showMix5 || temps.length) ? html`<div class="pw-sep"></div>` : ''}
+        ${showMix5 ? mixBar(5, this._consumerName(5)) : ''}
+        ${showMix5 && temps.length ? html`<div class="pw-sep"></div>` : ''}
+        ${temps.length ? html`
+          <div class="pw-title">${this._localize('card.temp_row_title')}</div>
+          ${temps.map(([id, color, label]) =>
+            this._pRow(color, label, this._pFmt(num(id), 1) + ' °C'))}
+        ` : ''}
+      `;
+    }
+
+    // A consumer's own label, falling back to a numbered default -- the same
+    // rule the editor menu uses, so the two never disagree.
+    _consumerName(idx) {
+      const l = this.config[`consumer_${idx}_label`];
+      // String(idx), not a template literal: a bare `${idx}` in a return reads
+      // as a config key to the audit's extractor, and it would be right to be
+      // suspicious -- everywhere else in this file that shape IS a key.
+      return (l && String(l).trim() !== '') ? l : String(idx);
     }
 
     _renderTempPanel() {
@@ -5060,9 +5164,7 @@ console.log(
                            @click=${() => this._handleClick(tOutId)}></div>
                     </div>
                     <div class="temp-body">
-                      <div class="temp-placeholder">
-                        ${this._localize('card.temp_body_placeholder')}
-                      </div>
+                      ${this._renderTempBody()}
                     </div>
                   </div>`;
                 })() : ''}

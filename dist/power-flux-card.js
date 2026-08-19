@@ -46,6 +46,17 @@ const lang_de = {
     "editor.power_venus_nutzbar": "{venus} — nutzbare Restenergie (kWh)",
     "editor.power_venus_reichweite": "{venus} — Reichweite (h)",
     "editor.temp_section": "Klima (Temperatur)",
+    // Phase temp-body: the info panel in the lower two thirds.
+    "editor.temp_body_section": "Untere Tafel",
+    "editor.temp_body_hint": "Der untere Teil der Kachel zeigt Ladeanteile als Balken und darunter Temperaturen. Ein Balken bleibt leer, solange keine Zählerstände hinterlegt sind.",
+    "editor.temp_body_mix_consumer_1": "Mix Verbraucher 1",
+    "editor.temp_body_mix_consumer_5": "Mix Verbraucher 5",
+    "editor.temp_body_temps_section": "Temperaturen",
+    "editor.temp_body_temps_hint": "Leer gelassene Felder erzeugen keine Zeile.",
+    "editor.temp_body_battery_temp": "Temperatur {battery}",
+    "editor.temp_body_venus_temp": "Temperatur {venus}",
+    "editor.temp_body_bwwp_temp": "Temperatur Warmwasser",
+    "editor.help_temp_body_mix": "Zeigt den Balken hier statt als Ring um die Blase. Den Ring an der Blase dann dort abschalten.",
     // Phase editor-9: climate section on the schema.
     "editor.temp_sensors_section": "Sensoren",
     "editor.temp_scales_section": "Skalen",
@@ -576,7 +587,14 @@ const lang_de = {
     "card.label_consumer_4": "Verbr. 4",
     "card.label_consumer_5": "Verbr. 5",
     "card.label_import": "Import",
-    "card.temp_body_placeholder": "Platz für Raumklima —\nInhalt folgt",
+    "card.temp_mix_pv": "PV",
+    "card.temp_mix_lg": "{battery}",
+    "card.temp_mix_venus": "{venus}",
+    "card.temp_mix_grid": "Netz",
+    "card.temp_row_title": "Temperaturen",
+    "card.temp_row_battery": "{battery}",
+    "card.temp_row_venus": "{venus}",
+    "card.temp_row_bwwp": "BWWP",
     "card.label_export": "Export",
   }
 };
@@ -623,6 +641,17 @@ const lang_en = {
     "editor.power_venus_nutzbar": "{venus} — usable energy left (kWh)",
     "editor.power_venus_reichweite": "{venus} — runtime left (h)",
     "editor.temp_section": "Climate (Temperature)",
+    // Phase temp-body: the info panel in the lower two thirds.
+    "editor.temp_body_section": "Lower panel",
+    "editor.temp_body_hint": "The lower part of the tile shows charge shares as bars, with temperatures below. A bar stays empty until meter readings are set.",
+    "editor.temp_body_mix_consumer_1": "Mix consumer 1",
+    "editor.temp_body_mix_consumer_5": "Mix consumer 5",
+    "editor.temp_body_temps_section": "Temperatures",
+    "editor.temp_body_temps_hint": "A field left empty produces no row.",
+    "editor.temp_body_battery_temp": "Temperature {battery}",
+    "editor.temp_body_venus_temp": "Temperature {venus}",
+    "editor.temp_body_bwwp_temp": "Temperature water heater",
+    "editor.help_temp_body_mix": "Shows the bar here instead of a ring around the bubble. Switch the ring off at that bubble afterwards.",
     // Phase editor-9: climate section on the schema.
     "editor.temp_sensors_section": "Sensors",
     "editor.temp_scales_section": "Scales",
@@ -1153,7 +1182,14 @@ const lang_en = {
     "card.label_consumer_4": "Cons. 4",
     "card.label_consumer_5": "Cons. 5",
     "card.label_import": "Import",
-    "card.temp_body_placeholder": "Room climate goes here —\ncontent to follow",
+    "card.temp_mix_pv": "PV",
+    "card.temp_mix_lg": "{battery}",
+    "card.temp_mix_venus": "{venus}",
+    "card.temp_mix_grid": "Grid",
+    "card.temp_row_title": "Temperatures",
+    "card.temp_row_battery": "{battery}",
+    "card.temp_row_venus": "{venus}",
+    "card.temp_row_bwwp": "Water heater",
     "card.label_export": "Export",
   }
 };
@@ -2018,6 +2054,11 @@ const BUBBLE_CAPS = {
         // card, not nudged within one.
         labelOffsets: { targets: [''], range: 300, labels: 'temp',
                         keyStem: 'offset', defaults: { x: 0, y: 0 } },
+        // Phase temp-body: what the lower two thirds carry.
+        bodyToggles: [
+            ['temp_body_mix_consumer_1', true, 'temp_body_mix_consumer_1'],
+            ['temp_body_mix_consumer_5', true, 'temp_body_mix_consumer_5'],
+        ],
         scales: [
             ['temp_outdoor_min', -10, -40, 20],
             ['temp_outdoor_max', 40, 20, 60],
@@ -2163,6 +2204,8 @@ const FIELD_HELP = {
     side_panel_gap: 'help_side_panel_gap',
     show_flow_rates: 'help_show_flow_rates',
     portals_enabled: 'help_portals_enabled',
+    temp_body_mix_consumer_1: 'help_temp_body_mix',
+    temp_body_mix_consumer_5: 'help_temp_body_mix',
     temp_offset_x: 'help_temp_offset',
     temp_offset_y: 'help_temp_offset',
     temp_outdoor_min: 'help_temp_scale_min',
@@ -2304,6 +2347,11 @@ const bubbleFields = (prefix, group) => {
 
     // Scale ends for the two thermometer columns. Paired so min and max of one
     // column sit on a row -- they are only ever set together.
+    if (group === 'body' && caps.bodyToggles) {
+        f.push(sideBySide(caps.bodyToggles.map(([key, def, labelKey]) =>
+            ({ key, def, labelKey, selector: { boolean: {} } })), '200px'));
+    }
+
     if (group === 'scales' && caps.scales) {
         for (let i = 0; i < caps.scales.length; i += 2) {
             f.push(sideBySide(caps.scales.slice(i, i + 2).map(([key, def, min, max]) => ({
@@ -4597,6 +4645,27 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.temp_forecast_low || "", 'temp_forecast_low', this._localize('editor.temp_forecast_low'))}
         </ha-expansion-panel>
 
+        <!-- Lower panel -->
+        <ha-expansion-panel outlined .header=${this._localize('editor.temp_body_section')}>
+            <ha-icon class="section-icon" slot="leading-icon" icon="mdi:view-list"></ha-icon>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.temp_body_hint')}
+            </div>
+
+            ${this._bubbleForm('temp', 'body')}
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.temp_body_temps_section')}
+            </div>
+            ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_battery_temp || "", 'temp_body_battery_temp', this._localize('editor.temp_body_battery_temp'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_venus_temp || "", 'temp_body_venus_temp', this._localize('editor.temp_body_venus_temp'))}
+            ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_bwwp_temp || "", 'temp_body_bwwp_temp', this._localize('editor.temp_body_bwwp_temp'))}
+            <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                ${this._localize('editor.temp_body_temps_hint')}
+            </div>
+        </ha-expansion-panel>
+
         <!-- Scale ends -->
         <ha-expansion-panel outlined .header=${this._localize('editor.temp_scales_section')}>
             <ha-icon class="section-icon" slot="leading-icon" icon="mdi:ruler"></ha-icon>
@@ -5728,7 +5797,25 @@ console.log(
     _localize(key) {
       const lang = this.hass && this.hass.language ? this.hass.language : 'en';
       const dict = cardTranslations[lang] || cardTranslations['en'];
-      return dict[key] || cardTranslations['en'][key] || key;
+      const text = dict[key] || cardTranslations['en'][key] || key;
+      // Phase temp-body: hardware-free labels. {battery} and {venus} resolve to
+      // whatever the two storage bubbles are actually called, so a text never
+      // names a device this installation may not have. The editor does the same
+      // thing; the two dictionaries share the convention.
+      if (typeof text !== 'string' || text.indexOf('{') === -1) return text;
+      const names = {
+        battery: this.config?.battery_label || this._localizeRawCard('card.label_battery') || 'Speicher 1',
+        venus: this.config?.venus_label || this._localizeRawCard('card.label_venus') || 'Speicher 2',
+      };
+      return text.replace(/\{([a-z_]+)\}/g, (m, k) => (names[k] !== undefined ? names[k] : m));
+    }
+
+    // The dictionary lookup without placeholder resolution -- used by
+    // _localize itself for the fallback names, so it cannot recurse.
+    _localizeRawCard(key) {
+      const lang = this.hass && this.hass.language ? this.hass.language : 'en';
+      const dict = cardTranslations[lang] || cardTranslations['en'];
+      return dict[key] || cardTranslations['en'][key];
     }
 
     static async getConfigElement() {
@@ -6975,16 +7062,16 @@ console.log(
         width: 130px;
         height: 180px;
         box-sizing: border-box;
-        padding: 6px 8px;
+        padding: 5px 7px;
         border-top: 1px solid var(--divider-color, #333);
+        overflow: hidden;
       }
-      .bubble.temp .temp-placeholder {
-        font-size: 11px;
-        color: var(--secondary-text-color, #888);
-        text-align: center;
-        padding-top: 70px;
-        line-height: 1.5;
-      }
+      /* The power tile's row styles are reused verbatim -- same kind of
+         statement, same look. Only the scale differs: this column is 130px
+         against the power tile's full height, so the rows tighten up. */
+      .bubble.temp .temp-body .pw-title { margin-top: 3px; }
+      .bubble.temp .temp-body .pw-row { line-height: 1.25; }
+      .bubble.temp .temp-body .pw-sep { margin: 4px 0; }
       /* phase power-1: power tile. Rectangular data panel, 130x310, anchored
          top-left like the temp panel. Skeleton only in this phase — head,
          origin, PV and storage sections follow in power-2. The green glow
@@ -8007,6 +8094,92 @@ console.log(
       ].join(';');
 
       return html`<div class="temp-sparkline-wrap" style="${wrapperStyle}"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;"><defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.85"></stop><stop offset="100%" stop-color="${color}" stop-opacity="0"></stop></linearGradient></defs><path d="${effectiveAreaPath}" fill="url(#${gradId})" stroke="none"></path><path d="${effectiveLinePath}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></path></svg></div>`;
+    }
+
+    // Phase temp-body: the lower two thirds of the climate tile.
+    //
+    // A ring around a bubble shows a ratio but cannot be read; a bar with a
+    // number does both. So the charge-mix rings move off the two consumers
+    // that carry them and become bars here, built from the same _pRow and
+    // pw-bar the power tile's origin section uses -- one visual language for
+    // the same kind of statement.
+    //
+    // The storage temperatures come along because they were displacing the
+    // charge level in their own bubbles: both storage bubbles were showing a
+    // temperature instead of a percentage. They belong in a climate tile
+    // anyway.
+    _renderTempBody() {
+      const e = this.config.entities || {};
+      const num = (entId) => {
+        if (!entId || !this.hass || !this.hass.states[entId]) return null;
+        const v = parseFloat(this.hass.states[entId].state);
+        return isNaN(v) ? null : v;
+      };
+      const C = {
+        pv: this.config.consumer_1_mix_color_pv || '#ffd900',
+        lg: this.config.consumer_1_mix_color_lg || '#e100ff',
+        venus: this.config.consumer_1_mix_color_venus || '#8d07d5',
+        grid: this.config.consumer_1_mix_color_grid || '#ff0040',
+      };
+
+      // One mix bar. Sources with no reading are dropped rather than drawn as
+      // a zero-width sliver, so a two-source setup does not carry two ghosts.
+      const mixBar = (idx, label) => {
+        const period = this.config[`consumer_${idx}_mix_period`] || 'day';
+        const parts = [
+          { key: 'pv', c: C.pv, l: this._localize('card.temp_mix_pv') },
+          { key: 'lg', c: C.lg, l: this._localize('card.temp_mix_lg') },
+          { key: 'venus', c: C.venus, l: this._localize('card.temp_mix_venus') },
+          { key: 'grid', c: C.grid, l: this._localize('card.temp_mix_grid') },
+        ].map((p) => ({ ...p, v: num(e[`consumer_${idx}_mix_${p.key}_${period}`]) || 0 }))
+         .filter((p) => p.v > 0);
+        const total = parts.reduce((a, p) => a + p.v, 0);
+        if (!parts.length) return '';
+        // Rounded shares do not have to add up: 62.5 and 37.5 both round up and
+        // read as 101%. The last row takes the remainder, so the column always
+        // totals 100 and no one has to wonder which number is wrong.
+        const pct = parts.map((p) => Math.round((p.v / total) * 100));
+        pct[pct.length - 1] = 100 - pct.slice(0, -1).reduce((a, b) => a + b, 0);
+        return html`
+          <div class="pw-title">${label} · ${this._pFmt(total, 1)} kWh</div>
+          <div class="pw-bar">
+            ${parts.map((p, i) => html`<span style="width:${pct[i]}%;background:${p.c};"></span>`)}
+          </div>
+          ${parts.map((p, i) => this._pRow(p.c, p.l, this._pFmt(p.v), pct[i]))}
+        `;
+      };
+
+      // Temperatures, one row each, only where a sensor is configured.
+      const temps = [
+        [e.temp_body_battery_temp, this.config.color_battery || '#e100ff', this._localize('card.temp_row_battery')],
+        [e.temp_body_venus_temp, this.config.color_venus || '#8d07d5', this._localize('card.temp_row_venus')],
+        [e.temp_body_bwwp_temp, this.config.color_consumer_5 || '#6366f1', this._localize('card.temp_row_bwwp')],
+      ].filter(([id]) => id && num(id) !== null);
+
+      const showMix1 = this.config.temp_body_mix_consumer_1 !== false;
+      const showMix5 = this.config.temp_body_mix_consumer_5 !== false;
+
+      return html`
+        ${showMix1 ? mixBar(1, this._consumerName(1)) : ''}
+        ${showMix1 && (showMix5 || temps.length) ? html`<div class="pw-sep"></div>` : ''}
+        ${showMix5 ? mixBar(5, this._consumerName(5)) : ''}
+        ${showMix5 && temps.length ? html`<div class="pw-sep"></div>` : ''}
+        ${temps.length ? html`
+          <div class="pw-title">${this._localize('card.temp_row_title')}</div>
+          ${temps.map(([id, color, label]) =>
+            this._pRow(color, label, this._pFmt(num(id), 1) + ' °C'))}
+        ` : ''}
+      `;
+    }
+
+    // A consumer's own label, falling back to a numbered default -- the same
+    // rule the editor menu uses, so the two never disagree.
+    _consumerName(idx) {
+      const l = this.config[`consumer_${idx}_label`];
+      // String(idx), not a template literal: a bare `${idx}` in a return reads
+      // as a config key to the audit's extractor, and it would be right to be
+      // suspicious -- everywhere else in this file that shape IS a key.
+      return (l && String(l).trim() !== '') ? l : String(idx);
     }
 
     _renderTempPanel() {
@@ -10735,9 +10908,7 @@ console.log(
                            @click=${() => this._handleClick(tOutId)}></div>
                     </div>
                     <div class="temp-body">
-                      <div class="temp-placeholder">
-                        ${this._localize('card.temp_body_placeholder')}
-                      </div>
+                      ${this._renderTempBody()}
                     </div>
                   </div>`;
                 })() : ''}

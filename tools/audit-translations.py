@@ -98,7 +98,7 @@ def keys_from_schema():
         editor = str(EDITOR)
         out = subprocess.run(['node', '-e', rf'''
 const {{bubbleFields,BUBBLE_CAPS,flattenFields}}=require({json.dumps(str(module))});
-const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline','scales'];
+const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline','scales','body'];
 const keys=new Set();
 for(const p of Object.keys(BUBBLE_CAPS))
  for(const g of groups)

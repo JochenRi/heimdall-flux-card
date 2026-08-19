@@ -269,7 +269,7 @@ def read_editor_schema_keys():
         out = subprocess.run(
             ['node', '-e', f'''
 const {{bubbleFields,BUBBLE_CAPS,flattenFields}}=require({json.dumps(str(module))});
-const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline','scales'];
+const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline','scales','body'];
 const res={{}};
 for(const p of Object.keys(BUBBLE_CAPS)){{
   const keys=[];
