@@ -8485,6 +8485,16 @@ console.log(
         c5Val = 1000;
         c6Val = 1000;
         c7Val = 1000;
+        // Phase temp-1: the three BKW flows. Demo mode predates the BKW bubble
+        // and was never extended, so its whole strand stayed dark -- which is
+        // exactly the case demo mode exists to make visible. Values chosen so
+        // the strand splits three ways instead of drawing one flat line: the
+        // garden feeds the second storage, the house and the grid at once.
+        if (hasBkw) {
+          bkwToVenus = 1000;
+          bkwToHouse = 600;
+          bkwToGrid = 400;
+        }
       }
 
       // Use house entity for display if defined, otherwise use calculated value
