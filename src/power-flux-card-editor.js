@@ -2272,6 +2272,27 @@ class PowerFluxCardEditor extends LitElement {
         </ha-expansion-panel>
       `;
     }
+    // Phase 5.46: helper -- consumer menu label.
+    // Returns the user-set consumer_N_label if non-empty, otherwise a
+    // generic "Bubble N" fallback. Keeps the main menu universal: tesla
+    // owners see "Tesla", pool owners see "Pool", everyone else just
+    // sees their bubbles numbered.
+    _consumerMenuLabel(idx) {
+        const userLabel = this._config[`consumer_${idx}_label`];
+        if (userLabel && typeof userLabel === 'string' && userLabel.trim() !== '') {
+            return userLabel;
+        }
+        return this._localize('editor.bubble_fallback').replace('{n}', idx);
+    }
+
+    // Phase 5.46: per-bubble menu-icon resolver.
+    // Returns the user-set consumer_N_icon if configured, otherwise the
+    // generic bubble icon. Used for the main menu items so users see
+    // their actual chosen icon next to each bubble entry.
+    _consumerMenuIcon(idx) {
+        return this._config[`consumer_${idx}_icon`] || 'mdi:circle-outline';
+    }
+
     // Phase 5.46: generic sub-view renderer for Consumer 2..7.
     // Consumer 1 (Tesla) gets its own _renderConsumer1View because it has
     // the rotation block added in phase 5.44; the rest share this generic
