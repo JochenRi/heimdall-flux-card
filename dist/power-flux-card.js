@@ -7421,12 +7421,12 @@ console.log(
       .node-venus { top: 80px; left: 495px; }   
       .node-bkw { top: 80px; left: 635px; }   /* phase BKW-1: garden plant, feeds the venus */
       .node-house { top: 245px; left: 355px; }   
-      .node-temp { top: calc(185px + var(--temp-offset-y, 0px)); left: calc(-65px + var(--temp-offset-x, 0px)); }  /* phase portals-2: true mirror of the power tile.
-         Card centre is 400, power sits at 735..865 (centre 800), so the
-         mirror is -65..65 (centre 0) -- both exactly 400 from the middle.
-         -90 was a dodge around pathHouseC6 and left the pair 25px out of
-         true. The crossing is now marked with portals instead, which is
-         what they are for. Verified
+      .node-temp { top: calc(185px + var(--temp-offset-y, 0px)); left: calc(-80px + var(--temp-offset-x, 0px)); }  /* phase portals-3: mirrored about what is VISIBLE.
+         portals-2 mirrored about the drawing surface (centre 400), but a
+         viewer sees the bubbles, and their field runs -5..775 -- centre
+         385. That put the right-hand tile 15px further out than the left
+         and it showed. Both tiles now sit 400 from 385: climate at
+         -80..50, power at 720..850. Verified
          against all 19 paths and all 14 other bubbles at bubble_size 100.
          Needs background_padding_left to bring it into view. */
       /* phase power-1a: anchor moved 690 -> 735. The first sampling run missed
@@ -7434,7 +7434,8 @@ console.log(
          x=725 on its way down and ran straight through the tile. Verified
          against all eighteen paths and all thirteen bubbles at bubble_size 100:
          735 is the first collision-free column, with 4 px clearance to C7. */
-      .node-power { top: calc(185px + var(--power-offset-y, 0px)); left: calc(735px + var(--power-offset-x, 0px)); }
+      .node-power { top: calc(185px + var(--power-offset-y, 0px)); left: calc(720px + var(--power-offset-x, 0px)); }  /* phase portals-3: 15px inward, so both tiles sit 400 from the
+         bubble field's centre (385) rather than the drawing surface's (400). */
       .node-c1 { top: 400px; left: 130px; }
       .node-c2 { top: 400px; left: 355px; }
       .node-c3 { top: 400px; left: 580px; }
@@ -10311,14 +10312,14 @@ console.log(
       const num = (v, dflt) => (v !== undefined && v !== null && v !== '' ? parseFloat(v) : dflt);
       const portalTiles = [];
       if (this.config.temp_enabled === true) {
-        const ox = -65 + num(this.config.temp_offset_x, 0)
+        const ox = -80 + num(this.config.temp_offset_x, 0)
                        + num(this.config.temp_portal_offset_x, 0);
         const oy = 185 + num(this.config.temp_offset_y, 0)
                        + num(this.config.temp_portal_offset_y, 0);
         portalTiles.push({ rect: { x: ox, y: oy, w: 130, h: 310 }, ox: 0, oy: 0 });
       }
       if (this.config.power_enabled === true) {
-        const ox = 735 + num(this.config.power_offset_x, 0)
+        const ox = 720 + num(this.config.power_offset_x, 0)
                        + num(this.config.power_portal_offset_x, 0);
         const oy = 185 + num(this.config.power_offset_y, 0)
                        + num(this.config.power_portal_offset_y, 0);
