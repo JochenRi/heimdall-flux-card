@@ -534,6 +534,19 @@ const GLOBAL_FIELDS = {
     debug: [
         ['demo_mode', false, 'demo_mode'],
     ],
+    // Phase portals-1: rings where a pipe passes under a tile. Position is
+    // computed from the tile's own anchor and offsets, so moving a tile moves
+    // its portals. The offsets here are a correction, not the mechanism --
+    // they exist so a crossing that lands badly can be nudged without waiting
+    // for a code change.
+    portals: [
+        ['portals_enabled', true, 'portals_enabled'],
+        ['portal_size', 13, 'portal_size', [4, 40, 1]],
+        ['temp_portal_offset_x', 0, 'temp_portal_offset_x', [-150, 150, 1]],
+        ['temp_portal_offset_y', 0, 'temp_portal_offset_y', [-150, 150, 1]],
+        ['power_portal_offset_x', 0, 'power_portal_offset_x', [-150, 150, 1]],
+        ['power_portal_offset_y', 0, 'power_portal_offset_y', [-150, 150, 1]],
+    ],
     panels: [
         ['side_panels_enabled', false, 'side_panels_enabled'],
         ['side_panel_width', 320, 'side_panel_width', [150, 500, 10]],
@@ -594,6 +607,12 @@ const FIELD_HELP = {
     side_panel_width: 'help_side_panel_width',
     side_panel_gap: 'help_side_panel_gap',
     show_flow_rates: 'help_show_flow_rates',
+    portals_enabled: 'help_portals_enabled',
+    portal_size: 'help_portal_size',
+    temp_portal_offset_x: 'help_portal_offset',
+    temp_portal_offset_y: 'help_portal_offset',
+    power_portal_offset_x: 'help_portal_offset',
+    power_portal_offset_y: 'help_portal_offset',
     demo_mode: 'help_demo_mode',
     transparent_background: 'help_transparent_background',
 };
@@ -650,6 +669,16 @@ const globalFields = (group) => {
         const sliders = pick('animation_threshold', 'rotation_interval_sec');
         const switches = list.filter((x) => !sliders.includes(x));
         return [sideBySide(switches, '240px'), ...sliders];
+    }
+    if (group === 'portals') {
+        return [
+            pick('portals_enabled')[0],
+            pick('portal_size')[0],
+            collapsible('group_portal_nudge', [
+                sideBySide(pick('temp_portal_offset_x', 'temp_portal_offset_y')),
+                sideBySide(pick('power_portal_offset_x', 'power_portal_offset_y')),
+            ]),
+        ].filter(Boolean);
     }
     if (group === 'panels') {
         const [enabled, ...rest] = list;
@@ -4150,6 +4179,19 @@ class PowerFluxCardEditor extends LitElement {
 
 
         <!-- Group: Debug & test -->
+        <div class="option-group">
+            <div class="group-title">
+                <ha-icon icon="mdi:circle-double"></ha-icon>
+                ${this._localize('editor.group_portals')}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 8px;">
+                ${this._localize('editor.portals_hint')}
+            </div>
+
+            ${this._bubbleForm('__global__', 'portals')}
+        </div>
+
         <div class="option-group">
             <div class="group-title">
                 <ha-icon icon="mdi:bug-outline"></ha-icon>

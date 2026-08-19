@@ -420,6 +420,112 @@ console.log(
         return trimmed.length >= 2 ? trimmed : merged.slice(-2);
     }
 
+    // ------------------------------------------------------------------
+    // Phase portals-1: where a pipe meets a tile.
+    //
+    // The tiles sit on top of the flow layer, so a pipe running underneath one
+    // simply disappears and reappears -- which looked like a mistake. Rather
+    // than move the tiles out of the way (the constraint that has been
+    // dictating where they may sit), the crossing is marked: a ring where the
+    // pipe enters and one where it leaves. The pipe itself is untouched, so
+    // the travelling dot keeps its timing on its own.
+    //
+    // No clipPath and no nested templates. Interpolating html inside <svg>
+    // took the whole card down once (session notes 4.3); these are two flat
+    // <circle> elements and nothing else.
+    // ------------------------------------------------------------------
+
+    // The rings for every pipe crossing an active tile.
+    //
+    // Drawn as positioned divs, NOT as svg children. Lit builds an interpolated
+    // html`` fragment in the HTML namespace, so <circle> inside <svg> comes out
+    // invalid and takes the whole card with it -- that is session note 4.3, and
+    // it cost a stage. The power tile solved the same problem the same way with
+    // its CSS ring. Colours come from the pipe variables, so a colour change on
+    // the card carries through.
+    _renderPortals(pipes, tiles) {
+      if (this.config.portals_enabled === false) return '';
+      if (!tiles.length || !pipes.length) return '';
+      const size = this.config.portal_size !== undefined
+        ? Math.max(4, parseFloat(this.config.portal_size)) : 13;
+
+      const rings = [];
+      for (const tile of tiles) {
+        for (const pipe of pipes) {
+          if (!pipe.d || !pipe.active) continue;
+          const hit = this._portalPoints(pipe.d, tile.rect);
+          if (!hit) continue;
+          hit.entry && rings.push({ x: hit.entry[0] + tile.ox, y: hit.entry[1] + tile.oy,
+                                    color: pipe.color, kind: 'in' });
+          hit.exit  && rings.push({ x: hit.exit[0] + tile.ox,  y: hit.exit[1] + tile.oy,
+                                    color: pipe.color, kind: 'out' });
+        }
+      }
+      if (!rings.length) return '';
+
+      return html`${rings.map((r) => html`
+        <div class="portal ${r.kind === 'in' ? 'portal-in' : 'portal-out'}"
+             style="left: ${r.x}px; top: ${r.y}px; width: ${size * 2}px; height: ${size * 2}px;
+                    border-color: ${r.color}; --portal-color: ${r.color};"></div>
+      `)}`;
+    }
+
+    // Walk an M/L/Q path and return points along it. Same sampling the
+    // collision check uses, so a portal can never land where the audit says
+    // there is no crossing.
+    _samplePath(d, steps) {
+      const n = steps || 240;
+      const out = [];
+      let cur = [0, 0];
+      const re = /([MLQ])\s*([-\d.\s,]*)/g;
+      let m;
+      while ((m = re.exec(d)) !== null) {
+        const v = (m[2].match(/-?[\d.]+/g) || []).map(Number);
+        if (m[1] === 'M' && v.length >= 2) {
+          cur = [v[0], v[1]];
+          out.push(cur);
+        } else if (m[1] === 'L' && v.length >= 2) {
+          for (let i = 1; i <= n; i++) {
+            const t = i / n;
+            out.push([cur[0] + (v[0] - cur[0]) * t, cur[1] + (v[1] - cur[1]) * t]);
+          }
+          cur = [v[0], v[1]];
+        } else if (m[1] === 'Q' && v.length >= 4) {
+          const [x0, y0] = cur;
+          for (let i = 1; i <= n; i++) {
+            const t = i / n, mt = 1 - t;
+            out.push([
+              mt * mt * x0 + 2 * mt * t * v[0] + t * t * v[2],
+              mt * mt * y0 + 2 * mt * t * v[1] + t * t * v[3],
+            ]);
+          }
+          cur = [v[2], v[3]];
+        }
+      }
+      return out;
+    }
+
+    // First entry and last exit of a path through a rectangle. Returns null
+    // when the path misses it, or when it starts or ends inside -- a pipe that
+    // begins under a tile has no entry to mark, and inventing one would put a
+    // ring in mid-air.
+    _portalPoints(d, rect) {
+      const pts = this._samplePath(d);
+      const inside = ([x, y]) =>
+        x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+      let first = -1, last = -1;
+      for (let i = 0; i < pts.length; i++) {
+        if (inside(pts[i])) {
+          if (first === -1) first = i;
+          last = i;
+        }
+      }
+      if (first <= 0 || last >= pts.length - 1) return null;
+      // Step back to the last point outside, so the ring sits on the edge
+      // rather than just within it.
+      return { entry: pts[first - 1], exit: pts[last + 1] };
+    }
+
     async _fetchSparklineHistory(entityId, period, idx) {
       const hoursMap = { '1h': 1, '6h': 6, '12h': 12, '24h': 24 };
       const hours = hoursMap[period] || 24;
@@ -1040,6 +1146,37 @@ console.log(
       /* phase 5.78: split climate (temp) bubble. Ice-cyan glow, follows the
          same border/tinted convention as the other bubbles. Inner ring
          geometry (split halves, double rings) lands in phase 5.79. */
+      /* phase portals-1: the ring where a pipe passes under a tile. Two per
+         crossing -- one where it goes in, one where it comes out. Positioned
+         divs rather than svg children, see the note on _renderPortals. */
+      .portal {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        border-style: solid;
+        border-width: 2.5px;
+        box-sizing: border-box;
+        pointer-events: none;
+        z-index: 6;
+        background: radial-gradient(circle,
+          color-mix(in srgb, var(--portal-color, #fff), transparent 55%) 0%,
+          transparent 62%);
+        box-shadow: 0 0 10px -2px var(--portal-color, #fff);
+      }
+      /* The entry ring draws inward, the exit ring outward -- the direction
+         reads at a glance without a label. */
+      @media (prefers-reduced-motion: no-preference) {
+        .portal-in  { animation: portal-in  2.4s ease-in-out infinite; }
+        .portal-out { animation: portal-out 2.4s ease-in-out infinite; }
+      }
+      @keyframes portal-in {
+        0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: .95; }
+        50%      { transform: translate(-50%, -50%) scale(.78);  opacity: .6; }
+      }
+      @keyframes portal-out {
+        0%, 100% { transform: translate(-50%, -50%) scale(.82);  opacity: .6; }
+        50%      { transform: translate(-50%, -50%) scale(1.06); opacity: .95; }
+      }
       .bubble.temp { border-color: var(--temp-glow, #19c6e6); }
       .bubble.temp.tinted { background: color-mix(in srgb, var(--temp-glow, #19c6e6), transparent 85%); }
       /* phase 5.79a: temp bubble is a rectangular thermometer panel, not a
@@ -4419,6 +4556,51 @@ console.log(
       const pathHouseC6 = "M 355 290 Q 45 290 45 510";
       const pathHouseC7 = "M 445 290 Q 725 290 725 510";
 
+      // Phase portals-1: which pipes exist, whether they are drawn, and what
+      // colour they carry. Built here so the portal ring can never disagree
+      // with the pipe it belongs to -- both read the same entry.
+      const pipeList = [
+        { d: pathSolarHouse,  active: hasSolar,               color: 'var(--pipe-solar-color)' },
+        { d: pathSolarBatt,   active: hasSolar && hasBattery && !this.config.hide_solar_to_battery_pipe, color: 'var(--pipe-solar-color)' },
+        { d: pathSolarVenus,  active: hasSolar && hasVenus && !this.config.hide_solar_to_venus_pipe,     color: 'var(--pipe-solar-color)' },
+        { d: pathGridImport,  active: hasGrid,                color: 'var(--pipe-grid-color)' },
+        { d: pathGridExport,  active: hasGrid,                color: 'var(--export-color)' },
+        { d: pathBattHouse,   active: hasBattery,             color: 'var(--pipe-battery-color)' },
+        { d: pathHouseToBatt, active: hasBattery,             color: 'var(--pipe-battery-color)' },
+        { d: pathVenusHouse,  active: hasVenus,               color: 'var(--pipe-venus-color)' },
+        { d: pathHouseToVenus,active: hasVenus,               color: 'var(--pipe-venus-color)' },
+        { d: pathBkwVenus,    active: hasBkw && hasVenus,     color: 'var(--pipe-bkw-color)' },
+        { d: pathBkwHouse,    active: hasBkw,                 color: 'var(--pipe-bkw-color)' },
+        { d: pathBkwGrid,     active: hasBkw && hasGrid,      color: 'var(--pipe-bkw-color)' },
+        { d: pathHouseC1, active: showC1, color: this._getConsumerPipeColor(1) },
+        { d: pathHouseC2, active: showC2, color: this._getConsumerPipeColor(2) },
+        { d: pathHouseC3, active: showC3, color: this._getConsumerPipeColor(3) },
+        { d: pathHouseC4, active: showC4, color: this._getConsumerPipeColor(4) },
+        { d: pathHouseC5, active: showC5, color: this._getConsumerPipeColor(5) },
+        { d: pathHouseC6, active: showC6, color: this._getConsumerPipeColor(6) },
+        { d: pathHouseC7, active: showC7, color: this._getConsumerPipeColor(7) },
+      ];
+
+      // The tiles, at the position they actually occupy: anchor plus the
+      // offsets from the editor. Move a tile and its portals move with it,
+      // because both are computed from the same numbers.
+      const num = (v, dflt) => (v !== undefined && v !== null && v !== '' ? parseFloat(v) : dflt);
+      const portalTiles = [];
+      if (this.config.temp_enabled === true) {
+        const ox = -90 + num(this.config.temp_offset_x, 0)
+                       + num(this.config.temp_portal_offset_x, 0);
+        const oy = 185 + num(this.config.temp_offset_y, 0)
+                       + num(this.config.temp_portal_offset_y, 0);
+        portalTiles.push({ rect: { x: ox, y: oy, w: 130, h: 310 }, ox: 0, oy: 0 });
+      }
+      if (this.config.power_enabled === true) {
+        const ox = 735 + num(this.config.power_offset_x, 0)
+                       + num(this.config.power_portal_offset_x, 0);
+        const oy = 185 + num(this.config.power_offset_y, 0)
+                       + num(this.config.power_portal_offset_y, 0);
+        portalTiles.push({ rect: { x: ox, y: oy, w: 130, h: 310 }, ox: 0, oy: 0 });
+      }
+
       const houseTextStyle = this.config.color_text_house
         ? 'color: var(--text-house-color);'
         : (houseTextCol ? `color: ${houseTextCol};` : '');
@@ -4524,6 +4706,11 @@ console.log(
                     <text x="${725 + (this.config.consumer_7_label_offset_x !== undefined ? this.config.consumer_7_label_offset_x : 0)}" y="${400 + (this.config.consumer_7_label_offset_y !== undefined ? this.config.consumer_7_label_offset_y : -25)}" class="${textClass} text-consumer-7" style="${getTextStyle(c7Val, 'consumer_7')}">${this._formatPower(c7Val)}</text>
 
                 </svg>
+
+                <!-- Phase portals-1: rings where a pipe passes under a tile.
+                     After the svg so they sit above the pipes, before the
+                     bubbles so a bubble still wins where they overlap. -->
+                ${this._renderPortals(pipeList, portalTiles)}
 
                 ${hasSolar ? (() => {
                   const liveText = this._formatPower(solarVal);

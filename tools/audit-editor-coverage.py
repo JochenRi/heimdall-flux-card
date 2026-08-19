@@ -71,6 +71,11 @@ BUBBLES = ['solar', 'grid', 'battery', 'venus', 'bkw', 'house', 'power'] + CONSU
 
 # Keys that belong to a section without carrying its prefix. Each one verified
 # in the markup of the section named.
+# Carry a bubble prefix but belong to the card-wide portals group: a portal
+# describes a crossing, not the tile it happens to touch.
+PORTAL_KEYS = {'temp_portal_offset_x', 'temp_portal_offset_y',
+               'power_portal_offset_x', 'power_portal_offset_y'}
+
 SECTION_OWNED = {
     'house': {'donut_today_mode', 'donut_today_solar', 'donut_today_battery',
               'donut_today_venus', 'donut_today_grid'},
@@ -267,7 +272,7 @@ for(const p of Object.keys(BUBBLE_CAPS)){{
   for(const g of groups) for(const f of flattenFields(bubbleFields(p,g))) keys.push(f.key);
   res[p]=keys;
 }}
-for(const g of ['sizing','appearance','display','debug','panels'])
+for(const g of ['sizing','appearance','display','debug','panels','portals'])
   res['__global__:'+g]=flattenFields(bubbleFields('__global__',g)).map(f=>f.key);
 process.stdout.write(JSON.stringify(res));
 '''], capture_output=True, text=True, check=True)
@@ -292,9 +297,10 @@ def keys_from_power_section():
 
 def keys_for(bubble, pool):
     own = {k for k in pool
-           if k == bubble or k.startswith(bubble + '_')
-           or k in EXTRA_KEYS.get(bubble, set())
-           or k in SECTION_OWNED.get(bubble, set())}
+           if (k == bubble or k.startswith(bubble + '_')
+               or k in EXTRA_KEYS.get(bubble, set())
+               or k in SECTION_OWNED.get(bubble, set()))
+           and k not in PORTAL_KEYS}
     # consumer_1 must not swallow keys of consumer_1x -- no such bubble exists,
     # but guard anyway so a future rename cannot corrupt the comparison.
     return own
@@ -327,7 +333,7 @@ def main(argv):
     all_markup |= keys_from_power_section()
 
     global_schema = set()
-    for g in ('sizing', 'appearance', 'display', 'debug', 'panels'):
+    for g in ('sizing', 'appearance', 'display', 'debug', 'panels', 'portals'):
         global_schema |= set(schema.get('__global__:' + g, []))
 
     gaps = json.loads((ROOT / 'tools' / 'audit-known-gaps.json').read_text())
