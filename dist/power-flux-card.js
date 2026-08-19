@@ -7069,8 +7069,14 @@ console.log(
       /* The power tile's row styles are reused verbatim -- same kind of
          statement, same look. Only the scale differs: this column is 130px
          against the power tile's full height, so the rows tighten up. */
-      .bubble.temp .temp-body .pw-title { margin-top: 3px; }
-      .bubble.temp .temp-body .pw-row { line-height: 1.25; }
+      /* The climate column is 130px against the power tile's full height, so
+         the same rows sit tighter and the percentage column narrows -- at this
+         width "100%" would otherwise push the value out of line. */
+      .bubble.temp .temp-body .pw-title { margin-top: 2px; margin-bottom: 2px; }
+      .bubble.temp .temp-body .pw-row { line-height: 1.35; font-size: 8.5px; }
+      .bubble.temp .temp-body .pw-num { font-size: 9px; }
+      .bubble.temp .temp-body .pw-pct { flex: 0 0 22px; }
+      .bubble.temp .temp-body .pw-bar { height: 7px; margin-bottom: 3px; }
       .bubble.temp .temp-body .pw-sep { margin: 4px 0; }
       /* phase power-1: power tile. Rectangular data panel, 130x310, anchored
          top-left like the temp panel. Skeleton only in this phase — head,
@@ -7109,13 +7115,13 @@ console.log(
         -webkit-mask-composite: xor; mask-composite: exclude;
         pointer-events: none; z-index: 0;
       }
-      .bubble.power .pw-now {
+      .bubble.power .pw-now, .bubble.temp .pw-now {
         position: absolute; width: 9px; height: 9px; border-radius: 50%;
         transform: translate(-50%, -50%); pointer-events: none; z-index: 5;
         box-shadow: 0 0 0 2px var(--card-background-color, #16181d);
       }
       @media (prefers-reduced-motion: no-preference) {
-        .bubble.power .pw-now.pulse { animation: pw-pulse 1.6s ease-in-out infinite; }
+        .bubble.power .pw-now.pulse, .bubble.temp .pw-now.pulse { animation: pw-pulse 1.6s ease-in-out infinite; }
       }
       @keyframes pw-pulse {
         0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
@@ -7129,35 +7135,40 @@ console.log(
       }
       /* phase power-B: tile internals. Fixed 9/10px type -- the tile is 110px
          wide inside its padding, which fits about 14 characters per line. */
-      .bubble.power .pw-head { display: flex; align-items: center; gap: 6px; }
+      .bubble.power .pw-head, .bubble.temp .pw-head { display: flex; align-items: center; gap: 6px; }
       /* phase power-B3: the ring is a CSS conic-gradient, not an SVG. The card
          carries a blanket rule setting every svg to position absolute at 100%
          size for the flow layer, and inline geometry did not reliably beat it
          in the browser. A masked gradient sidesteps the rule entirely and
          matches how the bubble donuts are already drawn. */
-      .bubble.power .pw-ringwrap { position: relative; width: 44px; height: 44px; flex: 0 0 auto; }
-      .bubble.power .pw-ring {
+      .bubble.power .pw-ringwrap, .bubble.temp .pw-ringwrap { position: relative; width: 44px; height: 44px; flex: 0 0 auto; }
+      .bubble.power .pw-ring, .bubble.temp .pw-ring {
         position: absolute; inset: 0; border-radius: 50%;
         background: conic-gradient(var(--pw-col) 0 var(--pw-pct), var(--divider-color, #444) var(--pw-pct) 100%);
         -webkit-mask: radial-gradient(closest-side, transparent 68%, #000 69%);
         mask: radial-gradient(closest-side, transparent 68%, #000 69%);
       }
-      .bubble.power .pw-ringtxt {
+      .bubble.power .pw-ringtxt, .bubble.temp .pw-ringtxt {
         position: absolute; inset: 0; display: flex; align-items: center;
         justify-content: center; font-size: 11px; color: var(--primary-text-color);
       }
-      .bubble.power .pw-head-r { margin-left: auto; text-align: right; line-height: 1.15; }
-      .bubble.power .pw-big { font-size: 13px; font-weight: 500; color: var(--primary-text-color); }
-      .bubble.power .pw-sub { font-size: 9px; color: var(--secondary-text-color); }
-      .bubble.power .pw-sep { height: 1px; background: var(--divider-color, #444); opacity: .5; margin: 6px 0; }
-      .bubble.power .pw-title { font-size: 9px; color: var(--secondary-text-color); margin-bottom: 3px; }
-      .bubble.power .pw-bar { display: flex; height: 9px; border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
-      .bubble.power .pw-bar > span { display: block; height: 100%; }
-      .bubble.power .pw-row { display: flex; align-items: center; gap: 4px; font-size: 9px; line-height: 1.5; }
-      .bubble.power .pw-dot { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; }
-      .bubble.power .pw-lbl { color: var(--secondary-text-color); }
-      .bubble.power .pw-num { margin-left: auto; font-size: 10px; color: var(--primary-text-color); }
-      .bubble.power .pw-pct { flex: 0 0 26px; text-align: right; color: var(--secondary-text-color); }
+      .bubble.power .pw-head-r, .bubble.temp .pw-head-r { margin-left: auto; text-align: right; line-height: 1.15; }
+      .bubble.power .pw-big, .bubble.temp .pw-big { font-size: 13px; font-weight: 500; color: var(--primary-text-color); }
+      .bubble.power .pw-sub, .bubble.temp .pw-sub { font-size: 9px; color: var(--secondary-text-color); }
+      /* phase temp-body-2: the row styles serve BOTH tiles. They were scoped
+         to .bubble.power, so reusing the classes in the climate tile produced
+         unstyled markup -- the same html, none of the look. Named for the power
+         tile because that is where they were written; kept that way rather than
+         renamed, so nothing else has to move. */
+      .bubble.power .pw-sep, .bubble.temp .pw-sep { height: 1px; background: var(--divider-color, #444); opacity: .5; margin: 6px 0; }
+      .bubble.power .pw-title, .bubble.temp .pw-title { font-size: 9px; color: var(--secondary-text-color); margin-bottom: 3px; }
+      .bubble.power .pw-bar, .bubble.temp .pw-bar { display: flex; height: 9px; border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
+      .bubble.power .pw-bar > span, .bubble.temp .pw-bar > span { display: block; height: 100%; }
+      .bubble.power .pw-row, .bubble.temp .pw-row { display: flex; align-items: center; gap: 4px; font-size: 9px; line-height: 1.5; }
+      .bubble.power .pw-dot, .bubble.temp .pw-dot { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; }
+      .bubble.power .pw-lbl, .bubble.temp .pw-lbl { color: var(--secondary-text-color); }
+      .bubble.power .pw-num, .bubble.temp .pw-num { margin-left: auto; font-size: 10px; color: var(--primary-text-color); }
+      .bubble.power .pw-pct, .bubble.temp .pw-pct { flex: 0 0 26px; text-align: right; color: var(--secondary-text-color); }
       .bubble.house.donut { border: none !important; --house-gradient: var(--neon-pink); background: transparent; }
       .bubble.house.donut.tinted { background: color-mix(in srgb, var(--neon-pink), transparent 85%); }
       .bubble.house.donut::before {
