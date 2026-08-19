@@ -1001,7 +1001,6 @@ class PowerFluxCardEditor extends LitElement {
     // and a second label-offset pair for the export path. Whatever the schema
     // carries here, Grid/LG/Venus need only a subset of.
     _renderSolarView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
-        const mixPeriods = ['day', 'month', 'year'];
         const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
         const mixTargets = ['house', 'lg', 'venus', 'grid'];
         return html`
@@ -1099,7 +1098,14 @@ class PowerFluxCardEditor extends LitElement {
 
             ${this._bubbleForm('solar', 'mix')}
 
-            ${mixPeriods.map((mixPeriod) => html`
+            ${(() => {
+                // Only the configured period is rendered. The card reads one
+                // period at a time, so showing all three meant twelve pickers
+                // where four are ever in use. Values for the other periods stay
+                // in the config untouched -- switching the period brings them
+                // straight back.
+                const mixPeriod = this._config.solar_mix_period || 'day';
+                return html`
                 <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
                     ${this._localize(`editor.solar_mix_${mixPeriod}_section`)}
                 </div>
@@ -1108,7 +1114,11 @@ class PowerFluxCardEditor extends LitElement {
                     entities[`solar_mix_${mixTarget}_${mixPeriod}`] || "",
                     `solar_mix_${mixTarget}_${mixPeriod}`,
                     this._localize(`editor.solar_mix_${mixTarget}_label`)))}
-            `)}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
+                </div>
+                `;
+            })()}
 
             <!-- Phase 5.84: per-segment colors for the solar mix-ring.
                  Each defaults to the matching pipe color when unset. -->

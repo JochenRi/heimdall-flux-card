@@ -1,7 +1,5 @@
 export default {
   editor: {
-    "card.label_import": "Import",
-    "card.label_export": "Export",
     "editor.main_title": "Main Entities",
     "editor.bkw_section": "Balcony plant / garden PV",
     "editor.bkw_enabled": "Show BKW bubble",
@@ -27,6 +25,8 @@ export default {
     "editor.side_panels_threshold": "Card stays at full size from a window width of",
     "editor.side_panels_warn": "That is wider than most screens — the card will be scaled down.",
     "editor.power_entities_title": "Power tile sensors",
+    // Label for the flatten:false entity container in the power section.
+    "editor.entities": "Sensors",
     "editor.power_pulse_enabled": "Pulse on grid import",
     "editor.power_pulse_threshold": "Pulse threshold (W)",
     "editor.power_section": "Power Tile",
@@ -362,18 +362,9 @@ export default {
     "editor.consumer_5_title": "💡 Row 2 Right (Indigo)",
     "editor.consumer_6_title": "💡 Row 2 Outer Left (Teal)",
     "editor.consumer_7_title": "💡 Row 2 Outer Right (Pink)",
-  },
-  card: {
-    "card.label_solar": "Solar",
-    "card.label_grid": "Grid",
-    "card.label_battery": "Battery",
-    "card.label_venus": "Venus",
-    "card.label_house": "Consumption",
-    "card.label_car": "Car",
-    "card.label_heater": "Heater",
-    "card.label_pool": "Pool",
-    "card.label_consumer_4": "Cons. 4",
-    "card.label_consumer_5": "Cons. 5",
+
+    // Moved here from the card block: these are editor strings and were
+    // unreachable while they sat in the card dictionary.
     "editor.sparkline_title": "Sparkline (Background history graph)",
     "editor.sparkline_hint": "Shows the historical power trace as a mini chart in the bubble background. Data is pulled from HA history (refresh every 60 s).",
     "editor.sparkline_enabled": "Enable sparkline",
@@ -430,6 +421,7 @@ export default {
     "editor.solar_mix_hint": "Adds a second ring around the PV donut showing where PV energy went: direct house consumption, LG charging, Venus charging, grid export.",
     "editor.solar_mix_enabled": "Enable PV-distribution ring",
     "editor.solar_mix_period": "Time period",
+    "editor.mix_period_scope_hint": "Only the sensors for the period selected above are shown. Values for other periods stay saved.",
     "editor.solar_mix_period_day": "Day",
     "editor.solar_mix_period_month": "Month",
     "editor.solar_mix_period_year": "Year",
@@ -501,5 +493,19 @@ export default {
     // House bubble (2 segments: self/grid)
     "editor.house_mix_color_self": "Self-supply color",
     "editor.house_mix_color_grid": "Grid import color",
+  },
+  card: {
+    "card.label_solar": "Solar",
+    "card.label_grid": "Grid",
+    "card.label_battery": "Battery",
+    "card.label_venus": "Venus",
+    "card.label_house": "Consumption",
+    "card.label_car": "Car",
+    "card.label_heater": "Heater",
+    "card.label_pool": "Pool",
+    "card.label_consumer_4": "Cons. 4",
+    "card.label_consumer_5": "Cons. 5",
+    "card.label_import": "Import",
+    "card.label_export": "Export",
   }
 };

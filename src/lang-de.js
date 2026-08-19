@@ -1,7 +1,5 @@
 export default {
   editor: {
-    "card.label_import": "Import",
-    "card.label_export": "Export",
     "editor.main_title": "Haupt Entitäten",
     "editor.bkw_section": "BKW / Garten-PV",
     "editor.bkw_enabled": "BKW-Bubble anzeigen",
@@ -27,6 +25,8 @@ export default {
     "editor.side_panels_threshold": "Karte bleibt in voller Größe ab einer Fensterbreite von",
     "editor.side_panels_warn": "Das ist breiter als die meisten Bildschirme — die Karte wird verkleinert dargestellt.",
     "editor.power_entities_title": "Sensoren der Power-Kachel",
+    // Label for the flatten:false entity container in the power section.
+    "editor.entities": "Sensoren",
     "editor.power_pulse_enabled": "Bei Netzbezug pulsieren",
     "editor.power_pulse_threshold": "Schwelle für das Pulsieren (W)",
     "editor.power_section": "Power-Kachel",
@@ -362,18 +362,9 @@ export default {
     "editor.consumer_5_title": "💡 Reihe 2 Rechts (Indigo)",
     "editor.consumer_6_title": "💡 Reihe 2 Außen Links (Teal)",
     "editor.consumer_7_title": "💡 Reihe 2 Außen Rechts (Pink)",
-  },
-  card: {
-    "card.label_solar": "Solar",
-    "card.label_grid": "Netz",
-    "card.label_battery": "Batterie",
-    "card.label_venus": "Venus",
-    "card.label_house": "Verbrauch",
-    "card.label_car": "E-Auto",
-    "card.label_heater": "Heizung",
-    "card.label_pool": "Pool",
-    "card.label_consumer_4": "Verbr. 4",
-    "card.label_consumer_5": "Verbr. 5",
+
+    // Moved here from the card block: these are editor strings and were
+    // unreachable while they sat in the card dictionary.
     "editor.sparkline_title": "Sparkline (Verlauf im Hintergrund)",
     "editor.sparkline_hint": "Zeigt den historischen Leistungsverlauf als Mini-Diagramm im Hintergrund der Bubble. Daten kommen aus der HA-History (Refresh alle 60 Sek.).",
     "editor.sparkline_enabled": "Sparkline aktivieren",
@@ -430,6 +421,7 @@ export default {
     "editor.solar_mix_hint": "Zeigt um den PV-Donut herum einen zweiten Ring an, der angibt wohin die PV-Energie geflossen ist: Direktverbrauch Haus, LG-Ladung, Venus-Ladung, Netz-Export.",
     "editor.solar_mix_enabled": "PV-Verteilungs-Ring aktivieren",
     "editor.solar_mix_period": "Zeitraum",
+    "editor.mix_period_scope_hint": "Es werden nur die Sensoren des oben gewählten Zeitraums angezeigt. Werte anderer Zeiträume bleiben gespeichert.",
     "editor.solar_mix_period_day": "Tag",
     "editor.solar_mix_period_month": "Monat",
     "editor.solar_mix_period_year": "Jahr",
@@ -501,5 +493,19 @@ export default {
     // House bubble (2 segments: self/grid)
     "editor.house_mix_color_self": "Farbe Eigenversorgung",
     "editor.house_mix_color_grid": "Farbe Netzbezug",
+  },
+  card: {
+    "card.label_solar": "Solar",
+    "card.label_grid": "Netz",
+    "card.label_battery": "Batterie",
+    "card.label_venus": "Venus",
+    "card.label_house": "Verbrauch",
+    "card.label_car": "E-Auto",
+    "card.label_heater": "Heizung",
+    "card.label_pool": "Pool",
+    "card.label_consumer_4": "Verbr. 4",
+    "card.label_consumer_5": "Verbr. 5",
+    "card.label_import": "Import",
+    "card.label_export": "Export",
   }
 };

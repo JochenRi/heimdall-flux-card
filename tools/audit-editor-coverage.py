@@ -52,7 +52,10 @@ DOMAINS = {
     'period': ['day', 'month', 'year'],  # const period = ... 'month' | 'year' | 'day'
     # Editor-side loop variables. Deliberately named so they cannot collide
     # with a differently-scoped variable of the same generic name.
-    'mixPeriod': ['day', 'month', 'year'],       # const mixPeriods = [...]
+    # The editor now renders only the configured period's sensors, but all
+    # three remain reachable by switching the period -- so the audit expands
+    # all of them. It measures reachability, not what is on screen at once.
+    'mixPeriod': ['day', 'month', 'year'],
     'mixTarget': ['house', 'lg', 'venus', 'grid'],  # const mixTargets = [...]
 }
 
