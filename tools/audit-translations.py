@@ -33,7 +33,8 @@ DOMAINS = {
     'idx': [str(i) for i in range(1, 8)],
     'slotNum': ['1', '2', '3'],
     'mixPeriod': ['day', 'month', 'year'],
-    'mixTarget': ['house', 'lg', 'venus', 'grid'],
+    'solarMixTarget': ['house', 'lg', 'venus', 'grid'],
+    'gridMixTarget': ['import', 'export'],
     'period': ['day', 'month', 'year'],
     'side': ['indoor', 'outdoor'],
 }

@@ -56,7 +56,10 @@ DOMAINS = {
     # three remain reachable by switching the period -- so the audit expands
     # all of them. It measures reachability, not what is on screen at once.
     'mixPeriod': ['day', 'month', 'year'],
-    'mixTarget': ['house', 'lg', 'venus', 'grid'],  # const mixTargets = [...]
+    # One domain per bubble: the mix ring has different destinations per
+    # source. Solar splits four ways, the grid meter only two.
+    'solarMixTarget': ['house', 'lg', 'venus', 'grid'],
+    'gridMixTarget': ['import', 'export'],
 }
 
 # Bubbles and the keys that belong to them but do not carry the prefix.

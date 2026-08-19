@@ -181,6 +181,24 @@ const BUBBLE_CAPS = {
         sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
                      periods: SPARKLINE_PERIODS, periodDef: '24h', testMode: true },
     },
+    grid: {
+        label: true,
+        icon: true,
+        showLabel: { key: 'show_label_grid', def: false },
+        unitKw: { key: 'grid_unit_kw', def: false },
+        showFlowRate: { key: 'show_flow_rate_grid', def: true },
+        animationThreshold: { key: 'grid_animation_threshold', max: 200, def: 1 },
+        // '' yields grid_label_offset_x -- one pair, unlike solar's two.
+        labelOffsets: { targets: [''], range: 100, labels: 'bubble' },
+        rotation: { slots: 3, showLiveDef: true },
+        donutToday: { toggleKey: 'grid_donut_today_mode', toggleDef: false,
+                      entities: ['grid_donut_import_today', 'grid_donut_export_today'] },
+        mix: { toggleKey: 'grid_mix_donut_mode', toggleDef: false,
+               periodDef: 'day', gapDef: 8, gapMax: 30,
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15 },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h', testMode: true },
+    },
 };
 
 // A field: { key, def, selector, labelKey }. def is the value the legacy
@@ -1388,7 +1406,7 @@ class PowerFluxCardEditor extends LitElement {
     // carries here, Grid/LG/Venus need only a subset of.
     _renderSolarView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
-        const mixTargets = ['house', 'lg', 'venus', 'grid'];
+        const solarMixTargets = ['house', 'lg', 'venus', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
@@ -1495,11 +1513,11 @@ class PowerFluxCardEditor extends LitElement {
                 <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
                     ${this._localize(`editor.solar_mix_${mixPeriod}_section`)}
                 </div>
-                ${mixTargets.map((mixTarget) => this._renderEntitySelector(
+                ${solarMixTargets.map((solarMixTarget) => this._renderEntitySelector(
                     entitySelectorSchema,
-                    entities[`solar_mix_${mixTarget}_${mixPeriod}`] || "",
-                    `solar_mix_${mixTarget}_${mixPeriod}`,
-                    this._localize(`editor.solar_mix_${mixTarget}_label`)))}
+                    entities[`solar_mix_${solarMixTarget}_${mixPeriod}`] || "",
+                    `solar_mix_${solarMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.solar_mix_${solarMixTarget}_label`)))}
                 <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
                     ${this._localize('editor.mix_period_scope_hint')}
                 </div>
@@ -1537,7 +1555,12 @@ class PowerFluxCardEditor extends LitElement {
                 </ha-expansion-panel>
       `;
     }
+    // Phase editor-5: Grid on the generic schema. A subset of what Solar
+    // already carries -- one label-offset pair instead of two, a two-segment
+    // mix ring instead of four, no enable switch.
     _renderGridView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
+        const gridMixTargets = ['import', 'export'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
@@ -1563,23 +1586,7 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_export, 'grid_export', this._localize('card.label_export') + " (W, Optional)")}
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_grid || "", 'secondary_grid', this._localize('editor.secondary_sensor'))}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.grid_label}
-                .configValue=${'grid_label'}
-                .label=${this._localize('editor.label') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.grid_icon}
-                .configValue=${'grid_icon'}
-                .label=${this._localize('editor.icon') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('grid', 'sensors')}
 
             ${this._renderColorPickerQuint('color_grid', 'color_pipe_grid', 'color_text_grid', 'color_icon_grid', 'color_secondary_grid', '#3b82f6')}
             ${this._renderColorPicker('color_export', this._localize('editor.export_color'), '#ff3333')}
@@ -1592,43 +1599,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_behavior')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_label_grid === true}
-                    .configValue=${'show_label_grid'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.label_toggle')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.grid_unit_kw === true}
-                    .configValue=${'grid_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.grid_unit_kw')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_grid !== false}
-                    .configValue=${'show_flow_rate_grid'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
-            </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                    .value=${this._config.grid_animation_threshold !== undefined ? this._config.grid_animation_threshold : 1}
-                    .configValue=${'grid_animation_threshold'}
-                    .label=${this._localize('editor.bubble_animation_threshold')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
+            ${this._bubbleForm('grid', 'behavior')}
         </div>
 
         <!-- Group: Watt-label positioning -->
@@ -1638,29 +1609,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_label_positions')}
             </div>
 
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
-                ${this._localize('editor.grid_label_pos_import')}
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.grid_label_offset_x !== undefined ? this._config.grid_label_offset_x : 0}
-                    .configValue=${'grid_label_offset_x'}
-                    .label=${this._localize('editor.bubble_label_offset_x')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.grid_label_offset_y !== undefined ? this._config.grid_label_offset_y : 0}
-                    .configValue=${'grid_label_offset_y'}
-                    .label=${this._localize('editor.bubble_label_offset_y')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
+            ${this._bubbleForm('grid', 'offsets')}
         </div>
 
         <!-- Group: Value rotation -->
@@ -1671,50 +1620,13 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.rotation_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.grid_rotate_show_live !== false}
-                    .configValue=${'grid_rotate_show_live'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
-            </div>
+            ${this._bubbleForm('grid', 'rotation')}
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.grid_rotate_show_daily_1 === true}
-                    .configValue=${'grid_rotate_show_daily_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_1 || "", 'grid_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-            ${this._renderColorPicker('grid_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
-
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.grid_rotate_show_daily_2 === true}
-                    .configValue=${'grid_rotate_show_daily_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_2 || "", 'grid_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-            ${this._renderColorPicker('grid_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
-
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.grid_rotate_show_daily_3 === true}
-                    .configValue=${'grid_rotate_show_daily_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_rotate_daily_3 || "", 'grid_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-            ${this._renderColorPicker('grid_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+            ${[1, 2, 3].map((n) => html`
+                <div class="separator"></div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities[`grid_rotate_daily_${n}`] || "", `grid_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                ${this._renderColorPicker(`grid_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), rotationSlotColors[n - 1])}
+            `)}
                 </ha-expansion-panel>
 
         <!-- Group: Grid donut -->
@@ -1725,21 +1637,12 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.grid_donut_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.grid_donut_today_mode === true}
-                    .configValue=${'grid_donut_today_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.grid_donut_enabled')}</div>
-            </div>
+            ${this._bubbleForm('grid', 'donut')}
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_import_today || "", 'grid_donut_import_today', this._localize('editor.grid_donut_import_sensor'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_donut_export_today || "", 'grid_donut_export_today', this._localize('editor.grid_donut_export_sensor'))}
 
-            <!-- Phase 5.73: Grid Import/Export balance mix-ring. 2-segment outer
-                 ring around the existing Tages-Mix donut. Answers
-                 "wie ist meine Netz-Bilanz?". -->
+            <!-- Phase 5.73: Grid Import/Export balance mix-ring, two segments. -->
             <div class="group-title">
                 <ha-icon icon="mdi:circle-multiple-outline"></ha-icon>
                 ${this._localize('editor.grid_mix_section')}
@@ -1749,82 +1652,33 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.grid_mix_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.grid_mix_donut_mode === true}
-                    .configValue=${'grid_mix_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.grid_mix_enabled')}</div>
-            </div>
+            ${this._bubbleForm('grid', 'mix')}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "day",   label: this._localize('editor.grid_mix_period_day')   },
-                    { value: "month", label: this._localize('editor.grid_mix_period_month') },
-                    { value: "year",  label: this._localize('editor.grid_mix_period_year')  }
-                ] } }}
-                .value=${this._config.grid_mix_period || 'day'}
-                .configValue=${'grid_mix_period'}
-                .label=${this._localize('editor.grid_mix_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${(() => {
+                const mixPeriod = this._config.grid_mix_period || 'day';
+                return html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.grid_mix_${mixPeriod}_section`)}
+                </div>
+                ${gridMixTargets.map((gridMixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`grid_mix_${gridMixTarget}_${mixPeriod}`] || "",
+                    `grid_mix_${gridMixTarget}_${mixPeriod}`,
+                    this._localize(`editor.grid_mix_${gridMixTarget}_label`)))}
+                <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
+                    ${this._localize('editor.mix_period_scope_hint')}
+                </div>
+                `;
+            })()}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                .value=${this._config.grid_mix_gap !== undefined ? this._config.grid_mix_gap : 8}
-                .configValue=${'grid_mix_gap'}
-                .label=${this._localize('editor.grid_mix_gap')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                .value=${this._config.grid_mix_thickness !== undefined ? this._config.grid_mix_thickness : 4}
-                .configValue=${'grid_mix_thickness'}
-                .label=${this._localize('editor.grid_mix_thickness')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Day-period sensors (Import + Export) -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.grid_mix_day_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_import_day || "", 'grid_mix_import_day', this._localize('editor.grid_mix_import_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_export_day || "", 'grid_mix_export_day', this._localize('editor.grid_mix_export_label'))}
-
-            <!-- Month-period sensors -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.grid_mix_month_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_import_month || "", 'grid_mix_import_month', this._localize('editor.grid_mix_import_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_export_month || "", 'grid_mix_export_month', this._localize('editor.grid_mix_export_label'))}
-
-            <!-- Year-period sensors -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.grid_mix_year_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_import_year || "", 'grid_mix_import_year', this._localize('editor.grid_mix_import_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.grid_mix_export_year || "", 'grid_mix_export_year', this._localize('editor.grid_mix_export_label'))}
-
-            <!-- Phase 5.84: per-segment colors for the grid mix-ring.
-                 Each defaults to the matching pipe color when unset. -->
+            <!-- Phase 5.84: per-segment colors for the grid mix-ring. -->
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
                 ${this._localize('editor.source_mix_colors_section')}
             </div>
             ${this._renderColorPicker('grid_mix_color_import', this._localize('editor.grid_mix_color_import'), '#ff0040')}
             ${this._renderColorPicker('grid_mix_color_export', this._localize('editor.grid_mix_color_export'), '#ffd900')}
 
-            <!-- Phase 5.73: Grid sparkline. Default sensor (when override is
-                 empty) is the bubble's main entity entities.grid which is
-                 typically the combined/signed grid sensor. Sparkline data
-                 path uses Math.max(0, v) so negative export values appear as
-                 zero -- user can pick an import-only or export-only sensor
-                 as override to see those separately. Default colour matches
-                 the grid pipe colour (red). -->
+            <!-- Phase 5.73: Grid sparkline. -->
             <div class="group-title">
                 <ha-icon icon="mdi:chart-line-variant"></ha-icon>
                 ${this._localize('editor.sparkline_title')}
@@ -1833,79 +1687,14 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.sparkline_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.grid_sparkline === true}
-                    .configValue=${'grid_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
-            </div>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.grid_sparkline_entity || "", 'grid_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
             <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
                 ${this._localize('editor.sparkline_entity_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h",  label: "1h"  },
-                    { value: "6h",  label: "6h"  },
-                    { value: "12h", label: "12h" },
-                    { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.grid_sparkline_period || '24h'}
-                .configValue=${'grid_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                ] } }}
-                .value=${this._config.grid_sparkline_layer || 'back'}
-                .configValue=${'grid_sparkline_layer'}
-                .label=${this._localize('editor.sparkline_layer')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.grid_sparkline_style || 'area-line'}
-                .configValue=${'grid_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.grid_sparkline_opacity !== undefined ? this._config.grid_sparkline_opacity : 0.35}
-                .configValue=${'grid_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('grid', 'sparkline')}
 
             ${this._renderColorPicker('grid_sparkline_color', this._localize('editor.sparkline_color'), '#ff0040')}
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.grid_sparkline_test_mode === true}
-                    .configValue=${'grid_sparkline_test_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-            </div>
                 </ha-expansion-panel>
       `;
     }
