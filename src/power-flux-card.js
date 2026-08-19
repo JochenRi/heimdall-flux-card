@@ -420,11 +420,19 @@ console.log(
         // Phase 5.67.1: dropped &minimal_response. With minimal_response,
         // HA omits last_changed/last_updated on most points which made
         // every datapoint timestamp NaN and the series got filtered to
-        // nothing. Full response is larger (~tens of KB for 24h at 1-min
-        // resolution) but reliably contains timestamps on every point.
+        // nothing.
+        //
+        // Phase perf-2: &no_attributes is a different switch and is safe here.
+        // minimal_response strips the timestamps we need; no_attributes strips
+        // only the attribute bag -- friendly_name, unit, device_class and the
+        // rest, repeated on EVERY point of EVERY series. That bag was the bulk
+        // of the payload. Fourteen series were being pulled in full once a
+        // minute, which is why the picture stuttered periodically and then
+        // froze once while the browser collected the garbage.
         const url = `history/period/${start.toISOString()}`
           + `?filter_entity_id=${encodeURIComponent(entityId)}`
-          + `&end_time=${encodeURIComponent(end.toISOString())}`;
+          + `&end_time=${encodeURIComponent(end.toISOString())}`
+          + (this._noAttributesOk === false ? '' : '&no_attributes');
         if (debug) {
           // eslint-disable-next-line no-console
           console.log(`[HEIMDALL Sparkline c${idx}] fetching ${entityId} period=${period} url=${url}`);
@@ -464,6 +472,18 @@ console.log(
             };
           })
           .filter(p => !isNaN(p.v) && !isNaN(p.t));
+
+        // Phase perf-2: no_attributes is assumed to keep the timestamps, not
+        // trusted to. If a response carries plenty of rows but none of them
+        // survive the timestamp filter, this HA version strips more than
+        // expected -- drop the flag for the rest of the session and refetch
+        // this series in full. Self-correcting, so it cannot repeat the
+        // silent-empty-curve failure that cost a whole phase before.
+        if (this._noAttributesOk !== false && raw.length > 1 && series.length === 0) {
+          this._noAttributesOk = false;
+          return this._fetchSparklineHistory(entityId, period, idx);
+        }
+        this._noAttributesOk = true;
         if (debug) {
           // eslint-disable-next-line no-console
           console.log(
@@ -881,92 +901,8 @@ console.log(
         border: none !important;
       }
       
-      /* Phase 5.41: animated background effects.
-       * Three styles wrapped in a single ::before pseudo-element on ha-card.
-       * The active style is selected by the .bg-anim-{aurora|flow|pulse} class.
-       * All effects use GPU-accelerated properties only (transform, opacity,
-       * background-position). The whole layer is muted via opacity from the
-       * Intensity slider and saturate() from the Saturation slider.
-       *
-       * Layer is positioned absolutely behind content (z-index: 0, while
-       * scale-wrapper sits at z-index: 1+). overflow: hidden on ha-card keeps
-       * the moving colours contained within the visible card area.
-       *
-       * Defaults (from CSS vars set inline):
-       *   --bg-anim-duration : 30s
-       *   --bg-anim-opacity  : 0.1
-       *   --bg-anim-saturate : 1
-       *   --bg-color-1..4    : the four user-picked colours
-       */
-      ha-card.bg-anim-aurora,
-      ha-card.bg-anim-flow {
-        overflow: hidden;
-        position: relative;
-      }
-      ha-card.bg-anim-aurora::before,
-      ha-card.bg-anim-flow::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        pointer-events: none;
-        border-radius: inherit;
-        opacity: var(--bg-anim-opacity, 0.1);
-        filter: saturate(var(--bg-anim-saturate, 1));
-        will-change: transform, background-position, opacity;
-      }
-      
-      /* Aurora style: four large radial-gradient blobs drifting slowly */
-      ha-card.bg-anim-aurora::before {
-        background:
-          radial-gradient(circle at 20% 30%, var(--bg-color-1, #ffdd00) 0%, transparent 45%),
-          radial-gradient(circle at 80% 20%, var(--bg-color-2, #ff0040) 0%, transparent 45%),
-          radial-gradient(circle at 70% 80%, var(--bg-color-3, #e100ff) 0%, transparent 45%),
-          radial-gradient(circle at 30% 70%, var(--bg-color-4, #8d07d5) 0%, transparent 45%);
-        background-size: 200% 200%;
-        animation: hflux-aurora-drift var(--bg-anim-duration, 30s) ease-in-out infinite alternate;
-      }
-      @keyframes hflux-aurora-drift {
-        0%   { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%; }
-        50%  { background-position: 100% 50%, 0% 50%, 50% 0%, 50% 100%; }
-        100% { background-position: 50% 100%, 50% 0%, 0% 50%, 100% 50%; }
-      }
-      
-      /* Slow Flow style: diagonal linear gradient sliding across */
-      ha-card.bg-anim-flow::before {
-        background: linear-gradient(
-          135deg,
-          var(--bg-color-1, #ffdd00) 0%,
-          var(--bg-color-2, #ff0040) 33%,
-          var(--bg-color-3, #e100ff) 66%,
-          var(--bg-color-4, #8d07d5) 100%
-        );
-        background-size: 400% 400%;
-        animation: hflux-flow-slide var(--bg-anim-duration, 30s) ease infinite;
-      }
-      @keyframes hflux-flow-slide {
-        0%   { background-position: 0% 50%; }
-        50%  { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-      }
-      
-      /* Respect user's motion-reduction preference: disable all keyframe
-       * animations on the background layer. The colour layer itself stays
-       * visible as a static blend, which is still better than blank. */
-      @media (prefers-reduced-motion: reduce) {
-        ha-card.bg-anim-aurora::before,
-        ha-card.bg-anim-flow::before {
-          animation: none !important;
-        }
-      }
-      
-      /* Make sure the actual card content sits above the animation layer.
-       * scale-wrapper is the immediate child holding the SVG flow diagram. */
-      ha-card.bg-anim-aurora > .scale-wrapper,
-      ha-card.bg-anim-flow > .scale-wrapper {
-        position: relative;
-        z-index: 1;
-      }
+      /* Phase perf-2: animated-background CSS removed. See the note in
+       * render() -- it repainted the entire card surface on every frame. */
       
       /* --- STANDARD VIEW STYLES --- */
       .scale-wrapper {
@@ -4381,41 +4317,19 @@ console.log(
       const dashArrayVal = showTail ? '30 360' : (showDashedLine ? '13 13' : '0 380');
       const strokeWidthVal = showDashedLine ? 4 : 8;
       
-      // Phase 5.41: animated background style.
-      //   bg_anim_style: 'off' (default) | 'aurora' | 'flow' | 'pulse'
-      //   bg_anim_duration_sec: animation cycle length (5..120s, default 30)
-      //   bg_anim_intensity: opacity of the colour layer (0..0.3, default 0.1)
-      //   bg_anim_saturate: CSS saturate filter on the layer (0.5..1.5, default 1)
-      //   bg_color_1..4: four colour stops
-      // All effects are CSS-only (no JS animation loop) and GPU-accelerated.
-      // prefers-reduced-motion handled in CSS.
-      // Phase 5.43: Pulse style removed. Map legacy 'pulse' configs to 'off'
-      // (the conic-gradient rotation didn't pan out aesthetically; only aurora
-      // and flow remain). Existing configs that saved 'pulse' will silently
-      // render as off until the user picks aurora or flow.
-      let bgAnimStyle = this.config.bg_anim_style || 'off';
-      if (bgAnimStyle !== 'off' && bgAnimStyle !== 'aurora' && bgAnimStyle !== 'flow') {
-        bgAnimStyle = 'off';
-      }
-      const bgAnimEnabled = bgAnimStyle !== 'off' && !this.config.transparent_background;
-      const bgAnimClass = bgAnimEnabled ? `bg-anim-${bgAnimStyle}` : '';
-      const bgAnimDuration = this.config.bg_anim_duration_sec !== undefined ? this.config.bg_anim_duration_sec : 30;
-      const bgAnimOpacity = this.config.bg_anim_intensity !== undefined ? this.config.bg_anim_intensity : 0.1;
-      const bgAnimSaturate = this.config.bg_anim_saturate !== undefined ? this.config.bg_anim_saturate : 1;
-      const bgColor1 = this.config.bg_color_1 || '#ffdd00';
-      const bgColor2 = this.config.bg_color_2 || '#ff0040';
-      const bgColor3 = this.config.bg_color_3 || '#e100ff';
-      const bgColor4 = this.config.bg_color_4 || '#8d07d5';
-      const bgAnimVars = bgAnimEnabled
-        ? ` --bg-anim-duration: ${bgAnimDuration}s; --bg-anim-opacity: ${bgAnimOpacity}; --bg-anim-saturate: ${bgAnimSaturate}; --bg-color-1: ${bgColor1}; --bg-color-2: ${bgColor2}; --bg-color-3: ${bgColor3}; --bg-color-4: ${bgColor4};`
-        : '';
+      // Phase perf-2: the animated background is gone. It animated
+      // background-position across four radial gradients over the full card
+      // surface -- not a GPU-accelerated property, so every frame repainted
+      // the whole card, permanently, whether anyone was looking or not.
+      // It was switched off in this installation anyway. Config keys
+      // (bg_anim_*, bg_color_*) are simply ignored now; nothing breaks if
+      // they are still present in YAML.
       const haCardClasses = [
         this.config.transparent_background ? 'transparent-bg' : '',
-        bgAnimClass,
       ].filter(Boolean).join(' ');
 
       return html`
-      <ha-card class="${haCardClasses}" style="height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;${bgAnimVars}">
+      <ha-card class="${haCardClasses}" style="height: ${finalCardBackgroundHeightPx}px; width: ${visualWidth + padLeft + padRight}px; padding-top: ${padTop}px; padding-bottom: ${padBottom}px; padding-left: ${padLeft}px; padding-right: ${padRight}px; box-sizing: border-box; margin-left: auto; margin-right: auto; --flow-dasharray: ${dashArrayVal}; --flow-stroke-width: ${strokeWidthVal}px; --pipe-label-size: ${(this.config.pipe_label_size || 10)}px; --bubble-size: ${(this.config.bubble_size || 90)}px;">
         
         <div class="scale-wrapper" style="transform: translate(${sidePanelsOn ? 0 : (this.config.card_offset_x !== undefined ? this.config.card_offset_x : 0)}px, ${sidePanelsStacked ? 0 : (this.config.card_offset_y !== undefined ? this.config.card_offset_y : 0)}px) scale(${scale}); margin-top: ${-padTop}px;">
             
