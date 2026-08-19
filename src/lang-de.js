@@ -279,6 +279,8 @@ export default {
     "editor.side_panels_enabled": "Seiten-Panels (links/rechts)",
     "editor.hide_inactive": "Inaktive Röhren ausblenden",
     "editor.entity": "Kombinierter Batterie Sensor (W)",
+    "editor.suggest_entity": "Passenden Sensor vorschlagen",
+    "editor.suggest_none": "Kein passender Sensor gefunden. Bitte von Hand auswählen.",
     "editor.label": "Beschriftung",
     "editor.icon": "Icon",
     "editor.back": "Zurück",

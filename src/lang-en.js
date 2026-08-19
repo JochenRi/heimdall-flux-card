@@ -279,6 +279,8 @@ export default {
     "editor.side_panels_enabled": "Side panels (left/right)",
     "editor.hide_inactive": "Hide Inactive Pipes",
     "editor.entity": "Combined Battery Sensor (W)",
+    "editor.suggest_entity": "Suggest a matching sensor",
+    "editor.suggest_none": "No matching sensor found. Please pick one by hand.",
     "editor.label": "Label",
     "editor.icon": "Icon",
     "editor.back": "Back",

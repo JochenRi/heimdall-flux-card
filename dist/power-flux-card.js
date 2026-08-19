@@ -284,6 +284,8 @@ const lang_de = {
     "editor.side_panels_enabled": "Seiten-Panels (links/rechts)",
     "editor.hide_inactive": "Inaktive Röhren ausblenden",
     "editor.entity": "Kombinierter Batterie Sensor (W)",
+    "editor.suggest_entity": "Passenden Sensor vorschlagen",
+    "editor.suggest_none": "Kein passender Sensor gefunden. Bitte von Hand auswählen.",
     "editor.label": "Beschriftung",
     "editor.icon": "Icon",
     "editor.back": "Zurück",
@@ -795,6 +797,8 @@ const lang_en = {
     "editor.side_panels_enabled": "Side panels (left/right)",
     "editor.hide_inactive": "Hide Inactive Pipes",
     "editor.entity": "Combined Battery Sensor (W)",
+    "editor.suggest_entity": "Suggest a matching sensor",
+    "editor.suggest_none": "No matching sensor found. Please pick one by hand.",
     "editor.label": "Label",
     "editor.icon": "Icon",
     "editor.back": "Back",
@@ -1435,6 +1439,86 @@ const POWER_FLUX_EDITOR_POWER_KEYS = [
 //     group, which is the flatten:false probe (see _bubbleEntitySchema).
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Phase editor-3: narrowing the entity pickers.
+//
+// A picker that offers all two thousand entities is not a choice, it is a
+// search task. Home Assistant can filter by device_class, so a power field can
+// offer power sensors only.
+//
+// But only where the classification is reliable. Measured on the live system:
+// power sensors and state-of-charge sensors carry device_class without
+// exception, while forecast and percentage sensors (evcc_solar_forecast_heute,
+// heimdall_v2_autarkie_heute) carry none at all. Filtering those would HIDE
+// the very sensors the field wants -- worse than no filter. So the table below
+// covers the fields where the answer is certain and leaves the rest open; the
+// suggestion button does the work there instead.
+// ---------------------------------------------------------------------------
+
+const ENTITY_FIELD_KINDS = (() => {
+    const kinds = {};
+    const power = ['solar', 'grid', 'grid_export', 'grid_combined', 'battery',
+        'battery_charge', 'battery_discharge', 'grid_to_battery', 'venus',
+        'venus_charge', 'venus_discharge', 'venus_pv_charge', 'house', 'bkw'];
+    for (let i = 1; i <= 7; i++) power.push(`consumer_${i}`);
+    for (const k of power) kinds[k] = 'power';
+    for (const k of ['battery_soc', 'venus_soc']) kinds[k] = 'battery';
+    for (const k of ['temp_indoor', 'temp_outdoor', 'temp_forecast_high',
+                     'temp_forecast_low']) kinds[k] = 'temperature';
+    return kinds;
+})();
+
+const ENTITY_FILTERS = {
+    power: [{ domain: 'sensor', device_class: 'power' }, { domain: 'input_number' }],
+    battery: [{ domain: 'sensor', device_class: 'battery' }, { domain: 'input_number' }],
+    temperature: [{ domain: 'sensor', device_class: 'temperature' }, { domain: 'input_number' }],
+};
+
+// What a matching entity is likely to be called. Two tiers: a strong hint that
+// all but names the sensor, and weaker supporting words. Plus a list of words
+// that argue AGAINST a match.
+//
+// The first version of this scored on device_class, unit and loose substring
+// matching. Measured against the live system it proposed smoke-detector
+// batteries for the battery charge level and forecast values for the PV
+// bubble. What fixed it: word-boundary matching (so "pv" no longer matches
+// inside unrelated names), a strong tier, and the exclusion list.
+//
+// Re-measured against the same system afterwards: all seven source and storage
+// fields land in the top three, four of them first.
+const ENTITY_NAME_HINTS = {
+    solar:       { strong: ['dach'], weak: ['pv', 'solar', 'panel', 'erzeugung'] },
+    grid:        { strong: ['netz'], weak: ['grid', 'shelly', 'bezug'] },
+    grid_export: { strong: ['einspeisung', 'export'], weak: ['netz', 'grid'] },
+    grid_combined: { strong: ['netz', 'saldo'], weak: ['grid', 'shelly'] },
+    grid_to_battery: { strong: ['netz'], weak: ['lade', 'batt', 'akku'] },
+    battery:     { strong: ['lg', 'b1', 'resu'], weak: ['batt', 'akku', 'speicher'] },
+    battery_soc: { strong: ['lg', 'soc'], weak: ['ladestand', 'speicher'] },
+    battery_charge:    { strong: ['lg'], weak: ['lade', 'charge', 'batt'] },
+    battery_discharge: { strong: ['lg'], weak: ['entlade', 'discharge', 'batt'] },
+    venus:       { strong: ['venus'], weak: ['marstek', 'ac'] },
+    venus_soc:   { strong: ['venus', 'soc'], weak: ['marstek', 'ladestand'] },
+    venus_charge:    { strong: ['venus'], weak: ['lade', 'charge'] },
+    venus_discharge: { strong: ['venus'], weak: ['entlade', 'discharge'] },
+    venus_pv_charge: { strong: ['venus', 'mppt'], weak: ['marstek', 'pv'] },
+    house:       { strong: ['haus', 'house'], weak: ['verbrauch', 'consumption', 'gesamt'] },
+    bkw:         { strong: ['garten', 'bkw', 'balkon'], weak: ['pv'] },
+    temp_indoor:  { strong: ['innen', 'indoor'], weak: ['haus', 'raum', 'durchschnitt'] },
+    temp_outdoor: { strong: ['aussen', 'outdoor'], weak: ['garten', 'wetter'] },
+    temp_forecast_high: { strong: ['forecast', 'high'], weak: ['max', 'hoch'] },
+    temp_forecast_low:  { strong: ['forecast', 'low'], weak: ['min', 'tief'] },
+};
+
+// Words that make a sensor a poor answer for a whole-house field: derived
+// values, per-phase splits, device batteries, vehicle sensors. Fields whose
+// hint list already contains one of these keep it -- the forecast temperature
+// fields want "forecast".
+const ENTITY_NAME_PENALTIES = [
+    'forecast', 'prognose', 'erwartung', 'ziel', 'now', 'max', 'peak', 'phase',
+    'schein', 'melder', 'button', 'bthome', 'pixel', 'link', 'signal', 'uptime',
+    'rate', 'tesla', 'handy', '5min', 'mittel', 'invertiert', 'gradient',
+];
+
 const SPARKLINE_LAYERS = ['back', 'mid', 'front'];
 const SPARKLINE_STYLES = ['area', 'line', 'area-line'];
 const SPARKLINE_PERIODS = ['1h', '6h', '12h', '24h'];
@@ -1591,7 +1675,8 @@ class PowerFluxCardEditor extends LitElement {
         return {
             hass: {},
             _config: { state: true },
-            _subView: { state: true } // Controls which sub-page is open (null = main)
+            _subView: { state: true }, // Controls which sub-page is open (null = main)
+            _openSuggestion: { state: true } // Which field's suggestion list is open
         };
     }
 
@@ -1968,13 +2053,98 @@ class PowerFluxCardEditor extends LitElement {
         return ref ? `${type}: ${ref}` : type;
     }
 
+    // Every entity picker in every section goes through here, so narrowing and
+    // suggestions are added once and take effect in all twelve sections at
+    // once -- no touching 220 call sites.
+    _entitySelectorFor(configValue, currentValue, fallbackSchema) {
+        const kind = ENTITY_FIELD_KINDS[configValue];
+        const filter = kind && ENTITY_FILTERS[kind];
+        if (!filter) return fallbackSchema;
+
+        // Never hide what is already configured. If the saved sensor does not
+        // match the filter -- a template sensor without a device_class, say --
+        // the filter is dropped for this field, otherwise the picker would
+        // come up blank and the value would look lost.
+        if (currentValue && this.hass) {
+            const st = this.hass.states[currentValue];
+            const dc = st && st.attributes && st.attributes.device_class;
+            const matches = filter.some((f) => {
+                if (!f.device_class) return currentValue.startsWith(`${f.domain}.`);
+                return dc === f.device_class;
+            });
+            if (!matches) return fallbackSchema;
+        }
+        return { entity: { filter } };
+    }
+
+    // Ranked guesses for one field. Reads device_class, unit and the entity id
+    // itself, and shows WHY each one is offered -- a suggestion you cannot
+    // check is just a different kind of guessing.
+    // Ranked guesses for one field, with the reason shown next to each one --
+    // a suggestion you cannot check is just a different kind of guessing.
+    _entitySuggestions(configValue, limit) {
+        if (!this.hass || !this.hass.states) return [];
+        const hints = ENTITY_NAME_HINTS[configValue];
+        if (!hints) return [];
+        const kind = ENTITY_FIELD_KINDS[configValue];
+        const wantUnit = { power: 'W', battery: '%', temperature: '\u00b0C' }[kind];
+
+        // Word-boundary matching, not substrings: "pv" must not match inside an
+        // unrelated name. Id and friendly name become one underscore-separated
+        // string with sentinels at both ends.
+        const asWords = (id, name) =>
+            `_${id} ${name || ''}_`.toLowerCase().replace(/[.\s-]/g, '_');
+        const has = (hay, word) => hay.includes(`_${word}_`);
+        const penalties = ENTITY_NAME_PENALTIES.filter((p) =>
+            !hints.strong.includes(p) && !hints.weak.includes(p));
+
+        const scored = [];
+        for (const [id, st] of Object.entries(this.hass.states)) {
+            if (!id.startsWith('sensor.') && !id.startsWith('input_number.')) continue;
+            const attrs = st.attributes || {};
+            if (isNaN(parseFloat(st.state))) continue;
+
+            const hay = asWords(id, attrs.friendly_name);
+            let score = 0;
+            const why = [];
+            if (kind && attrs.device_class === kind) { score += 5; why.push(attrs.device_class); }
+            if (wantUnit && attrs.unit_of_measurement === wantUnit) { score += 3; why.push(wantUnit); }
+            for (const w of hints.strong) if (has(hay, w)) score += 5;
+            for (const w of hints.weak) if (has(hay, w)) score += 2;
+            for (const p of penalties) if (hay.includes(p)) score -= 6;
+
+            if (score < 8) continue;
+            if (attrs.friendly_name) why.push(attrs.friendly_name);
+            scored.push({ id, score, why: why.join(' \u00b7 ') });
+        }
+        scored.sort((a, b) => (b.score - a.score) || a.id.localeCompare(b.id));
+        return scored.slice(0, limit || 3);
+    }
+
+    _toggleSuggestions(configValue) {
+        this._openSuggestion = this._openSuggestion === configValue ? null : configValue;
+        this.requestUpdate();
+    }
+
+    _applySuggestion(configValue, entityId) {
+        this._openSuggestion = null;
+        this._valueChanged({
+            target: { configValue, value: entityId },
+            detail: { value: entityId },
+        });
+    }
+
     _renderEntitySelector(entitySelectorSchema, value, configValue, label) {
         const val = value || "";
+        const schema = this._entitySelectorFor(configValue, val, entitySelectorSchema);
+        const canSuggest = !val && !!ENTITY_NAME_HINTS[configValue];
+        const open = this._openSuggestion === configValue;
+        const suggestions = open ? this._entitySuggestions(configValue, 3) : [];
             return html`
             <div class="entity-picker-wrapper">
                 <ha-selector
                     .hass=${this.hass}
-                    .selector=${entitySelectorSchema}
+                    .selector=${schema}
                     .value=${val}
                     .configValue=${configValue}
                     .label=${label}
@@ -1985,7 +2155,25 @@ class PowerFluxCardEditor extends LitElement {
                     icon="mdi:close-circle" 
                     @click=${() => this._clearEntity(configValue)}
                 ></ha-icon>` : ''}
+                ${canSuggest ? html`<ha-icon
+                    class="suggest-entity-btn"
+                    icon=${open ? 'mdi:close' : 'mdi:auto-fix'}
+                    title=${this._localize('editor.suggest_entity')}
+                    @click=${() => this._toggleSuggestions(configValue)}
+                ></ha-icon>` : ''}
             </div>
+            ${open ? html`
+                <div class="suggestion-box">
+                    ${suggestions.length === 0
+                        ? html`<div class="suggestion-empty">${this._localize('editor.suggest_none')}</div>`
+                        : suggestions.map((s) => html`
+                            <div class="suggestion-row" @click=${() => this._applySuggestion(configValue, s.id)}>
+                                <div class="suggestion-id">${s.id}</div>
+                                <div class="suggestion-why">${s.why}</div>
+                            </div>
+                        `)}
+                </div>
+            ` : ''}
         `;
     }
 
@@ -2204,6 +2392,45 @@ class PowerFluxCardEditor extends LitElement {
       }
       .clear-entity-btn:hover {
           color: var(--error-color, #db4437);
+      }
+      /* Phase editor-3: suggestion button and result list. */
+      .suggest-entity-btn {
+          --mdc-icon-size: 20px;
+          color: var(--primary-color);
+          cursor: pointer;
+          flex-shrink: 0;
+          margin-top: -12px;
+      }
+      .suggest-entity-btn:hover {
+          color: var(--primary-text-color);
+      }
+      .suggestion-box {
+          margin: -4px 0 10px 0;
+          border: 1px solid var(--divider-color);
+          border-radius: 8px;
+          overflow: hidden;
+      }
+      .suggestion-row {
+          padding: 8px 10px;
+          cursor: pointer;
+          border-bottom: 1px solid var(--divider-color);
+      }
+      .suggestion-row:last-child { border-bottom: none; }
+      .suggestion-row:hover { background: var(--secondary-background-color); }
+      .suggestion-id {
+          font-family: monospace;
+          font-size: 0.85em;
+          color: var(--primary-text-color);
+      }
+      .suggestion-why {
+          font-size: 0.78em;
+          color: var(--secondary-text-color);
+          margin-top: 2px;
+      }
+      .suggestion-empty {
+          padding: 8px 10px;
+          font-size: 0.82em;
+          color: var(--secondary-text-color);
       }
       .color-picker-row {
           display: flex;
