@@ -567,6 +567,7 @@ const GLOBAL_FIELDS = {
     portals: [
         ['portals_enabled', true, 'portals_enabled'],
         ['portal_size', 13, 'portal_size', [4, 40, 1]],
+        ['portal_gap', 14, 'portal_gap', [0, 60, 1]],
         ['temp_portal_offset_x', 0, 'temp_portal_offset_x', [-150, 150, 1]],
         ['temp_portal_offset_y', 0, 'temp_portal_offset_y', [-150, 150, 1]],
         ['power_portal_offset_x', 0, 'power_portal_offset_x', [-150, 150, 1]],
@@ -640,6 +641,7 @@ const FIELD_HELP = {
     temp_outdoor_max: 'help_temp_scale_max',
     temp_indoor_max: 'help_temp_scale_max',
     portal_size: 'help_portal_size',
+    portal_gap: 'help_portal_gap',
     temp_portal_offset_x: 'help_portal_offset',
     temp_portal_offset_y: 'help_portal_offset',
     power_portal_offset_x: 'help_portal_offset',
@@ -704,7 +706,7 @@ const globalFields = (group) => {
     if (group === 'portals') {
         return [
             pick('portals_enabled')[0],
-            pick('portal_size')[0],
+            sideBySide(pick('portal_size', 'portal_gap')),
             collapsible('group_portal_nudge', [
                 sideBySide(pick('temp_portal_offset_x', 'temp_portal_offset_y')),
                 sideBySide(pick('power_portal_offset_x', 'power_portal_offset_y')),

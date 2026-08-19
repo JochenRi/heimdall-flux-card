@@ -266,17 +266,19 @@ const lang_de = {
     "editor.group_debug": "Debug & Test",
     // Phase portals-1: pipe crossings under the tiles.
     "editor.group_portals": "Portale",
-    "editor.portals_hint": "Wo eine Leitung unter einer Kachel hindurchläuft, markieren zwei Ringe Ein- und Austritt. Die Leitung selbst bleibt unverändert — der wandernde Punkt verschwindet im Eingang und kommt am Ausgang wieder heraus.",
+    "editor.portals_hint": "Wo eine Leitung unter einer Kachel hindurchläuft, markieren zwei Lichtschlitze Ein- und Austritt. Die Leitung selbst bleibt unverändert — der wandernde Punkt verschwindet im Eingang und kommt am Ausgang wieder heraus.",
     "editor.portals_enabled": "Portale anzeigen",
-    "editor.portal_size": "Größe der Ringe (px)",
+    "editor.portal_size": "Länge des Schlitzes (px)",
+    "editor.portal_gap": "Abstand zur Kachel (px)",
+    "editor.help_portal_gap": "Wie weit vor der Kachel der Schlitz sitzt. Der Abstand wird am Strahl entlang gemessen, folgt also seiner Krümmung.",
     "editor.group_portal_nudge": "Feinkorrektur",
     "editor.temp_portal_offset_x": "Klima-Portale X",
     "editor.temp_portal_offset_y": "Klima-Portale Y",
     "editor.power_portal_offset_x": "Power-Portale X",
     "editor.power_portal_offset_y": "Power-Portale Y",
     "editor.help_portals_enabled": "Aus lassen, wenn die Leitungen ohne Markierung unter den Kacheln durchlaufen sollen.",
-    "editor.help_portal_size": "Größerer Wert macht die Ringe auffälliger.",
-    "editor.help_portal_offset": "Nur nötig, wenn ein Ring nicht genau am Kachelrand sitzt. Verschiebt beide Ringe dieser Kachel gemeinsam.",
+    "editor.help_portal_size": "Größerer Wert macht den Schlitz breiter und auffälliger.",
+    "editor.help_portal_offset": "Nur nötig, wenn ein Schlitz nicht richtig sitzt. Verschiebt beide Schlitze dieser Kachel gemeinsam.",
     "editor.group_bg_anim": "Hintergrund-Animation",
     "editor.bg_anim_hint": "Sanfte animierte Farbverläufe im Karten-Hintergrund. Nur wirksam wenn Kartenhintergrund sichtbar ist. Respektiert 'Animationen reduzieren' im Betriebssystem.",
     "editor.bg_anim_style": "Animations-Stil",
@@ -841,17 +843,19 @@ const lang_en = {
     "editor.group_debug": "Debug & Test",
     // Phase portals-1: pipe crossings under the tiles.
     "editor.group_portals": "Portals",
-    "editor.portals_hint": "Where a pipe passes under a tile, two rings mark entry and exit. The pipe itself is untouched — the travelling dot goes into the entry and comes back out of the exit.",
+    "editor.portals_hint": "Where a pipe passes under a tile, two light slits mark entry and exit. The pipe itself is untouched — the travelling dot goes into the entry and comes back out of the exit.",
     "editor.portals_enabled": "Show portals",
-    "editor.portal_size": "Ring size (px)",
+    "editor.portal_size": "Slit length (px)",
+    "editor.portal_gap": "Distance from tile (px)",
+    "editor.help_portal_gap": "How far before the tile the slit sits. Measured along the pipe, so it follows the curve.",
     "editor.group_portal_nudge": "Fine adjustment",
     "editor.temp_portal_offset_x": "Climate portals X",
     "editor.temp_portal_offset_y": "Climate portals Y",
     "editor.power_portal_offset_x": "Power portals X",
     "editor.power_portal_offset_y": "Power portals Y",
     "editor.help_portals_enabled": "Leave off to have the pipes run under the tiles unmarked.",
-    "editor.help_portal_size": "A larger value makes the rings more prominent.",
-    "editor.help_portal_offset": "Only needed when a ring does not sit exactly on the tile edge. Moves both rings of that tile together.",
+    "editor.help_portal_size": "A larger value makes the slit longer and more prominent.",
+    "editor.help_portal_offset": "Only needed when a slit does not sit right. Moves both slits of that tile together.",
     "editor.group_bg_anim": "Background Animation",
     "editor.bg_anim_hint": "Subtle animated colour layer behind the card. Only visible when the card background is opaque. Respects 'reduce motion' OS preference.",
     "editor.bg_anim_style": "Animation style",
@@ -2092,6 +2096,7 @@ const GLOBAL_FIELDS = {
     portals: [
         ['portals_enabled', true, 'portals_enabled'],
         ['portal_size', 13, 'portal_size', [4, 40, 1]],
+        ['portal_gap', 14, 'portal_gap', [0, 60, 1]],
         ['temp_portal_offset_x', 0, 'temp_portal_offset_x', [-150, 150, 1]],
         ['temp_portal_offset_y', 0, 'temp_portal_offset_y', [-150, 150, 1]],
         ['power_portal_offset_x', 0, 'power_portal_offset_x', [-150, 150, 1]],
@@ -2165,6 +2170,7 @@ const FIELD_HELP = {
     temp_outdoor_max: 'help_temp_scale_max',
     temp_indoor_max: 'help_temp_scale_max',
     portal_size: 'help_portal_size',
+    portal_gap: 'help_portal_gap',
     temp_portal_offset_x: 'help_portal_offset',
     temp_portal_offset_y: 'help_portal_offset',
     power_portal_offset_x: 'help_portal_offset',
@@ -2229,7 +2235,7 @@ const globalFields = (group) => {
     if (group === 'portals') {
         return [
             pick('portals_enabled')[0],
-            pick('portal_size')[0],
+            sideBySide(pick('portal_size', 'portal_gap')),
             collapsible('group_portal_nudge', [
                 sideBySide(pick('temp_portal_offset_x', 'temp_portal_offset_y')),
                 sideBySide(pick('power_portal_offset_x', 'power_portal_offset_y')),
@@ -6125,17 +6131,19 @@ console.log(
           const hit = this._portalPoints(pipe.d, tile.rect);
           if (!hit) continue;
           hit.entry && rings.push({ x: hit.entry[0] + tile.ox, y: hit.entry[1] + tile.oy,
-                                    color: pipe.color, kind: 'in' });
+                                    color: pipe.color, kind: 'in', angle: hit.entryAngle });
           hit.exit  && rings.push({ x: hit.exit[0] + tile.ox,  y: hit.exit[1] + tile.oy,
-                                    color: pipe.color, kind: 'out' });
+                                    color: pipe.color, kind: 'out', angle: hit.exitAngle });
         }
       }
       if (!rings.length) return '';
 
       return html`${rings.map((r) => html`
         <div class="portal ${r.kind === 'in' ? 'portal-in' : 'portal-out'}"
-             style="left: ${r.x}px; top: ${r.y}px; width: ${size * 2}px; height: ${size * 2}px;
-                    border-color: ${r.color}; --portal-color: ${r.color};"></div>
+             style="left: ${r.x}px; top: ${r.y}px;
+                    width: ${size * 2}px; height: ${Math.max(2, Math.round(size / 5))}px;
+                    --portal-angle: ${r.angle + 90}deg;
+                    --portal-color: ${r.color};"></div>
       `)}`;
     }
 
@@ -6190,9 +6198,39 @@ console.log(
         }
       }
       if (first <= 0 || last >= pts.length - 1) return null;
-      // Step back to the last point outside, so the ring sits on the edge
-      // rather than just within it.
-      return { entry: pts[first - 1], exit: pts[last + 1] };
+
+      // Phase portals-6: back off along the path instead of stopping at the
+      // edge. A marker sitting ON the tile reads as part of the tile; a short
+      // distance away it reads as something the pipe passes through. The gap
+      // is walked along the path itself, so it follows the curve rather than
+      // being offset in a straight line.
+      const gapRaw = this.config.portal_gap;
+      const gap = gapRaw !== undefined && gapRaw !== null && gapRaw !== ''
+        ? Math.max(0, parseFloat(gapRaw)) : 14;
+      const stepBack = (idx, dir) => {
+        let i = idx, walked = 0;
+        while (walked < gap) {
+          const j = i + dir;
+          if (j < 0 || j >= pts.length) break;
+          walked += Math.hypot(pts[j][0] - pts[i][0], pts[j][1] - pts[i][1]);
+          i = j;
+        }
+        return i;
+      };
+      const ei = stepBack(first - 1, -1);
+      const xi = stepBack(last + 1, 1);
+
+      // The slit stands across the pipe, so it needs the pipe's direction at
+      // that point -- taken from its neighbours, which keeps it correct on a
+      // curve where the tile edge alone would not.
+      const angleAt = (i) => {
+        const a = pts[Math.max(0, i - 2)], b = pts[Math.min(pts.length - 1, i + 2)];
+        return Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI;
+      };
+      return {
+        entry: pts[ei], exit: pts[xi],
+        entryAngle: angleAt(ei), exitAngle: angleAt(xi),
+      };
     }
 
     async _fetchSparklineHistory(entityId, period, idx) {
@@ -6815,36 +6853,41 @@ console.log(
       /* phase 5.78: split climate (temp) bubble. Ice-cyan glow, follows the
          same border/tinted convention as the other bubbles. Inner ring
          geometry (split halves, double rings) lands in phase 5.79. */
-      /* phase portals-1: the ring where a pipe passes under a tile. Two per
-         crossing -- one where it goes in, one where it comes out. Positioned
-         divs rather than svg children, see the note on _renderPortals. */
+      /* phase portals-6: a light slit, not a ring.
+         A circle says "there is an object here"; a slit across the pipe says
+         "something passes through here", which is what this actually marks.
+         It sits a short way off the tile rather than on its edge, so it reads
+         as belonging to the pipe rather than to the tile.
+         Positioned divs rather than svg children -- see _renderPortals. */
       .portal {
         position: absolute;
-        transform: translate(-50%, -50%);
-        border-radius: 50%;
-        border-style: solid;
-        border-width: 2.5px;
-        box-sizing: border-box;
+        transform: translate(-50%, -50%) rotate(var(--portal-angle, 0deg));
+        border-radius: 999px;
         pointer-events: none;
         z-index: 6;
-        background: radial-gradient(circle,
-          color-mix(in srgb, var(--portal-color, #fff), transparent 55%) 0%,
-          transparent 62%);
-        box-shadow: 0 0 10px -2px var(--portal-color, #fff);
+        background: linear-gradient(to right,
+          transparent 0%,
+          var(--portal-color, #fff) 22%,
+          #fff 50%,
+          var(--portal-color, #fff) 78%,
+          transparent 100%);
+        box-shadow: 0 0 12px 1px var(--portal-color, #fff);
       }
-      /* The entry ring draws inward, the exit ring outward -- the direction
-         reads at a glance without a label. */
+      /* Entry narrows as something goes in, exit widens as it comes out --
+         direction without a label. Rotation is repeated in every keyframe
+         because transform is one property: omitting it would snap the slit
+         back to horizontal for the length of the animation. */
       @media (prefers-reduced-motion: no-preference) {
-        .portal-in  { animation: portal-in  2.4s ease-in-out infinite; }
-        .portal-out { animation: portal-out 2.4s ease-in-out infinite; }
+        .portal-in  { animation: portal-in  1.8s ease-in-out infinite; }
+        .portal-out { animation: portal-out 1.8s ease-in-out infinite; }
       }
       @keyframes portal-in {
-        0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: .95; }
-        50%      { transform: translate(-50%, -50%) scale(.78);  opacity: .6; }
+        0%, 100% { transform: translate(-50%, -50%) rotate(var(--portal-angle, 0deg)) scaleX(1);   opacity: .95; }
+        50%      { transform: translate(-50%, -50%) rotate(var(--portal-angle, 0deg)) scaleX(.55); opacity: .65; }
       }
       @keyframes portal-out {
-        0%, 100% { transform: translate(-50%, -50%) scale(.82);  opacity: .6; }
-        50%      { transform: translate(-50%, -50%) scale(1.06); opacity: .95; }
+        0%, 100% { transform: translate(-50%, -50%) rotate(var(--portal-angle, 0deg)) scaleX(.6);  opacity: .65; }
+        50%      { transform: translate(-50%, -50%) rotate(var(--portal-angle, 0deg)) scaleX(1.1); opacity: .95; }
       }
       .bubble.temp { border-color: var(--temp-glow, #19c6e6); }
       .bubble.temp.tinted { background: color-mix(in srgb, var(--temp-glow, #19c6e6), transparent 85%); }

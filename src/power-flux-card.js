@@ -456,17 +456,19 @@ console.log(
           const hit = this._portalPoints(pipe.d, tile.rect);
           if (!hit) continue;
           hit.entry && rings.push({ x: hit.entry[0] + tile.ox, y: hit.entry[1] + tile.oy,
-                                    color: pipe.color, kind: 'in' });
+                                    color: pipe.color, kind: 'in', angle: hit.entryAngle });
           hit.exit  && rings.push({ x: hit.exit[0] + tile.ox,  y: hit.exit[1] + tile.oy,
-                                    color: pipe.color, kind: 'out' });
+                                    color: pipe.color, kind: 'out', angle: hit.exitAngle });
         }
       }
       if (!rings.length) return '';
 
       return html`${rings.map((r) => html`
         <div class="portal ${r.kind === 'in' ? 'portal-in' : 'portal-out'}"
-             style="left: ${r.x}px; top: ${r.y}px; width: ${size * 2}px; height: ${size * 2}px;
-                    border-color: ${r.color}; --portal-color: ${r.color};"></div>
+             style="left: ${r.x}px; top: ${r.y}px;
+                    width: ${size * 2}px; height: ${Math.max(2, Math.round(size / 5))}px;
+                    --portal-angle: ${r.angle + 90}deg;
+                    --portal-color: ${r.color};"></div>
       `)}`;
     }
 
@@ -521,9 +523,39 @@ console.log(
         }
       }
       if (first <= 0 || last >= pts.length - 1) return null;
-      // Step back to the last point outside, so the ring sits on the edge
-      // rather than just within it.
-      return { entry: pts[first - 1], exit: pts[last + 1] };
+
+      // Phase portals-6: back off along the path instead of stopping at the
+      // edge. A marker sitting ON the tile reads as part of the tile; a short
+      // distance away it reads as something the pipe passes through. The gap
+      // is walked along the path itself, so it follows the curve rather than
+      // being offset in a straight line.
+      const gapRaw = this.config.portal_gap;
+      const gap = gapRaw !== undefined && gapRaw !== null && gapRaw !== ''
+        ? Math.max(0, parseFloat(gapRaw)) : 14;
+      const stepBack = (idx, dir) => {
+        let i = idx, walked = 0;
+        while (walked < gap) {
+          const j = i + dir;
+          if (j < 0 || j >= pts.length) break;
+          walked += Math.hypot(pts[j][0] - pts[i][0], pts[j][1] - pts[i][1]);
+          i = j;
+        }
+        return i;
+      };
+      const ei = stepBack(first - 1, -1);
+      const xi = stepBack(last + 1, 1);
+
+      // The slit stands across the pipe, so it needs the pipe's direction at
+      // that point -- taken from its neighbours, which keeps it correct on a
+      // curve where the tile edge alone would not.
+      const angleAt = (i) => {
+        const a = pts[Math.max(0, i - 2)], b = pts[Math.min(pts.length - 1, i + 2)];
+        return Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI;
+      };
+      return {
+        entry: pts[ei], exit: pts[xi],
+        entryAngle: angleAt(ei), exitAngle: angleAt(xi),
+      };
     }
 
     async _fetchSparklineHistory(entityId, period, idx) {
@@ -1146,36 +1178,41 @@ console.log(
       /* phase 5.78: split climate (temp) bubble. Ice-cyan glow, follows the
          same border/tinted convention as the other bubbles. Inner ring
          geometry (split halves, double rings) lands in phase 5.79. */
-      /* phase portals-1: the ring where a pipe passes under a tile. Two per
-         crossing -- one where it goes in, one where it comes out. Positioned
-         divs rather than svg children, see the note on _renderPortals. */
+      /* phase portals-6: a light slit, not a ring.
+         A circle says "there is an object here"; a slit across the pipe says
+         "something passes through here", which is what this actually marks.
+         It sits a short way off the tile rather than on its edge, so it reads
+         as belonging to the pipe rather than to the tile.
+         Positioned divs rather than svg children -- see _renderPortals. */
       .portal {
         position: absolute;
-        transform: translate(-50%, -50%);
-        border-radius: 50%;
-        border-style: solid;
-        border-width: 2.5px;
-        box-sizing: border-box;
+        transform: translate(-50%, -50%) rotate(var(--portal-angle, 0deg));
+        border-radius: 999px;
         pointer-events: none;
         z-index: 6;
-        background: radial-gradient(circle,
-          color-mix(in srgb, var(--portal-color, #fff), transparent 55%) 0%,
-          transparent 62%);
-        box-shadow: 0 0 10px -2px var(--portal-color, #fff);
+        background: linear-gradient(to right,
+          transparent 0%,
+          var(--portal-color, #fff) 22%,
+          #fff 50%,
+          var(--portal-color, #fff) 78%,
+          transparent 100%);
+        box-shadow: 0 0 12px 1px var(--portal-color, #fff);
       }
-      /* The entry ring draws inward, the exit ring outward -- the direction
-         reads at a glance without a label. */
+      /* Entry narrows as something goes in, exit widens as it comes out --
+         direction without a label. Rotation is repeated in every keyframe
+         because transform is one property: omitting it would snap the slit
+         back to horizontal for the length of the animation. */
       @media (prefers-reduced-motion: no-preference) {
-        .portal-in  { animation: portal-in  2.4s ease-in-out infinite; }
-        .portal-out { animation: portal-out 2.4s ease-in-out infinite; }
+        .portal-in  { animation: portal-in  1.8s ease-in-out infinite; }
+        .portal-out { animation: portal-out 1.8s ease-in-out infinite; }
       }
       @keyframes portal-in {
-        0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: .95; }
-        50%      { transform: translate(-50%, -50%) scale(.78);  opacity: .6; }
+        0%, 100% { transform: translate(-50%, -50%) rotate(var(--portal-angle, 0deg)) scaleX(1);   opacity: .95; }
+        50%      { transform: translate(-50%, -50%) rotate(var(--portal-angle, 0deg)) scaleX(.55); opacity: .65; }
       }
       @keyframes portal-out {
-        0%, 100% { transform: translate(-50%, -50%) scale(.82);  opacity: .6; }
-        50%      { transform: translate(-50%, -50%) scale(1.06); opacity: .95; }
+        0%, 100% { transform: translate(-50%, -50%) rotate(var(--portal-angle, 0deg)) scaleX(.6);  opacity: .65; }
+        50%      { transform: translate(-50%, -50%) rotate(var(--portal-angle, 0deg)) scaleX(1.1); opacity: .95; }
       }
       .bubble.temp { border-color: var(--temp-glow, #19c6e6); }
       .bubble.temp.tinted { background: color-mix(in srgb, var(--temp-glow, #19c6e6), transparent 85%); }
