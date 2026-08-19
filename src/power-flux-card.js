@@ -408,11 +408,50 @@ console.log(
       this._requestRedraw();
     }
 
+    // Append new points to an existing series and drop what has fallen out of
+    // the window. Points are deduplicated by timestamp: the incremental fetch
+    // starts AT the last known point, so the API returns it again.
+    _mergeSparkline(entityId, incoming, windowStartMs, existing) {
+        const base = Array.isArray(existing) ? existing : [];
+        const lastT = base.length ? base[base.length - 1].t : -Infinity;
+        const merged = base.concat(incoming.filter((p) => p.t > lastT));
+        const trimmed = merged.filter((p) => p.t >= windowStartMs);
+        // Never leave fewer than two points -- the renderer needs a segment.
+        return trimmed.length >= 2 ? trimmed : merged.slice(-2);
+    }
+
     async _fetchSparklineHistory(entityId, period, idx) {
       const hoursMap = { '1h': 1, '6h': 6, '12h': 12, '24h': 24 };
       const hours = hoursMap[period] || 24;
       const end = new Date();
-      const start = new Date(end.getTime() - hours * 3600 * 1000);
+      const windowStart = new Date(end.getTime() - hours * 3600 * 1000);
+
+      // Phase perf-3: fetch the gap, not the window.
+      //
+      // Every minute this pulled the full six or twenty-four hours again for
+      // fourteen series, then threw all but the last minute of it away. The
+      // series is already in memory; only what happened since its last point
+      // is missing.
+      //
+      // The existing series is kept and the new points appended, then trimmed
+      // to the window. A minute of data instead of a day is roughly a
+      // fiftieth of the payload on a 24h curve.
+      //
+      // Conditions for the short fetch, all required:
+      //   - a series exists and has at least two points
+      //   - its last point is inside the current window (a laptop resuming
+      //     from sleep, or a changed period, invalidates that)
+      //   - the gap is not older than the window itself
+      // Anything else falls back to the full window, so the short path can
+      // never leave a curve with a hole in it.
+      const existing = this._sparklineData[entityId];
+      const lastPoint = Array.isArray(existing) && existing.length >= 2
+        ? existing[existing.length - 1] : null;
+      const incremental = !!lastPoint
+        && lastPoint.t > windowStart.getTime()
+        && lastPoint.t < end.getTime();
+      const start = incremental ? new Date(lastPoint.t) : windowStart;
+
       // Phase 5.67.1: debug toggle. Enable per-bubble via the editor to
       // dump fetch results to the browser console for troubleshooting.
       const debug = !!(idx && this.config?.[`consumer_${idx}_sparkline_debug`] === true);
@@ -444,6 +483,14 @@ console.log(
           console.log(`[HEIMDALL Sparkline c${idx}] raw response:`, result);
         }
         if (!Array.isArray(result) || !result[0]) {
+          // On an incremental fetch an empty answer means "nothing changed
+          // since the last point" -- the normal case for a sensor sitting
+          // still. Keeping the existing series is right; replacing it with a
+          // flat line built from the live value would erase real history.
+          if (incremental) {
+            if (debug) console.log(`[HEIMDALL Sparkline c${idx}] no new points for ${entityId}`);
+            return;
+          }
           if (debug) console.warn(`[HEIMDALL Sparkline c${idx}] empty result for ${entityId}, trying live state for flat line`);
           // Phase 5.76: empty history (e.g. brand-new sensor, or one that
           // never changed) -> draw a flat line from the current state if
@@ -502,7 +549,11 @@ console.log(
         // whatever value we can find -- the single history point if present,
         // otherwise the sensor's current state. Only give up if there is no
         // usable numeric value anywhere.
-        if (series.length < 2) {
+        // Phase perf-3: only on a FULL fetch. An incremental fetch returning
+        // one point is the normal case -- one thing changed since last minute
+        // -- and replacing the series with a flat line spanning the window
+        // would erase real history to "fix" a problem that is not there.
+        if (series.length < 2 && !incremental) {
           let flatVal = NaN;
           if (series.length === 1) {
             flatVal = series[0].v;
@@ -528,7 +579,9 @@ console.log(
           this._requestRedraw();
           return;
         }
-        this._sparklineData[entityId] = series;
+        this._sparklineData[entityId] = incremental
+          ? this._mergeSparkline(entityId, series, windowStart.getTime(), existing)
+          : series;
         this._requestRedraw();
       } catch (e) {
         if (debug) {
@@ -2603,8 +2656,19 @@ console.log(
       }
 
       // VENUS charge/discharge (mirrors battery pattern)
-      let venusCharge = venus > 0 ? venus : 0;
-      let venusDischarge = venus < 0 ? Math.abs(venus) : 0;
+      // Phase perf-3: separate charge/discharge sensors, same as the first
+      // storage bubble. The editor has offered these two pickers all along
+      // while the card ignored them -- fill one in and nothing happened. Two
+      // storage systems should not behave differently for no reason.
+      const hasVenusChargeSensor = !!(entities.venus_charge && entities.venus_charge !== "");
+      const hasVenusDischargeSensor = !!(entities.venus_discharge && entities.venus_discharge !== "");
+
+      let venusCharge = hasVenusChargeSensor
+        ? Math.abs(getVal(entities.venus_charge))
+        : (venus > 0 ? venus : 0);
+      let venusDischarge = hasVenusDischargeSensor
+        ? Math.abs(getVal(entities.venus_discharge))
+        : (venus < 0 ? Math.abs(venus) : 0);
 
       let solarToVenus = 0;
       let gridToVenus = 0;

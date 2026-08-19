@@ -93,7 +93,7 @@ def keys_from_schema():
     module.write_text(ed[a:b] + '\nmodule.exports={bubbleFields,BUBBLE_CAPS,flattenFields};\n')
     try:
         editor = str(EDITOR)
-        out = subprocess.run(['node', '-e', f'''
+        out = subprocess.run(['node', '-e', rf'''
 const {{bubbleFields,BUBBLE_CAPS,flattenFields}}=require({json.dumps(str(module))});
 const groups=['sensors','behavior','offsets','rotation','soc','donut','mix','sparkline'];
 const keys=new Set();

@@ -14,8 +14,5 @@
     "temp_forecast_high_entity": "Top-level legacy fallback read alongside entities.temp_*. The entities.* form is what the editor offers and what the card prefers; these remain readable so old YAML keeps working. Clean-up candidate for when the climate section is rebuilt.",
     "temp_forecast_low_entity": "Top-level legacy fallback read alongside entities.temp_*. The entities.* form is what the editor offers and what the card prefers; these remain readable so old YAML keeps working. Clean-up candidate for when the climate section is rebuilt."
   },
-  "surplus_in_editor": {
-    "venus_charge": "Offered as a sensor picker, but the renderer only names it in the top-level-to-entities migration list -- no code path displays it. The battery bubble's equivalents (battery_charge / battery_discharge) ARE read, so this is an inconsistency in the CARD, not the editor. Kept visible rather than silently removed: a user may have one configured. Needs a decision -- wire it up in the renderer, or drop both controls.",
-    "venus_discharge": "Same as venus_charge."
-  }
+  "surplus_in_editor": {}
 }
