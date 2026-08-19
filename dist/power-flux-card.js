@@ -10233,27 +10233,40 @@ console.log(
       // Phase portals-1: which pipes exist, whether they are drawn, and what
       // colour they carry. Built here so the portal ring can never disagree
       // with the pipe it belongs to -- both read the same entry.
+      //
+      // Phase portals-5: "drawn" means DRAWN, not "configured". The first
+      // version asked whether the bubble exists, so the pump tile kept a pair
+      // of rings while its pipe was hidden for lack of flow -- two markers on
+      // nothing. Visibility is now decided by the same getPipeStyle that
+      // styles the pipe, so a ring cannot outlive its pipe: if the style comes
+      // back fully transparent or hidden, there is no crossing to mark.
+      const pipeVisible = (style) => !!style
+        && !style.includes('display: none')
+        && !style.includes('opacity: 0;');
+      const pipeEntry = (d, style, color) => ({ d, color, active: pipeVisible(style) });
+
       const pipeList = [
-        { d: pathSolarHouse,  active: hasSolar,               color: 'var(--pipe-solar-color)' },
-        { d: pathSolarBatt,   active: hasSolar && hasBattery && !this.config.hide_solar_to_battery_pipe, color: 'var(--pipe-solar-color)' },
-        { d: pathSolarVenus,  active: hasSolar && hasVenus && !this.config.hide_solar_to_venus_pipe,     color: 'var(--pipe-solar-color)' },
-        { d: pathGridImport,  active: hasGrid,                color: 'var(--pipe-grid-color)' },
-        { d: pathGridExport,  active: hasGrid,                color: 'var(--export-color)' },
-        { d: pathBattHouse,   active: hasBattery,             color: 'var(--pipe-battery-color)' },
-        { d: pathHouseToBatt, active: hasBattery,             color: 'var(--pipe-battery-color)' },
-        { d: pathVenusHouse,  active: hasVenus,               color: 'var(--pipe-venus-color)' },
-        { d: pathHouseToVenus,active: hasVenus,               color: 'var(--pipe-venus-color)' },
-        { d: pathBkwVenus,    active: hasBkw && hasVenus,     color: 'var(--pipe-bkw-color)' },
-        { d: pathBkwHouse,    active: hasBkw,                 color: 'var(--pipe-bkw-color)' },
-        { d: pathBkwGrid,     active: hasBkw && hasGrid,      color: 'var(--pipe-bkw-color)' },
-        { d: pathHouseC1, active: showC1, color: this._getConsumerPipeColor(1) },
-        { d: pathHouseC2, active: showC2, color: this._getConsumerPipeColor(2) },
-        { d: pathHouseC3, active: showC3, color: this._getConsumerPipeColor(3) },
-        { d: pathHouseC4, active: showC4, color: this._getConsumerPipeColor(4) },
-        { d: pathHouseC5, active: showC5, color: this._getConsumerPipeColor(5) },
-        { d: pathHouseC6, active: showC6, color: this._getConsumerPipeColor(6) },
-        { d: pathHouseC7, active: showC7, color: this._getConsumerPipeColor(7) },
+        pipeEntry(pathSolarHouse, getPipeStyle(solarToHouse, '--pipe-solar-opacity', 'solar') + ' ' + styleSolar, 'var(--pipe-solar-color)'),
+        pipeEntry(pathSolarBatt, getPipeStyle(solarToBatt, '--pipe-solar-opacity', 'solar') + ' ' + styleSolarBatt, 'var(--pipe-solar-color)'),
+        pipeEntry(pathSolarVenus, getPipeStyle(solarToVenus, '--pipe-solar-opacity', 'solar') + ' ' + styleSolarVenus, 'var(--pipe-solar-color)'),
+        pipeEntry(pathGridImport, getPipeStyle(gridToHouse, '--pipe-grid-opacity', 'grid') + ' ' + styleGrid, 'var(--pipe-grid-color)'),
+        pipeEntry(pathGridExport, getPipeStyle(gridExport, '--pipe-grid-opacity', 'grid') + ' ' + styleGrid, 'var(--export-color)'),
+        pipeEntry(pathBattHouse, getPipeStyle(batteryDischarge, '--pipe-battery-opacity', 'battery') + ' ' + styleBattery, 'var(--pipe-battery-color)'),
+        pipeEntry(pathVenusHouse, getPipeStyle(venusDischarge, '--pipe-venus-opacity', 'venus') + ' ' + styleVenus, 'var(--pipe-venus-color)'),
+        pipeEntry(pathBkwVenus, getPipeStyle(bkwToVenus, '--pipe-solar-opacity', 'solar'), 'var(--pipe-solar-color)'),
+        pipeEntry(pathBkwHouse, getPipeStyle(bkwToHouse, '--pipe-solar-opacity', 'solar'), 'var(--pipe-solar-color)'),
+        pipeEntry(pathBkwGrid, getPipeStyle(bkwToGrid, '--pipe-grid-opacity', 'grid'), 'var(--export-color)'),
       ];
+      const consumerPipes = [
+        [pathHouseC1, c1PipeActive, c1Val, 1], [pathHouseC2, c2PipeActive, c2Val, 2],
+        [pathHouseC3, c3PipeActive, c3Val, 3], [pathHouseC4, c4PipeActive, c4Val, 4],
+        [pathHouseC5, c5PipeActive, c5Val, 5], [pathHouseC6, c6PipeActive, c6Val, 6],
+        [pathHouseC7, c7PipeActive, c7Val, 7],
+      ];
+      for (const [d, act, val, idx] of consumerPipes) {
+        pipeList.push(pipeEntry(d, getConsumerPipeStyle(act, val, idx),
+                                this._getConsumerPipeColor(idx)));
+      }
 
       // The tiles, at the position they actually occupy: anchor plus the
       // offsets from the editor. Move a tile and its portals move with it,
