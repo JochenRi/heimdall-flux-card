@@ -51,6 +51,11 @@ export default {
     "editor.temp_body_battery_temp": "Temperatur {battery}",
     "editor.temp_body_venus_temp": "Temperatur {venus}",
     "editor.temp_body_bwwp_temp": "Temperatur Warmwasser",
+    "editor.temp_body_colors_section": "Farben der Balken",
+    "editor.temp_body_color_pv": "PV",
+    "editor.temp_body_color_lg": "{battery}",
+    "editor.temp_body_color_venus": "{venus}",
+    "editor.temp_body_color_grid": "Netz",
     "editor.help_temp_body_mix": "Zeigt den Balken hier statt als Ring um die Blase. Den Ring an der Blase dann dort abschalten.",
     // Phase editor-9: climate section on the schema.
     "editor.temp_sensors_section": "Sensoren",

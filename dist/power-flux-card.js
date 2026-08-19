@@ -56,6 +56,11 @@ const lang_de = {
     "editor.temp_body_battery_temp": "Temperatur {battery}",
     "editor.temp_body_venus_temp": "Temperatur {venus}",
     "editor.temp_body_bwwp_temp": "Temperatur Warmwasser",
+    "editor.temp_body_colors_section": "Farben der Balken",
+    "editor.temp_body_color_pv": "PV",
+    "editor.temp_body_color_lg": "{battery}",
+    "editor.temp_body_color_venus": "{venus}",
+    "editor.temp_body_color_grid": "Netz",
     "editor.help_temp_body_mix": "Zeigt den Balken hier statt als Ring um die Blase. Den Ring an der Blase dann dort abschalten.",
     // Phase editor-9: climate section on the schema.
     "editor.temp_sensors_section": "Sensoren",
@@ -651,6 +656,11 @@ const lang_en = {
     "editor.temp_body_battery_temp": "Temperature {battery}",
     "editor.temp_body_venus_temp": "Temperature {venus}",
     "editor.temp_body_bwwp_temp": "Temperature water heater",
+    "editor.temp_body_colors_section": "Bar colours",
+    "editor.temp_body_color_pv": "PV",
+    "editor.temp_body_color_lg": "{battery}",
+    "editor.temp_body_color_venus": "{venus}",
+    "editor.temp_body_color_grid": "Grid",
     "editor.help_temp_body_mix": "Shows the bar here instead of a ring around the bubble. Switch the ring off at that bubble afterwards.",
     // Phase editor-9: climate section on the schema.
     "editor.temp_sensors_section": "Sensors",
@@ -4661,6 +4671,13 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_battery_temp || "", 'temp_body_battery_temp', this._localize('editor.temp_body_battery_temp'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_venus_temp || "", 'temp_body_venus_temp', this._localize('editor.temp_body_venus_temp'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_bwwp_temp || "", 'temp_body_bwwp_temp', this._localize('editor.temp_body_bwwp_temp'))}
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.temp_body_colors_section')}
+            </div>
+            ${this._renderColorPicker('temp_body_color_pv', this._localize('editor.temp_body_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('temp_body_color_lg', this._localize('editor.temp_body_color_lg'), '#e100ff')}
+            ${this._renderColorPicker('temp_body_color_venus', this._localize('editor.temp_body_color_venus'), '#8d07d5')}
+            ${this._renderColorPicker('temp_body_color_grid', this._localize('editor.temp_body_color_grid'), '#ff0040')}
             <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
                 ${this._localize('editor.temp_body_temps_hint')}
             </div>
@@ -7062,9 +7079,15 @@ console.log(
         width: 130px;
         height: 180px;
         box-sizing: border-box;
-        padding: 5px 7px;
+        padding: 6px 8px;
         border-top: 1px solid var(--divider-color, #333);
         overflow: hidden;
+        /* Centred in the space rather than pinned to the top: with two bars
+           and no temperature rows the panel is shorter than its box, and left
+           hanging at the top it looked unfinished. */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
       /* The power tile's row styles are reused verbatim -- same kind of
          statement, same look. Only the scale differs: this column is 130px
@@ -7077,14 +7100,15 @@ console.log(
          a few duplicated lines against a dependency that demonstrably does not
          hold. Tuned for a 130px column: tighter rows, narrower percent slot. */
       .bubble.temp .tb-title {
-        font-size: 9px;
-        color: var(--secondary-text-color, #9aa0a6);
-        margin: 3px 0 2px;
+        font-size: 10px;
+        color: var(--primary-text-color, #e8eaed);
+        opacity: .85;
+        margin: 3px 0 3px;
         letter-spacing: .2px;
       }
       .bubble.temp .tb-bar {
         display: flex;
-        height: 7px;
+        height: 8px;
         border-radius: 2px;
         overflow: hidden;
         margin-bottom: 3px;
@@ -7093,26 +7117,30 @@ console.log(
       .bubble.temp .tb-row {
         display: flex;
         align-items: center;
-        gap: 4px;
-        font-size: 8.5px;
-        line-height: 1.45;
+        gap: 5px;
+        font-size: 10px;
+        line-height: 1.5;
       }
       .bubble.temp .tb-dot {
         flex: 0 0 auto;
-        width: 5px;
-        height: 5px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
+        box-shadow: 0 0 4px -1px currentColor;
       }
-      .bubble.temp .tb-lbl { color: var(--secondary-text-color, #9aa0a6); }
+      .bubble.temp .tb-lbl { color: var(--primary-text-color, #e8eaed); }
       .bubble.temp .tb-num {
         margin-left: auto;
-        font-size: 9px;
-        color: var(--primary-text-color, #e8eaed);
+        font-size: 11px;
+        font-weight: 500;
+        color: #fff;
       }
       .bubble.temp .tb-pct {
-        flex: 0 0 22px;
+        flex: 0 0 26px;
         text-align: right;
-        color: var(--secondary-text-color, #9aa0a6);
+        font-size: 10px;
+        color: var(--primary-text-color, #e8eaed);
+        opacity: .8;
       }
       .bubble.temp .tb-sep {
         height: 1px;
@@ -7197,15 +7225,21 @@ console.log(
       .bubble.power .pw-head-r { margin-left: auto; text-align: right; line-height: 1.15; }
       .bubble.power .pw-big { font-size: 13px; font-weight: 500; color: var(--primary-text-color); }
       .bubble.power .pw-sub { font-size: 9px; color: var(--secondary-text-color); }
+      /* phase temp-body-4: legible, not decorative. Labels ran in the muted
+         secondary colour at 9px, which reads as greyed-out rather than as
+         information -- and both tiles are meant to be read at a glance from
+         across the room. Labels now take the primary colour, values go to
+         plain white, and everything gains a point. The dots get a faint glow
+         so a dark user-set colour still registers. */
       .bubble.power .pw-sep { height: 1px; background: var(--divider-color, #444); opacity: .5; margin: 6px 0; }
-      .bubble.power .pw-title { font-size: 9px; color: var(--secondary-text-color); margin-bottom: 3px; }
-      .bubble.power .pw-bar { display: flex; height: 9px; border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
+      .bubble.power .pw-title { font-size: 10px; color: var(--primary-text-color, #e8eaed); opacity: .85; margin-bottom: 4px; }
+      .bubble.power .pw-bar { display: flex; height: 10px; border-radius: 2px; overflow: hidden; margin-bottom: 5px; }
       .bubble.power .pw-bar > span, .bubble.temp .pw-bar > span { display: block; height: 100%; }
-      .bubble.power .pw-row { display: flex; align-items: center; gap: 4px; font-size: 9px; line-height: 1.5; }
-      .bubble.power .pw-dot { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; }
-      .bubble.power .pw-lbl { color: var(--secondary-text-color); }
-      .bubble.power .pw-num { margin-left: auto; font-size: 10px; color: var(--primary-text-color); }
-      .bubble.power .pw-pct { flex: 0 0 26px; text-align: right; color: var(--secondary-text-color); }
+      .bubble.power .pw-row { display: flex; align-items: center; gap: 5px; font-size: 10px; line-height: 1.6; }
+      .bubble.power .pw-dot { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 4px -1px currentColor; }
+      .bubble.power .pw-lbl { color: var(--primary-text-color, #e8eaed); }
+      .bubble.power .pw-num { margin-left: auto; font-size: 11px; font-weight: 500; color: #fff; }
+      .bubble.power .pw-pct { flex: 0 0 28px; text-align: right; font-size: 10px; color: var(--primary-text-color, #e8eaed); opacity: .8; }
       .bubble.house.donut { border: none !important; --house-gradient: var(--neon-pink); background: transparent; }
       .bubble.house.donut.tinted { background: color-mix(in srgb, var(--neon-pink), transparent 85%); }
       .bubble.house.donut::before {
@@ -8163,11 +8197,18 @@ console.log(
         const v = parseFloat(this.hass.states[entId].state);
         return isNaN(v) ? null : v;
       };
+      // Phase temp-body-4: the panel's own colours, not the mix rings'.
+      //
+      // The ring colours are deliberately dark in this installation, because a
+      // ring sits BEHIND a bubble and has to stay quiet there. Read as a bar in
+      // a panel, the same values look muddy. The panel therefore starts from
+      // the source colours the rest of the card uses and can be overridden
+      // separately -- one setting per role, independent of the rings.
       const C = {
-        pv: this.config.consumer_1_mix_color_pv || '#ffd900',
-        lg: this.config.consumer_1_mix_color_lg || '#e100ff',
-        venus: this.config.consumer_1_mix_color_venus || '#8d07d5',
-        grid: this.config.consumer_1_mix_color_grid || '#ff0040',
+        pv: this.config.temp_body_color_pv || this.config.color_solar || '#ffd900',
+        lg: this.config.temp_body_color_lg || this.config.color_battery || '#e100ff',
+        venus: this.config.temp_body_color_venus || this.config.color_venus || '#8d07d5',
+        grid: this.config.temp_body_color_grid || this.config.color_grid || '#ff0040',
       };
 
       // One mix bar. Sources with no reading are dropped rather than drawn as

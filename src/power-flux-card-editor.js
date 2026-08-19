@@ -3096,6 +3096,13 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_battery_temp || "", 'temp_body_battery_temp', this._localize('editor.temp_body_battery_temp'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_venus_temp || "", 'temp_body_venus_temp', this._localize('editor.temp_body_venus_temp'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.temp_body_bwwp_temp || "", 'temp_body_bwwp_temp', this._localize('editor.temp_body_bwwp_temp'))}
+            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 12px; margin-bottom: 4px; font-weight: 500;">
+                ${this._localize('editor.temp_body_colors_section')}
+            </div>
+            ${this._renderColorPicker('temp_body_color_pv', this._localize('editor.temp_body_color_pv'), '#ffd900')}
+            ${this._renderColorPicker('temp_body_color_lg', this._localize('editor.temp_body_color_lg'), '#e100ff')}
+            ${this._renderColorPicker('temp_body_color_venus', this._localize('editor.temp_body_color_venus'), '#8d07d5')}
+            ${this._renderColorPicker('temp_body_color_grid', this._localize('editor.temp_body_color_grid'), '#ff0040')}
             <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 4px;">
                 ${this._localize('editor.temp_body_temps_hint')}
             </div>

@@ -51,6 +51,11 @@ export default {
     "editor.temp_body_battery_temp": "Temperature {battery}",
     "editor.temp_body_venus_temp": "Temperature {venus}",
     "editor.temp_body_bwwp_temp": "Temperature water heater",
+    "editor.temp_body_colors_section": "Bar colours",
+    "editor.temp_body_color_pv": "PV",
+    "editor.temp_body_color_lg": "{battery}",
+    "editor.temp_body_color_venus": "{venus}",
+    "editor.temp_body_color_grid": "Grid",
     "editor.help_temp_body_mix": "Shows the bar here instead of a ring around the bubble. Switch the ring off at that bubble afterwards.",
     // Phase editor-9: climate section on the schema.
     "editor.temp_sensors_section": "Sensors",
