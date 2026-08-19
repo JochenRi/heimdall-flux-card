@@ -73,49 +73,72 @@ const ENTITY_FILTERS = {
     temperature: [{ domain: 'sensor', device_class: 'temperature' }, { domain: 'input_number' }],
 };
 
-// What a matching entity is likely to be called. Two tiers: a strong hint that
-// all but names the sensor, and weaker supporting words. Plus a list of words
-// that argue AGAINST a match.
+// What a matching entity is likely to be called -- by ROLE, not by brand.
 //
-// The first version of this scored on device_class, unit and loose substring
-// matching. Measured against the live system it proposed smoke-detector
-// batteries for the battery charge level and forecast values for the PV
-// bubble. What fixed it: word-boundary matching (so "pv" no longer matches
-// inside unrelated names), a strong tier, and the exclusion list.
+// The first version listed manufacturer names (marstek, lg, resu). That worked
+// on the system it was written for and nowhere else. These are role words in
+// German and English instead; no vendor has to appear in a list to be found.
 //
-// Re-measured against the same system afterwards: all seven source and storage
-// fields land in the top three, four of them first.
+// strong: all but names the sensor. weak: supporting evidence.
 const ENTITY_NAME_HINTS = {
-    solar:       { strong: ['dach'], weak: ['pv', 'solar', 'panel', 'erzeugung'] },
-    grid:        { strong: ['netz'], weak: ['grid', 'shelly', 'bezug'] },
-    grid_export: { strong: ['einspeisung', 'export'], weak: ['netz', 'grid'] },
-    grid_combined: { strong: ['netz', 'saldo'], weak: ['grid', 'shelly'] },
-    grid_to_battery: { strong: ['netz'], weak: ['lade', 'batt', 'akku'] },
-    battery:     { strong: ['lg', 'b1', 'resu'], weak: ['batt', 'akku', 'speicher'] },
-    battery_soc: { strong: ['lg', 'soc'], weak: ['ladestand', 'speicher'] },
-    battery_charge:    { strong: ['lg'], weak: ['lade', 'charge', 'batt'] },
-    battery_discharge: { strong: ['lg'], weak: ['entlade', 'discharge', 'batt'] },
-    venus:       { strong: ['venus'], weak: ['marstek', 'ac'] },
-    venus_soc:   { strong: ['venus', 'soc'], weak: ['marstek', 'ladestand'] },
-    venus_charge:    { strong: ['venus'], weak: ['lade', 'charge'] },
-    venus_discharge: { strong: ['venus'], weak: ['entlade', 'discharge'] },
-    venus_pv_charge: { strong: ['venus', 'mppt'], weak: ['marstek', 'pv'] },
-    house:       { strong: ['haus', 'house'], weak: ['verbrauch', 'consumption', 'gesamt'] },
-    bkw:         { strong: ['garten', 'bkw', 'balkon'], weak: ['pv'] },
-    temp_indoor:  { strong: ['innen', 'indoor'], weak: ['haus', 'raum', 'durchschnitt'] },
-    temp_outdoor: { strong: ['aussen', 'outdoor'], weak: ['garten', 'wetter'] },
-    temp_forecast_high: { strong: ['forecast', 'high'], weak: ['max', 'hoch'] },
-    temp_forecast_low:  { strong: ['forecast', 'low'], weak: ['min', 'tief'] },
+    solar:       { strong: ['dach', 'roof'], weak: ['pv', 'solar', 'panel', 'erzeugung', 'production', 'wr', 'inverter'] },
+    grid:        { strong: ['netz', 'grid'], weak: ['meter', 'zaehler', 'zahler', 'bezug', 'import'] },
+    grid_export: { strong: ['einspeisung', 'export'], weak: ['netz', 'grid', 'feed'] },
+    grid_combined: { strong: ['netz', 'grid', 'saldo'], weak: ['meter', 'zaehler', 'zahler', 'balance'] },
+    grid_to_battery: { strong: ['netz', 'grid'], weak: ['lade', 'charge', 'batt', 'akku', 'speicher'] },
+    battery:     { strong: ['speicher', 'batt', 'akku', 'storage'], weak: ['dc', 'hausspeicher', 'home'] },
+    battery_soc: { strong: ['soc', 'ladestand'], weak: ['speicher', 'batt', 'akku', 'storage', 'charge'] },
+    battery_charge:    { strong: ['lade', 'charge'], weak: ['speicher', 'batt', 'akku', 'storage'] },
+    battery_discharge: { strong: ['entlade', 'discharge'], weak: ['speicher', 'batt', 'akku', 'storage'] },
+    venus:       { strong: ['speicher', 'batt', 'akku', 'storage'], weak: ['ac', 'balkon', 'zweit'] },
+    venus_soc:   { strong: ['soc', 'ladestand'], weak: ['speicher', 'batt', 'akku', 'storage'] },
+    venus_charge:    { strong: ['lade', 'charge'], weak: ['speicher', 'batt', 'akku', 'storage'] },
+    venus_discharge: { strong: ['entlade', 'discharge'], weak: ['speicher', 'batt', 'akku', 'storage'] },
+    venus_pv_charge: { strong: ['mppt'], weak: ['pv', 'solar', 'lade', 'charge'] },
+    house:       { strong: ['haus', 'house', 'hausverbrauch'], weak: ['verbrauch', 'consumption', 'gesamt', 'total', 'home'] },
+    bkw:         { strong: ['balkon', 'bkw', 'garten'], weak: ['pv', 'solar', 'mppt', 'micro'] },
+    temp_indoor:  { strong: ['innen', 'indoor'], weak: ['haus', 'raum', 'room', 'durchschnitt'] },
+    temp_outdoor: { strong: ['aussen', 'outdoor', 'outside'], weak: ['garten', 'wetter', 'weather'] },
+    temp_forecast_high: { strong: ['forecast', 'high'], weak: ['max', 'hoch', 'prognose'] },
+    temp_forecast_low:  { strong: ['forecast', 'low'], weak: ['min', 'tief', 'prognose'] },
 };
 
+// Energy fields (kWh counters behind the donuts, mix rings and rotation
+// slots). Same machinery, device_class energy instead of power.
+const ENERGY_FIELD_HINTS = {
+    strongByRole: {
+        solar: ['pv', 'solar', 'dach', 'roof', 'erzeugung', 'production'],
+        battery: ['speicher', 'batt', 'akku', 'storage'],
+        venus: ['speicher', 'batt', 'akku', 'storage'],
+        grid: ['netz', 'grid', 'bezug', 'import'],
+        export: ['einspeisung', 'export', 'feed'],
+        import: ['bezug', 'import', 'netz', 'grid'],
+        house: ['haus', 'house', 'verbrauch', 'consumption'],
+        lg: ['speicher', 'batt', 'akku', 'storage'],
+        self: ['eigen', 'self', 'direkt'],
+        bkw: ['balkon', 'bkw', 'garten'],
+    },
+    period: { day: ['heute', 'today', 'daily', 'tag'],
+              month: ['monat', 'month', 'monthly'],
+              year: ['jahr', 'year', 'yearly'] },
+};
+
+// A car, a wallbox and a dehumidifier all report a charge level, and their
+// devices carry one too -- so both the name hints and the device signal would
+// happily offer a vehicle for the house battery. Role words, no brands.
+const NON_STATIONARY_WORDS = [
+    'vehicle', 'fahrzeug', 'auto', 'car', 'wallbox', 'charger', 'ladepunkt',
+    'loadpoint', 'ladegeraet', 'ladegerat', 'mobile',
+];
+
 // Words that make a sensor a poor answer for a whole-house field: derived
-// values, per-phase splits, device batteries, vehicle sensors. Fields whose
-// hint list already contains one of these keep it -- the forecast temperature
-// fields want "forecast".
+// values, per-phase splits, device batteries. A field keeps any of these that
+// its own hint list needs -- the forecast temperature fields want "forecast".
 const ENTITY_NAME_PENALTIES = [
     'forecast', 'prognose', 'erwartung', 'ziel', 'now', 'max', 'peak', 'phase',
-    'schein', 'melder', 'button', 'bthome', 'pixel', 'link', 'signal', 'uptime',
-    'rate', 'tesla', 'handy', '5min', 'mittel', 'invertiert', 'gradient',
+    'schein', 'apparent', 'melder', 'button', 'bthome', 'pixel', 'link',
+    'signal', 'uptime', 'rate', 'handy', 'phone', '5min', 'mittel', 'average',
+    'invertiert', 'inverted', 'gradient', 'lifetime',
 ];
 
 const SPARKLINE_LAYERS = ['back', 'mid', 'front'];
@@ -283,10 +306,52 @@ class PowerFluxCardEditor extends LitElement {
         this._config = config;
     }
 
-    _localize(key) {
+    // Neutral names for the bubbles. The editor's texts carry {battery},
+    // {venus} and friends instead of the hardware that happened to be on the
+    // desk when they were written -- "Venus" and "LG" meant nothing to anyone
+    // with a different make.
+    //
+    // Resolved per bubble in this order:
+    //   1. the label the user gave the bubble
+    //   2. the name of the DEVICE its sensor belongs to  ("Marstek Venus")
+    //   3. the neutral default                            ("Storage 2")
+    //
+    // Display only. Nothing is written back into the config -- the label field
+    // stays the user's to set.
+    _bubbleName(prefix) {
+        const cfg = this._config || {};
+        const label = cfg[`${prefix}_label`];
+        if (label) return label;
+
+        const entityId = (cfg.entities || {})[prefix];
+        const reg = this.hass && this.hass.entities;
+        const devices = this.hass && this.hass.devices;
+        if (entityId && reg && devices) {
+            const entry = reg[entityId];
+            const device = entry && entry.device_id && devices[entry.device_id];
+            if (device) {
+                const name = device.name_by_user || device.name;
+                if (name) return name;
+            }
+            const st = this.hass.states && this.hass.states[entityId];
+            if (st && st.attributes && st.attributes.friendly_name) {
+                return st.attributes.friendly_name;
+            }
+        }
+        return this._localizeRaw(`editor.bubble_default_${prefix}`);
+    }
+
+    _localizeRaw(key) {
         const lang = this.hass && this.hass.language ? this.hass.language : 'en';
         const dict = editorTranslations[lang] || editorTranslations['en'];
         return dict[key] || editorTranslations['en'][key] || key;
+    }
+
+    _localize(key) {
+        const text = this._localizeRaw(key);
+        if (text.indexOf('{') === -1) return text;
+        return text.replace(/\{([a-z0-9_]+)\}/g, (whole, prefix) =>
+            this._bubbleName(prefix));
     }
 
     _valueChanged(ev) {
@@ -676,17 +741,79 @@ class PowerFluxCardEditor extends LitElement {
         return { entity: { filter } };
     }
 
-    // Ranked guesses for one field. Reads device_class, unit and the entity id
-    // itself, and shows WHY each one is offered -- a suggestion you cannot
-    // check is just a different kind of guessing.
-    // Ranked guesses for one field, with the reason shown next to each one --
-    // a suggestion you cannot check is just a different kind of guessing.
+    // Which role a field is asking for. Storage fields want a sensor that sits
+    // on a device with a charge level; source and meter fields want one that
+    // does not.
+    _fieldRole(configValue) {
+        if (/^(battery|venus)(_|$)/.test(configValue)) return 'storage';
+        if (/^(solar|grid|house|bkw)(_|$)/.test(configValue)) return 'source';
+        return null;
+    }
+
+    // Does this entity's device also expose a charge level in percent?
+    // Brand-independent: a battery inverter carries one, a meter or a string
+    // inverter does not, whoever built it.
+    //
+    // Template sensors have no device at all -- most of the interesting ones on
+    // a tuned system are hand-built. When the device is unknown the signal is
+    // OMITTED, never counted against, or a user's own sensors would rank last.
+    _deviceContext(entityId) {
+        const reg = this.hass && this.hass.entities;
+        const devices = this.hass && this.hass.devices;
+        if (!reg || !devices) return null;              // older HA: no registry
+        const entry = reg[entityId];
+        if (!entry || !entry.device_id) return null;    // template sensor
+        const device = devices[entry.device_id];
+
+        // A charge level alone is not enough: a thermometer and a smoke
+        // detector report one too. What separates a storage system is that the
+        // SAME device also meters power or energy. Both conditions, no brands.
+        let hasChargeLevel = false;
+        let metersEnergy = false;
+        for (const [id, e] of Object.entries(reg)) {
+            if (e.device_id !== entry.device_id || id === entityId) continue;
+            const st = this.hass.states[id];
+            const dc = st && st.attributes && st.attributes.device_class;
+            if (dc === 'battery' && st.attributes.unit_of_measurement === '%') hasChargeLevel = true;
+            if (dc === 'power' || dc === 'energy') metersEnergy = true;
+            if (hasChargeLevel && metersEnergy) break;
+        }
+        hasChargeLevel = hasChargeLevel && metersEnergy;
+        const label = device
+            ? (device.name_by_user || device.name || null)
+            : null;
+        return { hasChargeLevel, label };
+    }
+
+    // Ranked guesses for one field, each with the reason next to it -- a
+    // suggestion you cannot check is just a different kind of guessing.
     _entitySuggestions(configValue, limit) {
         if (!this.hass || !this.hass.states) return [];
         const hints = ENTITY_NAME_HINTS[configValue];
         if (!hints) return [];
         const kind = ENTITY_FIELD_KINDS[configValue];
         const wantUnit = { power: 'W', battery: '%', temperature: '\u00b0C' }[kind];
+        const role = this._fieldRole(configValue);
+
+        // Which device the bubble this field belongs to already points at, and
+        // which devices its siblings have taken. Without this, "storage 1
+        // charge level" and "storage 2 charge level" would offer the identical
+        // list -- there is nothing in a sensor name that says which of two
+        // storage systems it belongs to, but the device says it exactly.
+        const ents = (this._config && this._config.entities) || {};
+        const bubble = configValue.split('_')[0];
+        const deviceOf = (entityId) => {
+            const reg = this.hass && this.hass.entities;
+            const e = entityId && reg && reg[entityId];
+            return (e && e.device_id) || null;
+        };
+        const ownDevice = deviceOf(ents[bubble]);
+        const takenDevices = new Set();
+        for (const [k, v] of Object.entries(ents)) {
+            if (k.split('_')[0] === bubble || !ENTITY_FIELD_KINDS[k]) continue;
+            const d = deviceOf(v);
+            if (d) takenDevices.add(d);
+        }
 
         // Word-boundary matching, not substrings: "pv" must not match inside an
         // unrelated name. Id and friendly name become one underscore-separated
@@ -712,8 +839,44 @@ class PowerFluxCardEditor extends LitElement {
             for (const w of hints.weak) if (has(hay, w)) score += 2;
             for (const p of penalties) if (hay.includes(p)) score -= 6;
 
+            // Suggestions obey the same filter the picker does. Without this a
+            // field that only accepts device_class battery could be handed a
+            // vehicle charge level that carries no device class at all.
+            const wantedFilter = ENTITY_FILTERS[kind];
+            if (wantedFilter) {
+                const ok = wantedFilter.some((f) => f.device_class
+                    ? attrs.device_class === f.device_class
+                    : id.startsWith(`${f.domain}.`));
+                if (!ok) continue;
+            }
+            if (role === 'storage' && NON_STATIONARY_WORDS.some((w) => has(hay, w))) continue;
+
+            const ownDev = (this.hass.entities && this.hass.entities[id]
+                && this.hass.entities[id].device_id) || null;
+            if (ownDev && ownDevice) {
+                if (ownDev === ownDevice) {
+                    // Weighted above any name match: the device is hard
+                    // evidence, a word in an id is a hint.
+                    score += 8;
+                    why.push(this._localize('editor.suggest_why_same_device'));
+                } else if (takenDevices.has(ownDev)) {
+                    score -= 8;   // belongs to a different bubble already
+                }
+            }
+
+            const ctx = role ? this._deviceContext(id) : null;
+            if (ctx) {
+                if (role === 'storage' && ctx.hasChargeLevel) {
+                    score += 6;
+                    why.push(this._localize('editor.suggest_why_storage'));
+                } else if (role === 'source' && ctx.hasChargeLevel) {
+                    score -= 4;
+                }
+                if (ctx.label) why.unshift(ctx.label);
+            }
+
             if (score < 8) continue;
-            if (attrs.friendly_name) why.push(attrs.friendly_name);
+            if (attrs.friendly_name && !why.includes(attrs.friendly_name)) why.push(attrs.friendly_name);
             scored.push({ id, score, why: why.join(' \u00b7 ') });
         }
         scored.sort((a, b) => (b.score - a.score) || a.id.localeCompare(b.id));

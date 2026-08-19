@@ -15,7 +15,7 @@ const lang_de = {
     "editor.bkw_color_icon": "Farbe Icon",
     "editor.bkw_label_pos_house": "Watt-Label: BKW → Haus",
     "editor.bkw_label_pos_grid": "Watt-Label: BKW → Netz",
-    "editor.bkw_label_pos_venus": "Watt-Label: BKW → Venus",
+    "editor.bkw_label_pos_venus": "Watt-Label: BKW → {venus}",
     "editor.bkw_donut_section": "Ertragsring",
     "editor.bkw_donut_enabled": "Ertragsring anzeigen",
     "editor.bkw_donut_produced": "Sensor: Ertrag heute (kWh)",
@@ -41,10 +41,10 @@ const lang_de = {
     "editor.power_offset_y": "Verschiebung Y (px, + runter / − hoch)",
     "editor.power_entities_hint": "Nur die Werte, die die Karte noch nicht kennt. Alles andere — Herkunft, PV, Stromrechnung, Farben — übernimmt die Kachel automatisch aus den Sensoren der Blasen.",
     "editor.power_autarkie": "Autarkiegrad heute (%)",
-    "editor.power_lg_nutzbar": "LG — nutzbare Restenergie (kWh)",
-    "editor.power_lg_reichweite": "LG — Reichweite (h)",
-    "editor.power_venus_nutzbar": "Venus — nutzbare Restenergie (kWh)",
-    "editor.power_venus_reichweite": "Venus — Reichweite (h)",
+    "editor.power_lg_nutzbar": "{battery} — nutzbare Restenergie (kWh)",
+    "editor.power_lg_reichweite": "{battery} — Reichweite (h)",
+    "editor.power_venus_nutzbar": "{venus} — nutzbare Restenergie (kWh)",
+    "editor.power_venus_reichweite": "{venus} — Reichweite (h)",
     "editor.temp_section": "Klima (Temperatur)",
     "editor.temp_enabled": "Klima-Bubble aktivieren",
     "editor.temp_position_hint": "Position der Kachel verschieben (in Pixeln, Standard = 0).",
@@ -250,12 +250,12 @@ const lang_de = {
     "editor.solar_label_pos_solar_grid": "Label: Solar → Netz (Einspeisung)",
     "editor.grid_label_pos_import": "Label: Netz → Haus (Bezug)",
     "editor.battery_label_pos": "Label: Batterie ↔ Haus",
-    "editor.venus_label_pos": "Label: Venus ↔ Haus",
+    "editor.venus_label_pos": "Label: {venus} ↔ Haus",
     "editor.battery_soc_donut_section": "🍩 SoC-Donut (Ladestands-Ring)",
     "editor.battery_soc_donut_hint": "Zeigt den Akku-Ladestand als Ring um die Bubble. Gefüllter Anteil = aktueller SoC in Batterie-Farbe, Rest grau. Wie eine Smartphone-Akku-Anzeige.",
     "editor.battery_soc_donut_enabled": "SoC-Donut aktivieren",
     "editor.venus_soc_donut_section": "🍩 SoC-Donut (Ladestands-Ring)",
-    "editor.venus_soc_donut_hint": "Zeigt den Venus-Ladestand als Ring um die Bubble. Gefüllter Anteil = aktueller SoC in Venus-Farbe, Rest grau.",
+    "editor.venus_soc_donut_hint": "Zeigt den {venus}-Ladestand als Ring um die Bubble. Gefüllter Anteil = aktueller SoC in {venus}-Farbe, Rest grau.",
     "editor.venus_soc_donut_enabled": "SoC-Donut aktivieren",
     "editor.flow_rate_title": "Flussraten (W) an Röhren anzeigen",
     "editor.pipe_label_size": "Schriftgröße der Watt-Labels (px)",
@@ -265,11 +265,11 @@ const lang_de = {
     "editor.card_offset_x": "Card horizontal verschieben (px)",
     "editor.card_offset_y": "Card vertikal verschieben (px)",
     "editor.donut_section": "Donut-Chart (Tages-Mix)",
-    "editor.donut_hint": "Zeigt den Energie-Mix als farbigen Ring um die Haus-Bubble. Bei aktiviertem Tagesmodus wird statt des aktuellen Live-Mix der kumulierte Tagesverbrauch in 4 Segmenten (PV, LG, Venus, Netz) dargestellt. Erfordert den Schalter \"Donut Chart\" in Darstellung & Optionen.",
+    "editor.donut_hint": "Zeigt den Energie-Mix als farbigen Ring um die Haus-Bubble. Bei aktiviertem Tagesmodus wird statt des aktuellen Live-Mix der kumulierte Tagesverbrauch in 4 Segmenten (PV, {battery}, {venus}, Netz) dargestellt. Erfordert den Schalter \"Donut Chart\" in Darstellung & Optionen.",
     "editor.donut_today_mode": "Tagesmodus statt Live-Modus",
     "editor.donut_today_solar": "Tages-Sensor: PV → Haus (kWh)",
-    "editor.donut_today_battery": "Tages-Sensor: LG → Haus (kWh)",
-    "editor.donut_today_venus": "Tages-Sensor: Venus → Haus (kWh)",
+    "editor.donut_today_battery": "Tages-Sensor: {battery} → Haus (kWh)",
+    "editor.donut_today_venus": "Tages-Sensor: {venus} → Haus (kWh)",
     "editor.donut_today_grid": "Tages-Sensor: Netz → Haus (kWh)",
     "editor.consumer_enabled": "Verbraucher aktiv",
     "editor.bubble_label_offset_x": "Watt-Label horizontal verschieben (px)",
@@ -286,6 +286,15 @@ const lang_de = {
     "editor.entity": "Kombinierter Batterie Sensor (W)",
     "editor.suggest_entity": "Passenden Sensor vorschlagen",
     "editor.suggest_none": "Kein passender Sensor gefunden. Bitte von Hand auswählen.",
+    // Neutral fallbacks when a bubble has no label and no device name.
+    "editor.bubble_default_solar": "Dach-PV",
+    "editor.bubble_default_bkw": "Garten-PV",
+    "editor.bubble_default_battery": "Speicher 1",
+    "editor.bubble_default_venus": "Speicher 2",
+    "editor.bubble_default_grid": "Netz",
+    "editor.bubble_default_house": "Haus",
+    "editor.suggest_why_storage": "Ladestand am selben Gerät",
+    "editor.suggest_why_same_device": "gleiches Gerät wie der Hauptsensor",
     "editor.label": "Beschriftung",
     "editor.icon": "Icon",
     "editor.back": "Zurück",
@@ -355,16 +364,16 @@ const lang_de = {
     "editor.solar_unit_kw": "Solar in kW anzeigen",
     "editor.grid_unit_kw": "Grid in kW anzeigen",
     "editor.battery_unit_kw": "Batterie in kW anzeigen",
-    "editor.venus_entity": "Kombinierter Venus Sensor (W, signed)",
-    "editor.venus_soc_label": "Venus Ladestand (%)",
-    "editor.venus_charge_sensor": "Venus-Ladung Sensor (W, Optional)",
-    "editor.venus_discharge_sensor": "Venus-Entladung Sensor (W, Optional)",
+    "editor.venus_entity": "Kombinierter {venus} Sensor (W, signed)",
+    "editor.venus_soc_label": "{venus} Ladestand (%)",
+    "editor.venus_charge_sensor": "{venus}-Ladung Sensor (W, Optional)",
+    "editor.venus_discharge_sensor": "{venus}-Entladung Sensor (W, Optional)",
     "editor.venus_separate_hint": "Optional: Separate Sensoren für Laden/Entladen. Überschreiben den Hauptsensor für die Berechnung.",
-    "editor.venus_charge_via_house": "Venus-Ladung über Hausverbrauch umleiten",
-    "editor.venus_show_power": "Zeige Leistung statt SoC (Venus)",
-    "editor.venus_unit_kw": "Venus in kW anzeigen",
-    "editor.invert_venus": "Wert umkehren (+/-) für Venus",
-    "editor.venus_secondary_sensor": "Zweiter Sensor (nur Anzeige) für Venus",
+    "editor.venus_charge_via_house": "{venus}-Ladung über Hausverbrauch umleiten",
+    "editor.venus_show_power": "Zeige Leistung statt SoC ({venus})",
+    "editor.venus_unit_kw": "{venus} in kW anzeigen",
+    "editor.invert_venus": "Wert umkehren (+/-) für {venus}",
+    "editor.venus_secondary_sensor": "Zweiter Sensor (nur Anzeige) für {venus}",
     "editor.consumer_4_title": "⚡ Reihe 2 Links (Gelb)",
     "editor.consumer_5_title": "💡 Reihe 2 Rechts (Indigo)",
     "editor.consumer_6_title": "💡 Reihe 2 Außen Links (Teal)",
@@ -393,7 +402,7 @@ const lang_de = {
 
     // Phase 5.68: LG charge-source mix ring (PV vs Grid)
     "editor.battery_mix_section": "Lade-Herkunft (Mix-Ring außen)",
-    "editor.battery_mix_hint": "Zeigt um die SoC-Donut herum einen zweiten Ring an, der angibt aus welchen Quellen LG geladen wurde. Bei einem Speicher gibt es nur 2 Quellen: PV und Netz.",
+    "editor.battery_mix_hint": "Zeigt um die SoC-Donut herum einen zweiten Ring an, der angibt aus welchen Quellen {battery} geladen wurde. Bei einem Speicher gibt es nur 2 Quellen: PV und Netz.",
     "editor.battery_mix_enabled": "Lade-Herkunfts-Ring aktivieren",
     "editor.battery_mix_period": "Zeitraum",
     "editor.battery_mix_period_day": "Tag",
@@ -404,12 +413,12 @@ const lang_de = {
     "editor.battery_mix_day_section": "Tages-Sensoren",
     "editor.battery_mix_month_section": "Monats-Sensoren",
     "editor.battery_mix_year_section": "Jahres-Sensoren",
-    "editor.battery_mix_pv_label": "PV → LG (kWh)",
-    "editor.battery_mix_grid_label": "Netz → LG (kWh)",
+    "editor.battery_mix_pv_label": "PV → {battery} (kWh)",
+    "editor.battery_mix_grid_label": "Netz → {battery} (kWh)",
 
     // Phase 5.70: Venus charge-source mix ring (PV vs Grid) -- identical to LG
     "editor.venus_mix_section": "Lade-Herkunft (Mix-Ring außen)",
-    "editor.venus_mix_hint": "Zeigt um die SoC-Donut herum einen zweiten Ring an, der angibt aus welchen Quellen Venus geladen wurde. Bei einem Speicher gibt es nur 2 Quellen: PV und Netz.",
+    "editor.venus_mix_hint": "Zeigt um die SoC-Donut herum einen zweiten Ring an, der angibt aus welchen Quellen {venus} geladen wurde. Bei einem Speicher gibt es nur 2 Quellen: PV und Netz.",
     "editor.venus_mix_enabled": "Lade-Herkunfts-Ring aktivieren",
     "editor.venus_mix_period": "Zeitraum",
     "editor.venus_mix_period_day": "Tag",
@@ -420,12 +429,12 @@ const lang_de = {
     "editor.venus_mix_day_section": "Tages-Sensoren",
     "editor.venus_mix_month_section": "Monats-Sensoren",
     "editor.venus_mix_year_section": "Jahres-Sensoren",
-    "editor.venus_mix_pv_label": "PV → Venus (kWh)",
-    "editor.venus_mix_grid_label": "Netz → Venus (kWh)",
+    "editor.venus_mix_pv_label": "PV → {venus} (kWh)",
+    "editor.venus_mix_grid_label": "Netz → {venus} (kWh)",
 
     // Phase 5.72: Solar PV-distribution mix ring (Haus / LG / Venus / Netz-Export)
     "editor.solar_mix_section": "PV-Verteilung (Mix-Ring außen)",
-    "editor.solar_mix_hint": "Zeigt um den PV-Donut herum einen zweiten Ring an, der angibt wohin die PV-Energie geflossen ist: Direktverbrauch Haus, LG-Ladung, Venus-Ladung, Netz-Export.",
+    "editor.solar_mix_hint": "Zeigt um den PV-Donut herum einen zweiten Ring an, der angibt wohin die PV-Energie geflossen ist: Direktverbrauch Haus, {battery}-Ladung, {venus}-Ladung, Netz-Export.",
     "editor.solar_mix_enabled": "PV-Verteilungs-Ring aktivieren",
     "editor.solar_mix_period": "Zeitraum",
     "editor.mix_period_scope_hint": "Es werden nur die Sensoren des oben gewählten Zeitraums angezeigt. Werte anderer Zeiträume bleiben gespeichert.",
@@ -438,8 +447,8 @@ const lang_de = {
     "editor.solar_mix_month_section": "Monats-Sensoren",
     "editor.solar_mix_year_section": "Jahres-Sensoren",
     "editor.solar_mix_house_label": "PV → Haus (kWh)",
-    "editor.solar_mix_lg_label": "PV → LG (kWh)",
-    "editor.solar_mix_venus_label": "PV → Venus (kWh)",
+    "editor.solar_mix_lg_label": "PV → {battery} (kWh)",
+    "editor.solar_mix_venus_label": "PV → {venus} (kWh)",
     "editor.solar_mix_grid_label": "PV → Netz Export (kWh)",
 
     // Phase 5.73: Grid Import/Export balance mix ring (2 Segmente Import vs Export)
@@ -477,16 +486,16 @@ const lang_de = {
     // Phase 5.80: configurable Tesla mix-ring segment colors
     "editor.consumer_1_mix_colors_section": "Ring-Farben pro Segment",
     "editor.consumer_1_mix_color_pv": "Farbe PV-Anteil",
-    "editor.consumer_1_mix_color_lg": "Farbe LG-Anteil",
-    "editor.consumer_1_mix_color_venus": "Farbe Venus-Anteil",
+    "editor.consumer_1_mix_color_lg": "Farbe {battery}-Anteil",
+    "editor.consumer_1_mix_color_venus": "Farbe {venus}-Anteil",
     "editor.consumer_1_mix_color_grid": "Farbe Netz-Anteil",
 
     // Phase 5.84: configurable mix-ring segment colors for source bubbles
     "editor.source_mix_colors_section": "Ring-Farben pro Segment",
     // Solar bubble (4 segments: house/lg/venus/grid)
     "editor.solar_mix_color_house": "Farbe Haus-Anteil",
-    "editor.solar_mix_color_lg":    "Farbe LG-Anteil",
-    "editor.solar_mix_color_venus": "Farbe Venus-Anteil",
+    "editor.solar_mix_color_lg":    "Farbe {battery}-Anteil",
+    "editor.solar_mix_color_venus": "Farbe {venus}-Anteil",
     "editor.solar_mix_color_grid":  "Farbe Netz-Export-Anteil",
     // Grid bubble (2 segments: import/export)
     "editor.grid_mix_color_import": "Farbe Bezug-Anteil",
@@ -554,10 +563,10 @@ const lang_en = {
     "editor.power_offset_y": "Offset Y (px, + down / − up)",
     "editor.power_entities_hint": "Only the values the card does not already know. Everything else — origin split, PV, electricity cost, colours — is picked up automatically from the bubble sensors.",
     "editor.power_autarkie": "Self-sufficiency today (%)",
-    "editor.power_lg_nutzbar": "LG — usable energy left (kWh)",
-    "editor.power_lg_reichweite": "LG — runtime left (h)",
-    "editor.power_venus_nutzbar": "Venus — usable energy left (kWh)",
-    "editor.power_venus_reichweite": "Venus — runtime left (h)",
+    "editor.power_lg_nutzbar": "{battery} — usable energy left (kWh)",
+    "editor.power_lg_reichweite": "{battery} — runtime left (h)",
+    "editor.power_venus_nutzbar": "{venus} — usable energy left (kWh)",
+    "editor.power_venus_reichweite": "{venus} — runtime left (h)",
     "editor.temp_section": "Climate (Temperature)",
     "editor.temp_enabled": "Enable climate bubble",
     "editor.temp_position_hint": "Move the panel (in pixels, default = 0).",
@@ -763,12 +772,12 @@ const lang_en = {
     "editor.solar_label_pos_solar_grid": "Label: Solar → Grid (export)",
     "editor.grid_label_pos_import": "Label: Grid → House (import)",
     "editor.battery_label_pos": "Label: Battery ↔ House",
-    "editor.venus_label_pos": "Label: Venus ↔ House",
+    "editor.venus_label_pos": "Label: {venus} ↔ House",
     "editor.battery_soc_donut_section": "🍩 SoC donut (charge level ring)",
     "editor.battery_soc_donut_hint": "Shows the battery's state-of-charge as a ring around the bubble. Filled segment = current SoC in battery colour, rest grey. Like a smartphone battery indicator.",
     "editor.battery_soc_donut_enabled": "Enable SoC donut",
     "editor.venus_soc_donut_section": "🍩 SoC donut (charge level ring)",
-    "editor.venus_soc_donut_hint": "Shows the Venus state-of-charge as a ring around the bubble. Filled segment = current SoC in Venus colour, rest grey.",
+    "editor.venus_soc_donut_hint": "Shows the {venus} state-of-charge as a ring around the bubble. Filled segment = current SoC in {venus} colour, rest grey.",
     "editor.venus_soc_donut_enabled": "Enable SoC donut",
     "editor.flow_rate_title": "Show Flow Rates (W) on pipes",
     "editor.pipe_label_size": "Pipe Label Font Size (px)",
@@ -778,11 +787,11 @@ const lang_en = {
     "editor.card_offset_x": "Card horizontal offset (px)",
     "editor.card_offset_y": "Card vertical offset (px)",
     "editor.donut_section": "Donut Chart (Daily Mix)",
-    "editor.donut_hint": "Shows the energy mix as a colored ring around the house bubble. When daily mode is enabled, the donut shows accumulated daily consumption in 4 segments (PV, LG, Venus, Grid) instead of the current live mix. Requires the \"Donut Chart\" toggle in Display & Options.",
+    "editor.donut_hint": "Shows the energy mix as a colored ring around the house bubble. When daily mode is enabled, the donut shows accumulated daily consumption in 4 segments (PV, {battery}, {venus}, Grid) instead of the current live mix. Requires the \"Donut Chart\" toggle in Display & Options.",
     "editor.donut_today_mode": "Daily mode instead of live mode",
     "editor.donut_today_solar": "Daily sensor: PV → House (kWh)",
-    "editor.donut_today_battery": "Daily sensor: LG → House (kWh)",
-    "editor.donut_today_venus": "Daily sensor: Venus → House (kWh)",
+    "editor.donut_today_battery": "Daily sensor: {battery} → House (kWh)",
+    "editor.donut_today_venus": "Daily sensor: {venus} → House (kWh)",
     "editor.donut_today_grid": "Daily sensor: Grid → House (kWh)",
     "editor.consumer_enabled": "Consumer enabled",
     "editor.bubble_label_offset_x": "Watt label horizontal offset (px)",
@@ -799,6 +808,15 @@ const lang_en = {
     "editor.entity": "Combined Battery Sensor (W)",
     "editor.suggest_entity": "Suggest a matching sensor",
     "editor.suggest_none": "No matching sensor found. Please pick one by hand.",
+    // Neutral fallbacks when a bubble has no label and no device name.
+    "editor.bubble_default_solar": "Roof PV",
+    "editor.bubble_default_bkw": "Garden PV",
+    "editor.bubble_default_battery": "Storage 1",
+    "editor.bubble_default_venus": "Storage 2",
+    "editor.bubble_default_grid": "Grid",
+    "editor.bubble_default_house": "House",
+    "editor.suggest_why_storage": "charge level on the same device",
+    "editor.suggest_why_same_device": "same device as the main sensor",
     "editor.label": "Label",
     "editor.icon": "Icon",
     "editor.back": "Back",
@@ -868,16 +886,16 @@ const lang_en = {
     "editor.solar_unit_kw": "Show Solar in kW",
     "editor.grid_unit_kw": "Show Grid in kW",
     "editor.battery_unit_kw": "Show Battery in kW",
-    "editor.venus_entity": "Combined Venus Sensor (W, signed)",
-    "editor.venus_soc_label": "Venus State of Charge (%)",
-    "editor.venus_charge_sensor": "Venus Charge Sensor (W, Optional)",
-    "editor.venus_discharge_sensor": "Venus Discharge Sensor (W, Optional)",
+    "editor.venus_entity": "Combined {venus} Sensor (W, signed)",
+    "editor.venus_soc_label": "{venus} State of Charge (%)",
+    "editor.venus_charge_sensor": "{venus} Charge Sensor (W, Optional)",
+    "editor.venus_discharge_sensor": "{venus} Discharge Sensor (W, Optional)",
     "editor.venus_separate_hint": "Optional: Separate sensors for charge/discharge. Override the main sensor for calculations.",
-    "editor.venus_charge_via_house": "Venus charge via house consumption",
-    "editor.venus_show_power": "Show power instead of SoC (Venus)",
-    "editor.venus_unit_kw": "Show Venus in kW",
-    "editor.invert_venus": "Invert Power Value (+/-) for Venus",
-    "editor.venus_secondary_sensor": "Secondary Sensor (display only) for Venus",
+    "editor.venus_charge_via_house": "{venus} charge via house consumption",
+    "editor.venus_show_power": "Show power instead of SoC ({venus})",
+    "editor.venus_unit_kw": "Show {venus} in kW",
+    "editor.invert_venus": "Invert Power Value (+/-) for {venus}",
+    "editor.venus_secondary_sensor": "Secondary Sensor (display only) for {venus}",
     "editor.consumer_4_title": "⚡ Row 2 Left (Yellow)",
     "editor.consumer_5_title": "💡 Row 2 Right (Indigo)",
     "editor.consumer_6_title": "💡 Row 2 Outer Left (Teal)",
@@ -906,7 +924,7 @@ const lang_en = {
 
     // Phase 5.68: LG charge-source mix ring (PV vs Grid)
     "editor.battery_mix_section": "Charge source (outer mix ring)",
-    "editor.battery_mix_hint": "Adds a second ring around the SoC donut showing where LG's stored energy came from. For a storage bubble there are only 2 sources: PV and Grid.",
+    "editor.battery_mix_hint": "Adds a second ring around the SoC donut showing where {battery}'s stored energy came from. For a storage bubble there are only 2 sources: PV and Grid.",
     "editor.battery_mix_enabled": "Enable charge-source ring",
     "editor.battery_mix_period": "Time period",
     "editor.battery_mix_period_day": "Day",
@@ -917,12 +935,12 @@ const lang_en = {
     "editor.battery_mix_day_section": "Daily sensors",
     "editor.battery_mix_month_section": "Monthly sensors",
     "editor.battery_mix_year_section": "Yearly sensors",
-    "editor.battery_mix_pv_label": "PV → LG (kWh)",
-    "editor.battery_mix_grid_label": "Grid → LG (kWh)",
+    "editor.battery_mix_pv_label": "PV → {battery} (kWh)",
+    "editor.battery_mix_grid_label": "Grid → {battery} (kWh)",
 
     // Phase 5.70: Venus charge-source mix ring (PV vs Grid) -- identical to LG
     "editor.venus_mix_section": "Charge source (outer mix ring)",
-    "editor.venus_mix_hint": "Adds a second ring around the SoC donut showing where Venus's stored energy came from. For a storage bubble there are only 2 sources: PV and Grid.",
+    "editor.venus_mix_hint": "Adds a second ring around the SoC donut showing where {venus}'s stored energy came from. For a storage bubble there are only 2 sources: PV and Grid.",
     "editor.venus_mix_enabled": "Enable charge-source ring",
     "editor.venus_mix_period": "Time period",
     "editor.venus_mix_period_day": "Day",
@@ -933,12 +951,12 @@ const lang_en = {
     "editor.venus_mix_day_section": "Daily sensors",
     "editor.venus_mix_month_section": "Monthly sensors",
     "editor.venus_mix_year_section": "Yearly sensors",
-    "editor.venus_mix_pv_label": "PV → Venus (kWh)",
-    "editor.venus_mix_grid_label": "Grid → Venus (kWh)",
+    "editor.venus_mix_pv_label": "PV → {venus} (kWh)",
+    "editor.venus_mix_grid_label": "Grid → {venus} (kWh)",
 
     // Phase 5.72: Solar PV-distribution mix ring (House / LG / Venus / Grid-export)
     "editor.solar_mix_section": "PV distribution (outer mix ring)",
-    "editor.solar_mix_hint": "Adds a second ring around the PV donut showing where PV energy went: direct house consumption, LG charging, Venus charging, grid export.",
+    "editor.solar_mix_hint": "Adds a second ring around the PV donut showing where PV energy went: direct house consumption, {battery} charging, {venus} charging, grid export.",
     "editor.solar_mix_enabled": "Enable PV-distribution ring",
     "editor.solar_mix_period": "Time period",
     "editor.mix_period_scope_hint": "Only the sensors for the period selected above are shown. Values for other periods stay saved.",
@@ -951,8 +969,8 @@ const lang_en = {
     "editor.solar_mix_month_section": "Monthly sensors",
     "editor.solar_mix_year_section": "Yearly sensors",
     "editor.solar_mix_house_label": "PV → House (kWh)",
-    "editor.solar_mix_lg_label": "PV → LG (kWh)",
-    "editor.solar_mix_venus_label": "PV → Venus (kWh)",
+    "editor.solar_mix_lg_label": "PV → {battery} (kWh)",
+    "editor.solar_mix_venus_label": "PV → {venus} (kWh)",
     "editor.solar_mix_grid_label": "PV → Grid export (kWh)",
 
     // Phase 5.73: Grid Import/Export balance mix ring (2 segments)
@@ -990,16 +1008,16 @@ const lang_en = {
     // Phase 5.80: configurable Tesla mix-ring segment colors
     "editor.consumer_1_mix_colors_section": "Ring colors per segment",
     "editor.consumer_1_mix_color_pv": "PV segment color",
-    "editor.consumer_1_mix_color_lg": "LG segment color",
-    "editor.consumer_1_mix_color_venus": "Venus segment color",
+    "editor.consumer_1_mix_color_lg": "{battery} segment color",
+    "editor.consumer_1_mix_color_venus": "{venus} segment color",
     "editor.consumer_1_mix_color_grid": "Grid segment color",
 
     // Phase 5.84: configurable mix-ring segment colors for source bubbles
     "editor.source_mix_colors_section": "Ring colors per segment",
     // Solar bubble (4 segments: house/lg/venus/grid)
     "editor.solar_mix_color_house": "House segment color",
-    "editor.solar_mix_color_lg":    "LG segment color",
-    "editor.solar_mix_color_venus": "Venus segment color",
+    "editor.solar_mix_color_lg":    "{battery} segment color",
+    "editor.solar_mix_color_venus": "{venus} segment color",
     "editor.solar_mix_color_grid":  "Grid export segment color",
     // Grid bubble (2 segments: import/export)
     "editor.grid_mix_color_import": "Import segment color",
@@ -1474,49 +1492,72 @@ const ENTITY_FILTERS = {
     temperature: [{ domain: 'sensor', device_class: 'temperature' }, { domain: 'input_number' }],
 };
 
-// What a matching entity is likely to be called. Two tiers: a strong hint that
-// all but names the sensor, and weaker supporting words. Plus a list of words
-// that argue AGAINST a match.
+// What a matching entity is likely to be called -- by ROLE, not by brand.
 //
-// The first version of this scored on device_class, unit and loose substring
-// matching. Measured against the live system it proposed smoke-detector
-// batteries for the battery charge level and forecast values for the PV
-// bubble. What fixed it: word-boundary matching (so "pv" no longer matches
-// inside unrelated names), a strong tier, and the exclusion list.
+// The first version listed manufacturer names (marstek, lg, resu). That worked
+// on the system it was written for and nowhere else. These are role words in
+// German and English instead; no vendor has to appear in a list to be found.
 //
-// Re-measured against the same system afterwards: all seven source and storage
-// fields land in the top three, four of them first.
+// strong: all but names the sensor. weak: supporting evidence.
 const ENTITY_NAME_HINTS = {
-    solar:       { strong: ['dach'], weak: ['pv', 'solar', 'panel', 'erzeugung'] },
-    grid:        { strong: ['netz'], weak: ['grid', 'shelly', 'bezug'] },
-    grid_export: { strong: ['einspeisung', 'export'], weak: ['netz', 'grid'] },
-    grid_combined: { strong: ['netz', 'saldo'], weak: ['grid', 'shelly'] },
-    grid_to_battery: { strong: ['netz'], weak: ['lade', 'batt', 'akku'] },
-    battery:     { strong: ['lg', 'b1', 'resu'], weak: ['batt', 'akku', 'speicher'] },
-    battery_soc: { strong: ['lg', 'soc'], weak: ['ladestand', 'speicher'] },
-    battery_charge:    { strong: ['lg'], weak: ['lade', 'charge', 'batt'] },
-    battery_discharge: { strong: ['lg'], weak: ['entlade', 'discharge', 'batt'] },
-    venus:       { strong: ['venus'], weak: ['marstek', 'ac'] },
-    venus_soc:   { strong: ['venus', 'soc'], weak: ['marstek', 'ladestand'] },
-    venus_charge:    { strong: ['venus'], weak: ['lade', 'charge'] },
-    venus_discharge: { strong: ['venus'], weak: ['entlade', 'discharge'] },
-    venus_pv_charge: { strong: ['venus', 'mppt'], weak: ['marstek', 'pv'] },
-    house:       { strong: ['haus', 'house'], weak: ['verbrauch', 'consumption', 'gesamt'] },
-    bkw:         { strong: ['garten', 'bkw', 'balkon'], weak: ['pv'] },
-    temp_indoor:  { strong: ['innen', 'indoor'], weak: ['haus', 'raum', 'durchschnitt'] },
-    temp_outdoor: { strong: ['aussen', 'outdoor'], weak: ['garten', 'wetter'] },
-    temp_forecast_high: { strong: ['forecast', 'high'], weak: ['max', 'hoch'] },
-    temp_forecast_low:  { strong: ['forecast', 'low'], weak: ['min', 'tief'] },
+    solar:       { strong: ['dach', 'roof'], weak: ['pv', 'solar', 'panel', 'erzeugung', 'production', 'wr', 'inverter'] },
+    grid:        { strong: ['netz', 'grid'], weak: ['meter', 'zaehler', 'zahler', 'bezug', 'import'] },
+    grid_export: { strong: ['einspeisung', 'export'], weak: ['netz', 'grid', 'feed'] },
+    grid_combined: { strong: ['netz', 'grid', 'saldo'], weak: ['meter', 'zaehler', 'zahler', 'balance'] },
+    grid_to_battery: { strong: ['netz', 'grid'], weak: ['lade', 'charge', 'batt', 'akku', 'speicher'] },
+    battery:     { strong: ['speicher', 'batt', 'akku', 'storage'], weak: ['dc', 'hausspeicher', 'home'] },
+    battery_soc: { strong: ['soc', 'ladestand'], weak: ['speicher', 'batt', 'akku', 'storage', 'charge'] },
+    battery_charge:    { strong: ['lade', 'charge'], weak: ['speicher', 'batt', 'akku', 'storage'] },
+    battery_discharge: { strong: ['entlade', 'discharge'], weak: ['speicher', 'batt', 'akku', 'storage'] },
+    venus:       { strong: ['speicher', 'batt', 'akku', 'storage'], weak: ['ac', 'balkon', 'zweit'] },
+    venus_soc:   { strong: ['soc', 'ladestand'], weak: ['speicher', 'batt', 'akku', 'storage'] },
+    venus_charge:    { strong: ['lade', 'charge'], weak: ['speicher', 'batt', 'akku', 'storage'] },
+    venus_discharge: { strong: ['entlade', 'discharge'], weak: ['speicher', 'batt', 'akku', 'storage'] },
+    venus_pv_charge: { strong: ['mppt'], weak: ['pv', 'solar', 'lade', 'charge'] },
+    house:       { strong: ['haus', 'house', 'hausverbrauch'], weak: ['verbrauch', 'consumption', 'gesamt', 'total', 'home'] },
+    bkw:         { strong: ['balkon', 'bkw', 'garten'], weak: ['pv', 'solar', 'mppt', 'micro'] },
+    temp_indoor:  { strong: ['innen', 'indoor'], weak: ['haus', 'raum', 'room', 'durchschnitt'] },
+    temp_outdoor: { strong: ['aussen', 'outdoor', 'outside'], weak: ['garten', 'wetter', 'weather'] },
+    temp_forecast_high: { strong: ['forecast', 'high'], weak: ['max', 'hoch', 'prognose'] },
+    temp_forecast_low:  { strong: ['forecast', 'low'], weak: ['min', 'tief', 'prognose'] },
 };
 
+// Energy fields (kWh counters behind the donuts, mix rings and rotation
+// slots). Same machinery, device_class energy instead of power.
+const ENERGY_FIELD_HINTS = {
+    strongByRole: {
+        solar: ['pv', 'solar', 'dach', 'roof', 'erzeugung', 'production'],
+        battery: ['speicher', 'batt', 'akku', 'storage'],
+        venus: ['speicher', 'batt', 'akku', 'storage'],
+        grid: ['netz', 'grid', 'bezug', 'import'],
+        export: ['einspeisung', 'export', 'feed'],
+        import: ['bezug', 'import', 'netz', 'grid'],
+        house: ['haus', 'house', 'verbrauch', 'consumption'],
+        lg: ['speicher', 'batt', 'akku', 'storage'],
+        self: ['eigen', 'self', 'direkt'],
+        bkw: ['balkon', 'bkw', 'garten'],
+    },
+    period: { day: ['heute', 'today', 'daily', 'tag'],
+              month: ['monat', 'month', 'monthly'],
+              year: ['jahr', 'year', 'yearly'] },
+};
+
+// A car, a wallbox and a dehumidifier all report a charge level, and their
+// devices carry one too -- so both the name hints and the device signal would
+// happily offer a vehicle for the house battery. Role words, no brands.
+const NON_STATIONARY_WORDS = [
+    'vehicle', 'fahrzeug', 'auto', 'car', 'wallbox', 'charger', 'ladepunkt',
+    'loadpoint', 'ladegeraet', 'ladegerat', 'mobile',
+];
+
 // Words that make a sensor a poor answer for a whole-house field: derived
-// values, per-phase splits, device batteries, vehicle sensors. Fields whose
-// hint list already contains one of these keep it -- the forecast temperature
-// fields want "forecast".
+// values, per-phase splits, device batteries. A field keeps any of these that
+// its own hint list needs -- the forecast temperature fields want "forecast".
 const ENTITY_NAME_PENALTIES = [
     'forecast', 'prognose', 'erwartung', 'ziel', 'now', 'max', 'peak', 'phase',
-    'schein', 'melder', 'button', 'bthome', 'pixel', 'link', 'signal', 'uptime',
-    'rate', 'tesla', 'handy', '5min', 'mittel', 'invertiert', 'gradient',
+    'schein', 'apparent', 'melder', 'button', 'bthome', 'pixel', 'link',
+    'signal', 'uptime', 'rate', 'handy', 'phone', '5min', 'mittel', 'average',
+    'invertiert', 'inverted', 'gradient', 'lifetime',
 ];
 
 const SPARKLINE_LAYERS = ['back', 'mid', 'front'];
@@ -1684,10 +1725,52 @@ class PowerFluxCardEditor extends LitElement {
         this._config = config;
     }
 
-    _localize(key) {
+    // Neutral names for the bubbles. The editor's texts carry {battery},
+    // {venus} and friends instead of the hardware that happened to be on the
+    // desk when they were written -- "Venus" and "LG" meant nothing to anyone
+    // with a different make.
+    //
+    // Resolved per bubble in this order:
+    //   1. the label the user gave the bubble
+    //   2. the name of the DEVICE its sensor belongs to  ("Marstek Venus")
+    //   3. the neutral default                            ("Storage 2")
+    //
+    // Display only. Nothing is written back into the config -- the label field
+    // stays the user's to set.
+    _bubbleName(prefix) {
+        const cfg = this._config || {};
+        const label = cfg[`${prefix}_label`];
+        if (label) return label;
+
+        const entityId = (cfg.entities || {})[prefix];
+        const reg = this.hass && this.hass.entities;
+        const devices = this.hass && this.hass.devices;
+        if (entityId && reg && devices) {
+            const entry = reg[entityId];
+            const device = entry && entry.device_id && devices[entry.device_id];
+            if (device) {
+                const name = device.name_by_user || device.name;
+                if (name) return name;
+            }
+            const st = this.hass.states && this.hass.states[entityId];
+            if (st && st.attributes && st.attributes.friendly_name) {
+                return st.attributes.friendly_name;
+            }
+        }
+        return this._localizeRaw(`editor.bubble_default_${prefix}`);
+    }
+
+    _localizeRaw(key) {
         const lang = this.hass && this.hass.language ? this.hass.language : 'en';
         const dict = editorTranslations[lang] || editorTranslations['en'];
         return dict[key] || editorTranslations['en'][key] || key;
+    }
+
+    _localize(key) {
+        const text = this._localizeRaw(key);
+        if (text.indexOf('{') === -1) return text;
+        return text.replace(/\{([a-z0-9_]+)\}/g, (whole, prefix) =>
+            this._bubbleName(prefix));
     }
 
     _valueChanged(ev) {
@@ -2077,17 +2160,79 @@ class PowerFluxCardEditor extends LitElement {
         return { entity: { filter } };
     }
 
-    // Ranked guesses for one field. Reads device_class, unit and the entity id
-    // itself, and shows WHY each one is offered -- a suggestion you cannot
-    // check is just a different kind of guessing.
-    // Ranked guesses for one field, with the reason shown next to each one --
-    // a suggestion you cannot check is just a different kind of guessing.
+    // Which role a field is asking for. Storage fields want a sensor that sits
+    // on a device with a charge level; source and meter fields want one that
+    // does not.
+    _fieldRole(configValue) {
+        if (/^(battery|venus)(_|$)/.test(configValue)) return 'storage';
+        if (/^(solar|grid|house|bkw)(_|$)/.test(configValue)) return 'source';
+        return null;
+    }
+
+    // Does this entity's device also expose a charge level in percent?
+    // Brand-independent: a battery inverter carries one, a meter or a string
+    // inverter does not, whoever built it.
+    //
+    // Template sensors have no device at all -- most of the interesting ones on
+    // a tuned system are hand-built. When the device is unknown the signal is
+    // OMITTED, never counted against, or a user's own sensors would rank last.
+    _deviceContext(entityId) {
+        const reg = this.hass && this.hass.entities;
+        const devices = this.hass && this.hass.devices;
+        if (!reg || !devices) return null;              // older HA: no registry
+        const entry = reg[entityId];
+        if (!entry || !entry.device_id) return null;    // template sensor
+        const device = devices[entry.device_id];
+
+        // A charge level alone is not enough: a thermometer and a smoke
+        // detector report one too. What separates a storage system is that the
+        // SAME device also meters power or energy. Both conditions, no brands.
+        let hasChargeLevel = false;
+        let metersEnergy = false;
+        for (const [id, e] of Object.entries(reg)) {
+            if (e.device_id !== entry.device_id || id === entityId) continue;
+            const st = this.hass.states[id];
+            const dc = st && st.attributes && st.attributes.device_class;
+            if (dc === 'battery' && st.attributes.unit_of_measurement === '%') hasChargeLevel = true;
+            if (dc === 'power' || dc === 'energy') metersEnergy = true;
+            if (hasChargeLevel && metersEnergy) break;
+        }
+        hasChargeLevel = hasChargeLevel && metersEnergy;
+        const label = device
+            ? (device.name_by_user || device.name || null)
+            : null;
+        return { hasChargeLevel, label };
+    }
+
+    // Ranked guesses for one field, each with the reason next to it -- a
+    // suggestion you cannot check is just a different kind of guessing.
     _entitySuggestions(configValue, limit) {
         if (!this.hass || !this.hass.states) return [];
         const hints = ENTITY_NAME_HINTS[configValue];
         if (!hints) return [];
         const kind = ENTITY_FIELD_KINDS[configValue];
         const wantUnit = { power: 'W', battery: '%', temperature: '\u00b0C' }[kind];
+        const role = this._fieldRole(configValue);
+
+        // Which device the bubble this field belongs to already points at, and
+        // which devices its siblings have taken. Without this, "storage 1
+        // charge level" and "storage 2 charge level" would offer the identical
+        // list -- there is nothing in a sensor name that says which of two
+        // storage systems it belongs to, but the device says it exactly.
+        const ents = (this._config && this._config.entities) || {};
+        const bubble = configValue.split('_')[0];
+        const deviceOf = (entityId) => {
+            const reg = this.hass && this.hass.entities;
+            const e = entityId && reg && reg[entityId];
+            return (e && e.device_id) || null;
+        };
+        const ownDevice = deviceOf(ents[bubble]);
+        const takenDevices = new Set();
+        for (const [k, v] of Object.entries(ents)) {
+            if (k.split('_')[0] === bubble || !ENTITY_FIELD_KINDS[k]) continue;
+            const d = deviceOf(v);
+            if (d) takenDevices.add(d);
+        }
 
         // Word-boundary matching, not substrings: "pv" must not match inside an
         // unrelated name. Id and friendly name become one underscore-separated
@@ -2113,8 +2258,44 @@ class PowerFluxCardEditor extends LitElement {
             for (const w of hints.weak) if (has(hay, w)) score += 2;
             for (const p of penalties) if (hay.includes(p)) score -= 6;
 
+            // Suggestions obey the same filter the picker does. Without this a
+            // field that only accepts device_class battery could be handed a
+            // vehicle charge level that carries no device class at all.
+            const wantedFilter = ENTITY_FILTERS[kind];
+            if (wantedFilter) {
+                const ok = wantedFilter.some((f) => f.device_class
+                    ? attrs.device_class === f.device_class
+                    : id.startsWith(`${f.domain}.`));
+                if (!ok) continue;
+            }
+            if (role === 'storage' && NON_STATIONARY_WORDS.some((w) => has(hay, w))) continue;
+
+            const ownDev = (this.hass.entities && this.hass.entities[id]
+                && this.hass.entities[id].device_id) || null;
+            if (ownDev && ownDevice) {
+                if (ownDev === ownDevice) {
+                    // Weighted above any name match: the device is hard
+                    // evidence, a word in an id is a hint.
+                    score += 8;
+                    why.push(this._localize('editor.suggest_why_same_device'));
+                } else if (takenDevices.has(ownDev)) {
+                    score -= 8;   // belongs to a different bubble already
+                }
+            }
+
+            const ctx = role ? this._deviceContext(id) : null;
+            if (ctx) {
+                if (role === 'storage' && ctx.hasChargeLevel) {
+                    score += 6;
+                    why.push(this._localize('editor.suggest_why_storage'));
+                } else if (role === 'source' && ctx.hasChargeLevel) {
+                    score -= 4;
+                }
+                if (ctx.label) why.unshift(ctx.label);
+            }
+
             if (score < 8) continue;
-            if (attrs.friendly_name) why.push(attrs.friendly_name);
+            if (attrs.friendly_name && !why.includes(attrs.friendly_name)) why.push(attrs.friendly_name);
             scored.push({ id, score, why: why.join(' \u00b7 ') });
         }
         scored.sort((a, b) => (b.score - a.score) || a.id.localeCompare(b.id));
