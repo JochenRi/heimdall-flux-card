@@ -1,0 +1,19 @@
+{
+  "_comment": [
+    "Differences that already existed before the editor refactor started.",
+    "They are reported separately and do not fail the audit, so that a NEW",
+    "difference introduced by the refactor is never buried in old noise.",
+    "Every entry is a real finding and gets closed as its section is rebuilt.",
+    "Nothing goes in here to make the audit quiet."
+  ],
+  "missing_in_editor": {
+    "venus_pv_charge": "Read from config.entities by the renderer to size the solar-to-Venus flow (power-flux-card.js ~2595). Missing from BOTH the editor and the entityKeys array, so it is only reachable by hand-editing YAML. Close when the Venus section is rebuilt.",
+    "show_label_house": "Every other source bubble has a label toggle; the house bubble's is read but never offered. Close when the house section is rebuilt.",
+    "animation_threshold": "Global fallback threshold (default 1). Only the per-consumer variant is offered. Close with the global settings section.",
+    "show_flow_rates": "Global flow-rate toggle. Only the per-bubble variants are offered. Close with the global settings section."
+  },
+  "surplus_in_editor": {
+    "venus_charge": "Offered as a sensor picker, but the renderer only names it in the top-level-to-entities migration list -- no code path displays it. Either wire it up or drop the control; do not leave it looking functional.",
+    "venus_discharge": "Same as venus_charge."
+  }
+}

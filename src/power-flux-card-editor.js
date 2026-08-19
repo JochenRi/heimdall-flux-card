@@ -40,6 +40,8 @@ const POWER_FLUX_EDITOR_POWER_KEYS = [
 
 const SPARKLINE_LAYERS = ['back', 'mid', 'front'];
 const SPARKLINE_STYLES = ['area', 'line', 'area-line'];
+const SPARKLINE_PERIODS = ['1h', '6h', '12h', '24h'];
+const MIX_PERIODS = ['day', 'month', 'year'];
 
 const BUBBLE_CAPS = {
     bkw: {
@@ -50,12 +52,31 @@ const BUBBLE_CAPS = {
         unitKw: { key: 'bkw_unit_kw', def: false },
         showFlowRate: { key: 'show_flow_rate_bkw', def: true },
         animationThreshold: { key: 'bkw_animation_threshold', max: 200, def: 1 },
-        labelOffsets: ['house', 'venus', 'grid'],
+        labelOffsets: { targets: ['house', 'venus', 'grid'], range: 150, labels: 'axis' },
         rotation: { slots: 3, showLiveDef: true },
         donutToday: { toggleKey: 'bkw_donut_today_mode', toggleDef: false,
                       entities: ['bkw_donut_produced_today', 'bkw_donut_forecast_today'] },
         sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
-                     testMode: true },
+                     periods: null, periodDef: undefined, testMode: true },
+    },
+    solar: {
+        label: true,
+        icon: true,
+        showLabel: { key: 'show_label_solar', def: false },
+        unitKw: { key: 'solar_unit_kw', def: false },
+        showFlowRate: { key: 'show_flow_rate_solar', def: true },
+        animationThreshold: { key: 'solar_animation_threshold', max: 200, def: 1 },
+        // '' yields solar_label_offset_x, 'export' yields solar_export_label_offset_x
+        labelOffsets: { targets: ['', 'export'], range: 100, labels: 'bubble' },
+        rotation: { slots: 3, showLiveDef: true },
+        donutToday: { toggleKey: 'pv_donut_today_mode', toggleDef: false,
+                      labelKey: 'pv_donut_enabled',
+                      entities: ['pv_donut_produced_today', 'pv_donut_forecast_today'] },
+        mix: { toggleKey: 'solar_mix_donut_mode', toggleDef: false,
+               periodDef: 'day', gapDef: 8, gapMax: 30,
+               thicknessDef: 4, thicknessMin: 1, thicknessMax: 15 },
+        sparkline: { opacityDef: 0.35, layerDef: 'back', styleDef: 'area-line',
+                     periods: SPARKLINE_PERIODS, periodDef: '24h', testMode: true },
     },
 };
 
@@ -90,10 +111,14 @@ const bubbleFields = (prefix, group) => {
     }
 
     if (group === 'offsets' && caps.labelOffsets) {
-        for (const target of caps.labelOffsets) {
+        const o = caps.labelOffsets;
+        for (const target of o.targets) {
+            const stem = target ? `${prefix}_${target}` : prefix;
             for (const axis of ['x', 'y']) {
-                num(`${prefix}_${target}_label_offset_${axis}`, 0, -150, 150, 1,
-                    `__axis_${axis.toUpperCase()}`);
+                num(`${stem}_label_offset_${axis}`, 0, -o.range, o.range, 1,
+                    o.labels === 'bubble'
+                        ? `bubble_label_offset_${axis}`
+                        : `__axis_${axis.toUpperCase()}`);
             }
         }
     }
@@ -106,14 +131,33 @@ const bubbleFields = (prefix, group) => {
     }
 
     if (group === 'donut' && caps.donutToday) {
-        bool(caps.donutToday.toggleKey, caps.donutToday.toggleDef, `${prefix}_donut_enabled`);
+        const d = caps.donutToday;
+        bool(d.toggleKey, d.toggleDef, d.labelKey || `${prefix}_donut_enabled`);
+    }
+
+    if (group === 'mix' && caps.mix) {
+        const m = caps.mix;
+        bool(m.toggleKey, m.toggleDef, `${prefix}_mix_enabled`);
+        f.push({ key: `${prefix}_mix_period`, def: m.periodDef,
+            selector: { select: { mode: 'dropdown', options: MIX_PERIODS } },
+            labelKey: `${prefix}_mix_period`, optionLabels: `${prefix}_mix_period_` });
+        num(`${prefix}_mix_gap`, m.gapDef, 0, m.gapMax, 1, `${prefix}_mix_gap`);
+        num(`${prefix}_mix_thickness`, m.thicknessDef, m.thicknessMin, m.thicknessMax, 1,
+            `${prefix}_mix_thickness`);
     }
 
     if (group === 'sparkline' && caps.sparkline) {
         const s = caps.sparkline;
         bool(`${prefix}_sparkline`, false, 'sparkline_enabled');
-        f.push({ key: `${prefix}_sparkline_period`, def: undefined,
-            selector: { text: {} }, labelKey: 'sparkline_period' });
+        if (s.periods) {
+            // Period options are literal durations -- shown as-is, not translated.
+            f.push({ key: `${prefix}_sparkline_period`, def: s.periodDef,
+                selector: { select: { mode: 'dropdown', options: s.periods } },
+                labelKey: 'sparkline_period', optionLabels: '' });
+        } else {
+            f.push({ key: `${prefix}_sparkline_period`, def: s.periodDef,
+                selector: { text: {} }, labelKey: 'sparkline_period' });
+        }
         f.push({ key: `${prefix}_sparkline_layer`, def: s.layerDef,
             selector: { select: { mode: 'dropdown', options: SPARKLINE_LAYERS } },
             labelKey: 'sparkline_layer', optionLabels: 'sparkline_layer_' });
@@ -378,13 +422,15 @@ class PowerFluxCardEditor extends LitElement {
         return bubbleFields(prefix, group).map((fld) => {
             const entry = { name: fld.key, selector: fld.selector,
                             labelKey: fld.labelKey, optional: fld.optional };
-            if (fld.optionLabels) {
-                // Translate the option values into {value,label} pairs. The
-                // legacy keys drop the hyphen: "area-line" -> ..._arealine.
+            if (fld.optionLabels !== undefined) {
+                // An empty optionLabels prefix means the values are literals
+                // (durations such as "6h") and are shown unchanged. Otherwise
+                // the legacy keys drop the hyphen: "area-line" -> ..._arealine.
                 entry.selector = { select: { mode: 'dropdown',
                     options: fld.selector.select.options.map((v) => ({
                         value: v,
-                        label: this._localize(`editor.${fld.optionLabels}${v.replace(/-/g, '')}`),
+                        label: fld.optionLabels === '' ? v : this._localize(
+                            `editor.${fld.optionLabels}${v.replace(/-/g, '')}`),
                     })) } };
             }
             return entry;
@@ -950,7 +996,14 @@ class PowerFluxCardEditor extends LitElement {
         `;
     }
 
+    // Phase editor-2a: Solar on the generic schema. Richest of the source
+    // bubbles -- mix ring with four destinations, secondary value, PV donut,
+    // and a second label-offset pair for the export path. Whatever the schema
+    // carries here, Grid/LG/Venus need only a subset of.
     _renderSolarView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
+        const mixPeriods = ['day', 'month', 'year'];
+        const rotationSlotColors = ['#ff3333', '#33ff77', '#3377ff'];
+        const mixTargets = ['house', 'lg', 'venus', 'grid'];
         return html`
         <div class="header">
             <div class="back-btn" @click=${this._goBack}>
@@ -970,23 +1023,7 @@ class PowerFluxCardEditor extends LitElement {
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.secondary_solar || "", 'secondary_solar', this._localize('editor.secondary_sensor'))}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${textSelectorSchema}
-                .value=${this._config.solar_label}
-                .configValue=${'solar_label'}
-                .label=${this._localize('editor.label') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${iconSelectorSchema}
-                .value=${this._config.solar_icon}
-                .configValue=${'solar_icon'}
-                .label=${this._localize('editor.icon') + " (Optional)"}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('solar', 'sensors')}
 
             ${this._renderColorPickerQuint('color_solar', 'color_pipe_solar', 'color_text_solar', 'color_icon_solar', 'color_secondary_solar', '#ffdd00')}
         </div>
@@ -998,43 +1035,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.group_behavior')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_label_solar === true}
-                    .configValue=${'show_label_solar'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.label_toggle')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.solar_unit_kw === true}
-                    .configValue=${'solar_unit_kw'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.solar_unit_kw')}</div>
-            </div>
-
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.show_flow_rate_solar !== false}
-                    .configValue=${'show_flow_rate_solar'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.flow_rate_title')}</div>
-            </div>
-
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: 0, max: 200, step: 1, mode: "slider" } }}
-                    .value=${this._config.solar_animation_threshold !== undefined ? this._config.solar_animation_threshold : 1}
-                    .configValue=${'solar_animation_threshold'}
-                    .label=${this._localize('editor.bubble_animation_threshold')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
+            ${this._bubbleForm('solar', 'behavior')}
         </div>
 
         <!-- Group: Watt-label positioning -->
@@ -1045,52 +1046,11 @@ class PowerFluxCardEditor extends LitElement {
             </div>
 
             <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 4px;">
-                ${this._localize('editor.solar_label_pos_solar_house')}
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.solar_label_offset_x !== undefined ? this._config.solar_label_offset_x : 0}
-                    .configValue=${'solar_label_offset_x'}
-                    .label=${this._localize('editor.bubble_label_offset_x')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.solar_label_offset_y !== undefined ? this._config.solar_label_offset_y : 0}
-                    .configValue=${'solar_label_offset_y'}
-                    .label=${this._localize('editor.bubble_label_offset_y')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-bottom: 4px; margin-top: 12px;">
+                ${this._localize('editor.solar_label_pos_solar_house')} /
                 ${this._localize('editor.solar_label_pos_solar_grid')}
             </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.solar_export_label_offset_x !== undefined ? this._config.solar_export_label_offset_x : 0}
-                    .configValue=${'solar_export_label_offset_x'}
-                    .label=${this._localize('editor.bubble_label_offset_x')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
-            <div>
-                <ha-selector
-                    .hass=${this.hass}
-                    .selector=${{ number: { min: -100, max: 100, step: 1, mode: "slider" } }}
-                    .value=${this._config.solar_export_label_offset_y !== undefined ? this._config.solar_export_label_offset_y : 0}
-                    .configValue=${'solar_export_label_offset_y'}
-                    .label=${this._localize('editor.bubble_label_offset_y')}
-                    @value-changed=${this._valueChanged}
-                ></ha-selector>
-            </div>
+
+            ${this._bubbleForm('solar', 'offsets')}
         </div>
 
         <!-- Group: Value rotation -->
@@ -1101,50 +1061,13 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.rotation_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.solar_rotate_show_live !== false}
-                    .configValue=${'solar_rotate_show_live'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_live')}</div>
-            </div>
+            ${this._bubbleForm('solar', 'rotation')}
 
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.solar_rotate_show_daily_1 === true}
-                    .configValue=${'solar_rotate_show_daily_1'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_1')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_1 || "", 'solar_rotate_daily_1', this._localize('editor.rotation_slot_1_sensor'))}
-            ${this._renderColorPicker('solar_rotate_color_daily_1', this._localize('editor.rotation_slot_1_color'), '#ff3333')}
-
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.solar_rotate_show_daily_2 === true}
-                    .configValue=${'solar_rotate_show_daily_2'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_2')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_2 || "", 'solar_rotate_daily_2', this._localize('editor.rotation_slot_2_sensor'))}
-            ${this._renderColorPicker('solar_rotate_color_daily_2', this._localize('editor.rotation_slot_2_color'), '#33ff77')}
-
-            <div class="separator"></div>
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.solar_rotate_show_daily_3 === true}
-                    .configValue=${'solar_rotate_show_daily_3'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.rotation_show_slot_3')}</div>
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_rotate_daily_3 || "", 'solar_rotate_daily_3', this._localize('editor.rotation_slot_3_sensor'))}
-            ${this._renderColorPicker('solar_rotate_color_daily_3', this._localize('editor.rotation_slot_3_color'), '#3377ff')}
+            ${[1, 2, 3].map((n) => html`
+                <div class="separator"></div>
+                ${this._renderEntitySelector(entitySelectorSchema, entities[`solar_rotate_daily_${n}`] || "", `solar_rotate_daily_${n}`, this._localize(`editor.rotation_slot_${n}_sensor`))}
+                ${this._renderColorPicker(`solar_rotate_color_daily_${n}`, this._localize(`editor.rotation_slot_${n}_color`), rotationSlotColors[n - 1])}
+            `)}
                 </ha-expansion-panel>
 
         <!-- Group: PV donut -->
@@ -1155,14 +1078,7 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.pv_donut_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.pv_donut_today_mode === true}
-                    .configValue=${'pv_donut_today_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.pv_donut_enabled')}</div>
-            </div>
+            ${this._bubbleForm('solar', 'donut')}
 
             ${this._renderEntitySelector(entitySelectorSchema, entities.pv_donut_produced_today || "", 'pv_donut_produced_today', this._localize('editor.pv_donut_produced_sensor'))}
             ${this._renderEntitySelector(entitySelectorSchema, entities.pv_donut_forecast_today || "", 'pv_donut_forecast_today', this._localize('editor.pv_donut_forecast_sensor'))}
@@ -1181,72 +1097,18 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.solar_mix_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.solar_mix_donut_mode === true}
-                    .configValue=${'solar_mix_donut_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.solar_mix_enabled')}</div>
-            </div>
+            ${this._bubbleForm('solar', 'mix')}
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "day",   label: this._localize('editor.solar_mix_period_day')   },
-                    { value: "month", label: this._localize('editor.solar_mix_period_month') },
-                    { value: "year",  label: this._localize('editor.solar_mix_period_year')  }
-                ] } }}
-                .value=${this._config.solar_mix_period || 'day'}
-                .configValue=${'solar_mix_period'}
-                .label=${this._localize('editor.solar_mix_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0, max: 30, step: 1, mode: "slider" } }}
-                .value=${this._config.solar_mix_gap !== undefined ? this._config.solar_mix_gap : 8}
-                .configValue=${'solar_mix_gap'}
-                .label=${this._localize('editor.solar_mix_gap')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 1, max: 15, step: 1, mode: "slider" } }}
-                .value=${this._config.solar_mix_thickness !== undefined ? this._config.solar_mix_thickness : 4}
-                .configValue=${'solar_mix_thickness'}
-                .label=${this._localize('editor.solar_mix_thickness')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <!-- Day-period sensors (4 destinations) -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.solar_mix_day_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_house_day || "", 'solar_mix_house_day', this._localize('editor.solar_mix_house_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_lg_day || "", 'solar_mix_lg_day', this._localize('editor.solar_mix_lg_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_venus_day || "", 'solar_mix_venus_day', this._localize('editor.solar_mix_venus_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_grid_day || "", 'solar_mix_grid_day', this._localize('editor.solar_mix_grid_label'))}
-
-            <!-- Month-period sensors -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.solar_mix_month_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_house_month || "", 'solar_mix_house_month', this._localize('editor.solar_mix_house_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_lg_month || "", 'solar_mix_lg_month', this._localize('editor.solar_mix_lg_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_venus_month || "", 'solar_mix_venus_month', this._localize('editor.solar_mix_venus_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_grid_month || "", 'solar_mix_grid_month', this._localize('editor.solar_mix_grid_label'))}
-
-            <!-- Year-period sensors -->
-            <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
-                ${this._localize('editor.solar_mix_year_section')}
-            </div>
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_house_year || "", 'solar_mix_house_year', this._localize('editor.solar_mix_house_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_lg_year || "", 'solar_mix_lg_year', this._localize('editor.solar_mix_lg_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_venus_year || "", 'solar_mix_venus_year', this._localize('editor.solar_mix_venus_label'))}
-            ${this._renderEntitySelector(entitySelectorSchema, entities.solar_mix_grid_year || "", 'solar_mix_grid_year', this._localize('editor.solar_mix_grid_label'))}
+            ${mixPeriods.map((mixPeriod) => html`
+                <div style="font-size: 0.85em; color: var(--secondary-text-color); margin-top: 8px; margin-bottom: 4px;">
+                    ${this._localize(`editor.solar_mix_${mixPeriod}_section`)}
+                </div>
+                ${mixTargets.map((mixTarget) => this._renderEntitySelector(
+                    entitySelectorSchema,
+                    entities[`solar_mix_${mixTarget}_${mixPeriod}`] || "",
+                    `solar_mix_${mixTarget}_${mixPeriod}`,
+                    this._localize(`editor.solar_mix_${mixTarget}_label`)))}
+            `)}
 
             <!-- Phase 5.84: per-segment colors for the solar mix-ring.
                  Each defaults to the matching pipe color when unset. -->
@@ -1259,8 +1121,7 @@ class PowerFluxCardEditor extends LitElement {
             ${this._renderColorPicker('solar_mix_color_grid', this._localize('editor.solar_mix_color_grid'), '#ff0040')}
 
             <!-- Phase 5.72: Solar sparkline. Same control set as LG/Venus,
-                 driven by solar_sparkline_* keys via _renderSparklineForSource('solar').
-                 Default colour matches the solar pipe colour (yellow). -->
+                 driven by solar_sparkline_* keys via _renderSparklineForSource('solar'). -->
             <div class="group-title">
                 <ha-icon icon="mdi:chart-line-variant"></ha-icon>
                 ${this._localize('editor.sparkline_title')}
@@ -1269,83 +1130,17 @@ class PowerFluxCardEditor extends LitElement {
                 ${this._localize('editor.sparkline_hint')}
             </div>
 
-            <div class="switch-row">
-                <ha-switch
-                    .checked=${this._config.solar_sparkline === true}
-                    .configValue=${'solar_sparkline'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_enabled')}</div>
-            </div>
-
             ${this._renderEntitySelector(entitySelectorSchema, entities.solar_sparkline_entity || "", 'solar_sparkline_entity', this._localize('editor.sparkline_entity_label'))}
             <div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -4px; margin-bottom: 8px;">
                 ${this._localize('editor.sparkline_entity_hint')}
             </div>
 
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "1h",  label: "1h"  },
-                    { value: "6h",  label: "6h"  },
-                    { value: "12h", label: "12h" },
-                    { value: "24h", label: "24h" }
-                ] } }}
-                .value=${this._config.solar_sparkline_period || '24h'}
-                .configValue=${'solar_sparkline_period'}
-                .label=${this._localize('editor.sparkline_period')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "back",  label: this._localize('editor.sparkline_layer_back')  },
-                    { value: "mid",   label: this._localize('editor.sparkline_layer_mid')   },
-                    { value: "front", label: this._localize('editor.sparkline_layer_front') }
-                ] } }}
-                .value=${this._config.solar_sparkline_layer || 'back'}
-                .configValue=${'solar_sparkline_layer'}
-                .label=${this._localize('editor.sparkline_layer')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ select: { mode: "dropdown", options: [
-                    { value: "area",      label: this._localize('editor.sparkline_style_area')     },
-                    { value: "line",      label: this._localize('editor.sparkline_style_line')     },
-                    { value: "area-line", label: this._localize('editor.sparkline_style_arealine') }
-                ] } }}
-                .value=${this._config.solar_sparkline_style || 'area-line'}
-                .configValue=${'solar_sparkline_style'}
-                .label=${this._localize('editor.sparkline_style')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
-
-            <ha-selector
-                .hass=${this.hass}
-                .selector=${{ number: { min: 0.05, max: 1.0, step: 0.05, mode: "slider" } }}
-                .value=${this._config.solar_sparkline_opacity !== undefined ? this._config.solar_sparkline_opacity : 0.35}
-                .configValue=${'solar_sparkline_opacity'}
-                .label=${this._localize('editor.sparkline_opacity')}
-                @value-changed=${this._valueChanged}
-            ></ha-selector>
+            ${this._bubbleForm('solar', 'sparkline')}
 
             ${this._renderColorPicker('solar_sparkline_color', this._localize('editor.sparkline_color'), '#ffd900')}
-
-            <div class="switch-row" style="margin-top: 8px;">
-                <ha-switch
-                    .checked=${this._config.solar_sparkline_test_mode === true}
-                    .configValue=${'solar_sparkline_test_mode'}
-                    @change=${this._valueChanged}
-                ></ha-switch>
-                <div class="switch-label">${this._localize('editor.sparkline_test_mode')}</div>
-            </div>
                 </ha-expansion-panel>
       `;
     }
-
     _renderGridView(entities, entitySelectorSchema, textSelectorSchema, iconSelectorSchema) {
         return html`
         <div class="header">
