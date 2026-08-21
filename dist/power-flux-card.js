@@ -6758,11 +6758,17 @@ console.log(
       for (const id of ids) {
         const rows = res[id];
         if (!Array.isArray(rows) || rows.length === 0) continue;
+        // core#88757: when a sensor was unavailable at the start of the
+        // requested span, the recorder prepends the last datapoint from BEFORE
+        // it went away -- however old that is. One such point stretches the
+        // day chart's axis back by days. Anything outside the window asked for
+        // is dropped here, at the only place that knows what was asked.
+        const lo = start.getTime(), hi = end.getTime();
         const pts = rows.map((r) => {
           const t = typeof r.start === 'number' ? r.start : Date.parse(r.start);
           const v = r.mean !== null && r.mean !== undefined ? Number(r.mean) : NaN;
           return { t, v };
-        }).filter(p => !isNaN(p.t) && !isNaN(p.v));
+        }).filter(p => !isNaN(p.t) && !isNaN(p.v) && p.t >= lo && p.t <= hi);
         if (pts.length) series[id] = pts;
       }
       return { period, series };
@@ -7950,19 +7956,19 @@ console.log(
       /* ---- Phase powerwin-1: the window ---------------------------------
          Colours come from the card's own tokens, so a colour changed on the
          card travels into the window without a second setting. */
-      .bubble.power { cursor: pointer; }
+      /* .bubble already carries cursor: pointer -- only the focus ring is new. */
       .bubble.power:focus-visible { outline: 2px solid var(--pipe-solar-color); outline-offset: 3px; }
 
       dialog.pw-dialog {
         width: min(1180px, 96vw); max-width: 96vw; max-height: 92vh;
-        padding: 0; border: 1px solid var(--secondary-line-color, #232a3d);
+        padding: 0; border: 1px solid var(--divider-color, #444);
         border-radius: 18px; overflow: hidden;
-        background: var(--card-bg-color, #0a0c12);
-        color: var(--text-primary-color, #e9edf7);
+        background: var(--card-background-color, #16181d);
+        color: var(--primary-text-color, #e8eaed);
         font-family: var(--paper-font-body1_-_font-family, inherit);
       }
       dialog.pw-dialog::backdrop { background: rgba(0,0,0,.62); }
-      .pw-head { padding: 14px 18px 0; border-bottom: 1px solid var(--secondary-line-color, #232a3d); }
+      .pw-head { padding: 14px 18px 0; border-bottom: 1px solid var(--divider-color, #444); }
       .pw-head-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
       .pw-brand { font-family: ui-monospace, monospace; font-size: 12px; letter-spacing: .3em;
                   color: var(--pipe-solar-color); }
@@ -7971,14 +7977,14 @@ console.log(
               line-height: 1; cursor: pointer; padding: 0 2px; opacity: .55; }
       .pw-x:hover { opacity: 1; }
       .pw-now { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
-                background: var(--secondary-line-color, #232a3d);
+                background: var(--divider-color, #444);
                 border-radius: 10px 10px 0 0; overflow: hidden; }
       .pw-cell { background: rgba(255,255,255,.04); padding: 9px 10px 11px; }
       .pw-k { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: .16em;
               text-transform: uppercase; opacity: .5; }
       .pw-v { font-family: ui-monospace, monospace; font-size: 19px; margin-top: 3px;
               font-variant-numeric: tabular-nums; }
-      .pw-tabs { display: flex; padding: 0 18px; border-bottom: 1px solid var(--secondary-line-color, #232a3d); }
+      .pw-tabs { display: flex; padding: 0 18px; border-bottom: 1px solid var(--divider-color, #444); }
       .pw-tab { appearance: none; border: 0; background: none; color: inherit; cursor: pointer;
                 font-family: ui-monospace, monospace; font-size: 11.5px; letter-spacing: .18em;
                 text-transform: uppercase; padding: 12px 16px; opacity: .45;
