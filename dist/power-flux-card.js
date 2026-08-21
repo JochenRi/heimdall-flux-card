@@ -6862,7 +6862,14 @@ console.log(
         const v = parseFloat(raw);
         return isNaN(v) ? null : v;
       };
-      const solar = (num(e.solar) || 0) + (num(e.bkw) || 0);
+      // Clamped per plant, then added -- the same Math.max(0, solar) the
+      // bubbles apply. Unclamped, the roof inverter's night-time self-draw
+      // (about -70 W) would read as negative PV here while the Solar bubble
+      // beside it reads 0, and the tile's founding rule is that a number in
+      // the window may never contradict the bubble it came from. The self-draw
+      // is not lost: it belongs on the Anlage tab, where it is the subject
+      // rather than a sign error.
+      const solar = Math.max(0, num(e.solar) || 0) + Math.max(0, num(e.bkw) || 0);
       const venusRaw = num(e.venus);
       const venus = venusRaw === null ? null
         : (this.config.invert_venus === true ? -venusRaw : venusRaw);
