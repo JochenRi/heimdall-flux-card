@@ -38,6 +38,17 @@ const lang_de = {
     "powerwin_tab_system": "Anlage",
     "powerwin_close": "Fenster schließen",
     "powerwin_soon": "kommt in der nächsten Etappe",
+    "powerwin_loading": "lädt …",
+    "powerwin_nodata": "Keine Statistik für diesen Tag.",
+    "powerwin_rest": "Rest, ungemessen",
+    "powerwin_charging": "lädt",
+    "powerwin_pv_line": "PV gesamt",
+    "powerwin_col_consumer": "Verbraucher",
+    "powerwin_col_share": "Anteil",
+    "powerwin_col_runtime": "Laufzeit",
+    "powerwin_col_frompv": "aus PV",
+    "powerwin_total": "Hausbedarf gesamt",
+    "powerwin_chart_alt": "Tagesverlauf der Erzeugung mit gestapelten Verbrauchern",
     // Label for the flatten:false entity container in the power section.
     "editor.entities": "Sensoren",
     "editor.power_pulse_enabled": "Bei Netzbezug pulsieren",
@@ -646,6 +657,17 @@ const lang_en = {
     "powerwin_tab_system": "System",
     "powerwin_close": "Close window",
     "powerwin_soon": "arriving in the next stage",
+    "powerwin_loading": "loading …",
+    "powerwin_nodata": "No statistics for this day.",
+    "powerwin_rest": "Rest, unmetered",
+    "powerwin_charging": "charging",
+    "powerwin_pv_line": "PV total",
+    "powerwin_col_consumer": "Consumer",
+    "powerwin_col_share": "Share",
+    "powerwin_col_runtime": "Runtime",
+    "powerwin_col_frompv": "from PV",
+    "powerwin_total": "House demand total",
+    "powerwin_chart_alt": "Day curve of generation with consumers stacked underneath",
     // Label for the flatten:false entity container in the power section.
     "editor.entities": "Sensors",
     "editor.power_pulse_enabled": "Pulse on grid import",
@@ -6797,6 +6819,7 @@ console.log(
       if (!this._pwEnabled()) return;
       if (!this._pwTab) this._pwTab = 'tag';
       this._pwOpen = true;
+      this._pwLoadDay();
     }
 
     _pwHide() {
@@ -6821,10 +6844,9 @@ console.log(
       ];
       const active = this._pwTab || 'tag';
 
-      // Phase powerwin-1 renders the shell and the header only. The panes
-      // carry a placeholder so an empty tab is obviously unfinished rather
-      // than looking like a sensor that returned nothing.
-      const body = html`<div class="pw-placeholder">${t('powerwin_soon', 'kommt in der nächsten Etappe')}</div>`;
+      const body = active === 'tag'
+        ? this._renderPowerWindowDay(t)
+        : html`<div class="pw-placeholder">${t('powerwin_soon', 'kommt in der nächsten Etappe')}</div>`;
 
       return html`
         <dialog class="pw-dialog" @close=${this._pwHide} @cancel=${this._pwHide}>
@@ -6844,6 +6866,278 @@ console.log(
           </div>
           <div class="pw-body" role="tabpanel">${body}</div>
         </dialog>`;
+    }
+
+    // The thirteen series the day tab draws, in stacking order. Keys are
+    // config entity keys, so a bubble that is not configured simply drops out
+    // of the stack instead of drawing a band of zeroes.
+    _pwDayPlan() {
+      const cfg = this.config;
+      const plan = [{ key: 'house', role: 'house' }];
+      // Loop variable named idx, not i: the coverage audit resolves key
+      // templates by variable name and only knows idx as the 1..7 domain.
+      for (let idx = 1; idx <= 7; idx++) {
+        const on = idx <= 5 ? cfg[`consumer_${idx}_enabled`] !== false
+                            : cfg[`consumer_${idx}_enabled`] === true;
+        if (on) plan.push({ key: `consumer_${idx}`, role: 'consumer', idx });
+      }
+      plan.push({ key: 'solar', role: 'pv' });
+      if (cfg.bkw_enabled !== false) plan.push({ key: 'bkw', role: 'pv' });
+      if (cfg.battery_enabled !== false) plan.push({ key: 'battery', role: 'batt' });
+      if (cfg.venus_enabled !== false) plan.push({ key: 'venus', role: 'batt' });
+      plan.push({ key: 'grid_combined', role: 'grid' });
+      return plan.filter(p => (cfg.entities || {})[p.key]);
+    }
+
+    async _pwLoadDay() {
+      if (this._pwDayBusy) return;
+      const now = Date.now();
+      // Refetched at most once a minute; five-minute buckets cannot move
+      // faster than that, so anything more often is pure traffic.
+      if (this._pwDay && now - this._pwDay.at < 60000) return;
+      this._pwDayBusy = true;
+      this._pwDayErr = null;
+      try {
+        const ent = this.config.entities || {};
+        const plan = this._pwDayPlan();
+        const ids = plan.map(p => ent[p.key]);
+        const start = new Date(); start.setHours(0, 0, 0, 0);
+        const res = await this._fetchStats(ids, { start, end: new Date(), period: '5minute' });
+        if (!this.isConnected) return;
+        this._pwDay = { at: now, start: start.getTime(), plan, ...res };
+        if (Object.keys(res.series).length === 0) this._pwDayErr = 'empty';
+      } finally {
+        this._pwDayBusy = false;
+        this._requestRedraw();
+      }
+    }
+
+    // Statistics buckets are aligned to the period boundary, so every series
+    // shares one grid -- but a series can be missing buckets (sensor offline,
+    // integration restarted). A missing bucket holds the previous value rather
+    // than dropping to zero: a gap drawn as zero looks like the appliance was
+    // switched off, which is a different and wrong statement.
+    _pwDayGrid() {
+      const d = this._pwDay;
+      if (!d || Object.keys(d.series).length === 0) return null;
+      const step = d.period === 'hour' ? 3600000 : 300000;
+      const ent = this.config.entities || {};
+      let last = d.start;
+      for (const arr of Object.values(d.series)) {
+        const t = arr[arr.length - 1].t;
+        if (t > last) last = t;
+      }
+      const slots = [];
+      for (let t = d.start; t <= last; t += step) slots.push(t);
+      if (slots.length < 2) return null;
+
+      const at = {};
+      for (const p of d.plan) {
+        const arr = d.series[ent[p.key]];
+        if (!arr) continue;
+        const map = new Map(arr.map(x => [x.t, x.v]));
+        const out = new Array(slots.length);
+        let hold = 0;
+        for (let i = 0; i < slots.length; i++) {
+          const v = map.get(slots[i]);
+          if (v !== undefined) hold = v;
+          out[i] = hold;
+        }
+        at[p.key] = out;
+      }
+
+      const z = () => new Array(slots.length).fill(0);
+      const get = k => at[k] || z();
+      const inv = (k, flag) => {
+        const a = get(k);
+        return this.config[flag] === true ? a.map(v => -v) : a;
+      };
+
+      // Same sign rules the bubbles use: PV clamped at zero, storage signed
+      // + charge / - discharge after the configured inversion.
+      const pv = get('solar').map((v, i) => Math.max(0, v) + Math.max(0, get('bkw')[i]));
+      const batt = inv('battery', 'invert_battery');
+      const venus = inv('venus', 'invert_venus');
+      const house = get('house');
+      const cons = [];
+      for (const p of d.plan) {
+        if (p.role !== 'consumer') continue;
+        // Lifted out of the object before use. A dotted ${p.idx} inside a key
+        // template is invisible to the coverage audit, which is worse than a
+        // failing audit -- it would stop checking these keys silently.
+        const idx = p.idx;
+        cons.push({
+          idx,
+          label: this.config[`consumer_${idx}_label`] || `Consumer ${idx}`,
+          color: `var(--pipe-consumer-${idx}-color)`,
+          data: get(p.key).map(v => Math.max(0, this.config[`invert_consumer_${idx}`] === true ? -v : v)),
+        });
+      }
+      const rest = house.map((h, i) =>
+        Math.max(0, h - cons.reduce((a, c) => a + c.data[i], 0)));
+
+      return {
+        slots, step,
+        pv, rest, cons,
+        lgCharge: batt.map(v => Math.max(0, v)),
+        veCharge: venus.map(v => Math.max(0, v)),
+        grid: get('grid_combined'),
+      };
+    }
+
+    // ---- Phase powerwin-2: the day ---------------------------------------
+    //
+    // The arc is the PV line; everything under it is the house, stacked. What
+    // sits below the line ran on sun, what pokes above came from storage or
+    // grid. The bottom band is the house meter minus all seven measured
+    // sockets -- hatched, not filled, because a solid fill claims measurement
+    // and this band is a subtraction.
+    //
+    // Phase 5.67.3 rule, obeyed here: a FIXED number of SVG elements, blanked
+    // by an empty d attribute when unused. Building elements with .map() or
+    // omitting them conditionally puts lit-html back in the wrong namespace
+    // and the whole chart renders invisible.
+    _renderPowerWindowDay(t) {
+      if (this._pwDayBusy && !this._pwDay) {
+        return html`<div class="pw-placeholder">${t('powerwin_loading', 'lädt …')}</div>`;
+      }
+      const g = this._pwDayGrid();
+      if (!g) {
+        return html`<div class="pw-placeholder">${t('powerwin_nodata',
+          'Keine Statistik für diesen Tag.')}</div>`;
+      }
+
+      const N = g.slots.length;
+      const W = 1000, H = 360, L = 48, R = 14, T = 14, B = 26;
+      const iw = W - L - R, ih = H - T - B;
+
+      const layers = [
+        { d: g.rest, fill: 'url(#pwHatch)', op: 1,
+          label: t('powerwin_rest', 'Rest, ungemessen'), swatch: 'hatch' },
+        ...g.cons.map(c => ({ d: c.data, fill: c.color, op: .92, label: c.label, swatch: c.color })),
+        { d: g.lgCharge, fill: 'var(--pipe-battery-color)', op: .42,
+          label: `${this.config.battery_label || 'LG'} ${t('powerwin_charging', 'lädt')}`,
+          swatch: 'var(--pipe-battery-color)' },
+        { d: g.veCharge, fill: 'var(--pipe-venus-color)', op: .48,
+          label: `${this.config.venus_label || 'Venus'} ${t('powerwin_charging', 'lädt')}`,
+          swatch: 'var(--pipe-venus-color)' },
+      ];
+      let acc = new Array(N).fill(0);
+      const bands = [];
+      for (const l of layers) {
+        const lo = acc.slice();
+        acc = acc.map((v, i) => v + l.d[i]);
+        bands.push({ lo, hi: acc.slice(), fill: l.fill, op: l.op });
+      }
+
+      let peak = 0;
+      for (let i = 0; i < N; i++) peak = Math.max(peak, acc[i], g.pv[i]);
+      const yMax = Math.max(1000, Math.ceil(peak / 500) * 500);
+      const X = i => L + (N > 1 ? iw * i / (N - 1) : 0);
+      const Y = v => T + ih * (1 - Math.min(Math.max(v, 0), yMax) / yMax);
+      const line = a2 => a2.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+      const band = (lo, hi) => line(hi)
+        + lo.map((_, i) => `L${X(N - 1 - i).toFixed(1)},${Y(lo[N - 1 - i]).toFixed(1)}`).join('') + 'Z';
+
+      // Ten band slots: one rest, seven consumers, two storages. Unused slots
+      // carry an empty d rather than being dropped.
+      const bd = i => (bands[i] ? band(bands[i].lo, bands[i].hi) : '');
+      const bf = i => (bands[i] ? bands[i].fill : 'none');
+      const bo = i => (bands[i] ? bands[i].op : 0);
+
+      const gridPath = [0, 1, 2, 3, 4, 5]
+        .map(k => `M${L},${Y(yMax * k / 5).toFixed(1)}L${W - R},${Y(yMax * k / 5).toFixed(1)}`).join('');
+      const yLab = k => `${(yMax * k / 5 / 1000).toFixed(yMax >= 5000 ? 0 : 1)}k`;
+      const yPos = k => Y(yMax * k / 5) + 4;
+
+      // Eight fixed hour marks. A mark past the end of the day so far gets an
+      // empty label instead of disappearing.
+      const hourIdx = (hr) => {
+        for (let i = 0; i < N; i++) if (new Date(g.slots[i]).getHours() === hr) return i;
+        return -1;
+      };
+      const hx = k => { const i = hourIdx(k * 3); return i < 0 ? -100 : X(i); };
+      const hl = k => (hourIdx(k * 3) < 0 ? '' : `${String(k * 3).padStart(2, '0')}`);
+
+      const hrs = g.step / 3600000;
+      const kwh = a2 => a2.reduce((x, v) => x + v, 0) * hrs / 1000;
+      const rows = g.cons.map(c => ({
+        label: c.label, color: c.color, e: kwh(c.data),
+        run: c.data.filter(v => v > 20).length * hrs,
+        sun: c.data.reduce((x, v, i) => x + (acc[i] <= g.pv[i] ? v : 0), 0) * hrs / 1000,
+      })).sort((a2, b2) => b2.e - a2.e);
+      const restE = kwh(g.rest);
+      const total = rows.reduce((a2, r) => a2 + r.e, 0) + restE;
+      const pct = v => (total > 0 ? `${(v / total * 100).toFixed(1)} %` : '–');
+
+      return html`
+        <svg class="pw-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
+             role="img" aria-label="${t('powerwin_chart_alt', 'Tagesverlauf der Erzeugung mit gestapelten Verbrauchern')}">
+          <defs>
+            <pattern id="pwHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width="2.4" stroke-opacity=".38"/>
+            </pattern>
+          </defs>
+          <path d="${gridPath}" class="pw-grid"/>
+          <text x="${L - 7}" y="${yPos(0)}" text-anchor="end" class="pw-ax">${yLab(0)}</text>
+          <text x="${L - 7}" y="${yPos(1)}" text-anchor="end" class="pw-ax">${yLab(1)}</text>
+          <text x="${L - 7}" y="${yPos(2)}" text-anchor="end" class="pw-ax">${yLab(2)}</text>
+          <text x="${L - 7}" y="${yPos(3)}" text-anchor="end" class="pw-ax">${yLab(3)}</text>
+          <text x="${L - 7}" y="${yPos(4)}" text-anchor="end" class="pw-ax">${yLab(4)}</text>
+          <text x="${L - 7}" y="${yPos(5)}" text-anchor="end" class="pw-ax">${yLab(5)}</text>
+          <text x="${hx(0)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(0)}</text>
+          <text x="${hx(1)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(1)}</text>
+          <text x="${hx(2)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(2)}</text>
+          <text x="${hx(3)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(3)}</text>
+          <text x="${hx(4)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(4)}</text>
+          <text x="${hx(5)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(5)}</text>
+          <text x="${hx(6)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(6)}</text>
+          <text x="${hx(7)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(7)}</text>
+          <path d="${band(new Array(N).fill(0), g.pv)}" class="pw-pvfill"/>
+          <path d="${bd(0)}" fill="${bf(0)}" opacity="${bo(0)}" class="pw-hatchband"/>
+          <path d="${bd(1)}" fill="${bf(1)}" opacity="${bo(1)}"/>
+          <path d="${bd(2)}" fill="${bf(2)}" opacity="${bo(2)}"/>
+          <path d="${bd(3)}" fill="${bf(3)}" opacity="${bo(3)}"/>
+          <path d="${bd(4)}" fill="${bf(4)}" opacity="${bo(4)}"/>
+          <path d="${bd(5)}" fill="${bf(5)}" opacity="${bo(5)}"/>
+          <path d="${bd(6)}" fill="${bf(6)}" opacity="${bo(6)}"/>
+          <path d="${bd(7)}" fill="${bf(7)}" opacity="${bo(7)}"/>
+          <path d="${bd(8)}" fill="${bf(8)}" opacity="${bo(8)}"/>
+          <path d="${bd(9)}" fill="${bf(9)}" opacity="${bo(9)}"/>
+          <path d="${line(acc)}" class="pw-stackline"/>
+          <path d="${line(g.pv)}" class="pw-pvline"/>
+          <path d="M${X(N - 1).toFixed(1)},${T}L${X(N - 1).toFixed(1)},${H - B}" class="pw-nowline"/>
+          <circle cx="${X(N - 1)}" cy="${Y(g.pv[N - 1])}" r="3.5" class="pw-nowdot"/>
+        </svg>
+
+        <div class="pw-legend">
+          ${layers.map(l => html`<span class="pw-li">${l.swatch === 'hatch'
+            ? html`<i class="pw-sw pw-sw-hatch"></i>`
+            : html`<i class="pw-sw" style="background:${l.swatch}"></i>`}${l.label}</span>`)}
+          <span class="pw-li"><i class="pw-sw" style="background:var(--pipe-solar-color)"></i>${t('powerwin_pv_line', 'PV gesamt')}</span>
+        </div>
+
+        <table class="pw-tab">
+          <thead><tr>
+            <th>${t('powerwin_col_consumer', 'Verbraucher')}</th><th>kWh</th>
+            <th>${t('powerwin_col_share', 'Anteil')}</th>
+            <th>${t('powerwin_col_runtime', 'Laufzeit')}</th>
+            <th>${t('powerwin_col_frompv', 'aus PV')}</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map(r => html`<tr>
+              <td><i class="pw-sw" style="background:${r.color}"></i>${r.label}</td>
+              <td>${r.e.toFixed(2)}</td><td>${pct(r.e)}</td>
+              <td>${r.run.toFixed(1)} h</td>
+              <td>${r.e > 0 ? `${Math.round(r.sun / r.e * 100)} %` : '–'}</td></tr>`)}
+            <tr class="pw-ghost">
+              <td><i class="pw-sw pw-sw-hatch"></i>${t('powerwin_rest', 'Rest, ungemessen')}</td>
+              <td>${restE.toFixed(2)}</td><td>${pct(restE)}</td><td>–</td><td>–</td></tr>
+            <tr class="pw-sum">
+              <td>${t('powerwin_total', 'Hausbedarf gesamt')}</td>
+              <td>${total.toFixed(2)}</td><td>100 %</td><td></td><td></td></tr>
+          </tbody>
+        </table>`;
     }
 
     _pwStamp() {
@@ -8001,6 +8295,38 @@ console.log(
       .pw-body { padding: 18px; overflow-y: auto; }
       .pw-placeholder { font-family: ui-monospace, monospace; font-size: 12px; opacity: .4;
                         padding: 40px 0; text-align: center; }
+      /* phase powerwin-2: the day chart. currentColor on .pw-chart is what the
+         hatch pattern resolves against -- a pattern inherits colour from its
+         own ancestors, not from the path that references it. */
+      .pw-chart { display: block; width: 100%; height: auto;
+                  color: var(--primary-text-color, #e8eaed); }
+      .pw-grid { fill: none; stroke: var(--divider-color, #444); stroke-width: 1; }
+      .pw-ax { font-family: ui-monospace, monospace; font-size: 10px;
+               fill: var(--primary-text-color, #e8eaed); opacity: .45; }
+      .pw-pvfill { fill: var(--pipe-solar-color); opacity: .16; stroke: none; }
+      .pw-pvline { fill: none; stroke: var(--pipe-solar-color); stroke-width: 2.4;
+                   stroke-linejoin: round; stroke-linecap: round; }
+      .pw-stackline { fill: none; stroke: var(--primary-text-color, #e8eaed);
+                      stroke-opacity: .3; stroke-width: 1; }
+      .pw-nowline { fill: none; stroke: var(--primary-text-color, #e8eaed);
+                    stroke-opacity: .45; stroke-dasharray: 3 4; }
+      .pw-nowdot { fill: var(--pipe-solar-color); }
+      .pw-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 10px 2px 2px; }
+      .pw-li { display: flex; align-items: center; gap: 6px; font-family: ui-monospace, monospace;
+               font-size: 11px; opacity: .72; }
+      .pw-sw { width: 9px; height: 9px; border-radius: 2px; flex: none; display: inline-block; }
+      .pw-sw-hatch { background: none; border: 1px dashed currentColor; }
+      .pw-tab { width: 100%; border-collapse: collapse; margin-top: 12px;
+                font-family: ui-monospace, monospace; font-size: 12.5px;
+                font-variant-numeric: tabular-nums; }
+      .pw-tab th { text-align: right; font-size: 9.5px; letter-spacing: .14em; font-weight: 500;
+                   text-transform: uppercase; opacity: .45; padding: 0 0 8px; white-space: nowrap; }
+      .pw-tab th:first-child, .pw-tab td:first-child { text-align: left; }
+      .pw-tab td { padding: 7px 0; border-top: 1px solid var(--divider-color, #444);
+                   text-align: right; white-space: nowrap; }
+      .pw-tab td .pw-sw { margin-right: 8px; vertical-align: 1px; }
+      .pw-tab tr.pw-ghost td { opacity: .6; }
+      .pw-tab tr.pw-sum td { border-top: 1px solid currentColor; }
       @media (max-width: 820px) {
         dialog.pw-dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh;
                            border-radius: 0; border: 0; }
