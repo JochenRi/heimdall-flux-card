@@ -2952,7 +2952,10 @@ class PowerFluxCardEditor extends LitElement {
     _powerSchema() {
         const sensor = { entity: { domain: ['sensor', 'input_number'] } };
         return [
-            { name: 'power_enabled', selector: { boolean: {} } },
+            { type: 'grid', name: '', flatten: true, column_min_width: '220px', schema: [
+                { name: 'power_enabled', selector: { boolean: {} } },
+                { name: 'powerwin_enabled', selector: { boolean: {} } },
+            ]},
             { type: 'grid', name: '', flatten: true, column_min_width: '220px', schema: [
                 { name: 'power_offset_x', selector: { number: { min: -300, max: 300, step: 1, mode: 'slider' } } },
                 { name: 'power_offset_y', selector: { number: { min: -300, max: 300, step: 1, mode: 'slider' } } },
@@ -2978,7 +2981,7 @@ class PowerFluxCardEditor extends LitElement {
 
         // Never assign a whole object back. Only known keys are copied, so a
         // surprise in what ha-form returns cannot wipe unrelated config.
-        for (const k of ['power_enabled', 'power_offset_x', 'power_offset_y',
+        for (const k of ['power_enabled', 'powerwin_enabled', 'power_offset_x', 'power_offset_y',
                          'power_pulse_enabled', 'power_pulse_threshold']) {
             if (k in v) cfg[k] = v[k];
         }
@@ -3000,6 +3003,7 @@ class PowerFluxCardEditor extends LitElement {
         // back those five -- the other ~100 entity keys are never exposed to it.
         const data = {
             power_enabled: this._config.power_enabled === true,
+            powerwin_enabled: this._config.powerwin_enabled !== false,
             power_offset_x: this._config.power_offset_x !== undefined ? this._config.power_offset_x : 0,
             power_offset_y: this._config.power_offset_y !== undefined ? this._config.power_offset_y : 0,
             power_pulse_enabled: this._config.power_pulse_enabled !== false,
@@ -3029,7 +3033,9 @@ class PowerFluxCardEditor extends LitElement {
             .schema=${this._powerSchema()}
             .computeLabel=${(s) => this._localize(`editor.${s.name}`)}
             .computeHelper=${(s) => (s.name === 'power_enabled'
-                ? this._localize('editor.power_entities_hint') : undefined)}
+                ? this._localize('editor.power_entities_hint')
+                : s.name === 'powerwin_enabled'
+                ? this._localize('editor.powerwin_enabled_hint') : undefined)}
             @value-changed=${this._powerFormChanged}
         ></ha-form>
         `;

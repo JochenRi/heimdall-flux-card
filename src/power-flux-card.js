@@ -47,6 +47,8 @@ console.log(
         _rotationTick: { state: true },
         _panelLeftEls: { state: true },
         _panelRightEls: { state: true },
+        _pwOpen: { state: true },
+        _pwTab: { state: true },
       };
     }
 
@@ -898,6 +900,207 @@ console.log(
     // flag. Without it, a redraw requested mid-flight could be swallowed by a
     // simultaneous but irrelevant hass update, and a curve would appear a
     // minute late for no visible reason.
+    // ---- Phase powerwin-0: the statistics fetch layer --------------------
+    //
+    // The sparklines pull raw history. Right for six hours of one sensor,
+    // wrong for a day of thirteen: a two-second sensor writes tens of
+    // thousands of rows a day and the window needs all series at once.
+    //
+    // recorder/statistics_during_period answers the same question with 288
+    // pre-aggregated points per series. Verified on the reference system:
+    // every sensor this window reads carries state_class measurement,
+    // five-minute statistics exist and reach about ten days back, hourly
+    // statistics reach back without limit.
+    //
+    // Returns { period, series: { statId: [{t, v}] } }. Never throws. A
+    // series that fails comes back MISSING, not empty -- an empty array
+    // would draw a flat line at zero and look like a real measurement.
+    async _fetchStats(statIds, opts = {}) {
+      const empty = { period: null, series: {} };
+      if (!this.hass || !Array.isArray(statIds)) return empty;
+      const ids = [...new Set(statIds.filter(Boolean))];
+      if (ids.length === 0) return empty;
+
+      const end = opts.end instanceof Date ? opts.end : new Date();
+      const start = opts.start instanceof Date
+        ? opts.start : new Date(end.getTime() - 24 * 3600 * 1000);
+
+      // Five-minute statistics are short-term and are purged with the
+      // recorder's keep window. Asking for an older span returns an empty
+      // array, which is indistinguishable from "this sensor has no data" --
+      // so the age is decided here instead of guessed from the answer.
+      let period = opts.period || '5minute';
+      if (period === '5minute' && (Date.now() - start.getTime()) / 86400000 > 9) {
+        period = 'hour';
+      }
+
+      const call = async (withTypes) => {
+        const msg = {
+          type: 'recorder/statistics_during_period',
+          start_time: start.toISOString(),
+          end_time: end.toISOString(),
+          statistic_ids: ids,
+          period,
+        };
+        if (withTypes) msg.types = ['mean'];
+        return this.hass.callWS(msg);
+      };
+
+      let res;
+      try {
+        // types: ['mean'] keeps the payload to what the curves need. Older
+        // cores ignore or reject the field; if the answer comes back empty
+        // with it, the flag is dropped for the rest of the session and the
+        // call repeated. Same self-correcting shape as _noAttributesOk, so
+        // an unexpected core version cannot leave the window blank.
+        res = await call(this._pwStatTypesOk !== false);
+        if (this._pwStatTypesOk !== false
+            && (!res || Object.keys(res).length === 0)) {
+          this._pwStatTypesOk = false;
+          res = await call(false);
+        } else if (res && Object.keys(res).length > 0) {
+          this._pwStatTypesOk = true;
+        }
+      } catch (e) {
+        if (!this._pwStatsWarned) {
+          this._pwStatsWarned = true;
+          // eslint-disable-next-line no-console
+          console.warn('[HEIMDALL Power window] statistics fetch failed', e);
+        }
+        return empty;
+      }
+      if (!this.isConnected || !res || typeof res !== 'object') return empty;
+
+      const series = {};
+      for (const id of ids) {
+        const rows = res[id];
+        if (!Array.isArray(rows) || rows.length === 0) continue;
+        const pts = rows.map((r) => {
+          const t = typeof r.start === 'number' ? r.start : Date.parse(r.start);
+          const v = r.mean !== null && r.mean !== undefined ? Number(r.mean) : NaN;
+          return { t, v };
+        }).filter(p => !isNaN(p.t) && !isNaN(p.v));
+        if (pts.length) series[id] = pts;
+      }
+      return { period, series };
+    }
+
+    // ---- Phase powerwin-1: the window ------------------------------------
+    //
+    // A native <dialog> opened with showModal(), NOT a positioned overlay.
+    //
+    // The card sits inside a transform: scale() container. Inside a
+    // transformed ancestor, position: fixed resolves against that ancestor
+    // rather than the viewport -- the overlay would be scaled and clipped
+    // with the card. An element promoted to the browser's top layer is not
+    // affected by an ancestor's transform, filter, overflow or stacking
+    // context, so the problem is absent rather than worked around.
+    //
+    // Escape, the backdrop, focus trapping and scroll locking all come from
+    // the browser.
+    _pwEnabled() {
+      return this.config
+        && this.config.power_enabled === true
+        && this.config.powerwin_enabled !== false;
+    }
+
+    _pwShow() {
+      if (!this._pwEnabled()) return;
+      if (!this._pwTab) this._pwTab = 'tag';
+      this._pwOpen = true;
+    }
+
+    _pwHide() {
+      this._pwOpen = false;
+    }
+
+    _pwTileKey(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this._pwShow(); }
+    }
+
+    _renderPowerWindow() {
+      if (!this._pwEnabled()) return '';
+      const t = (k, fb) => {
+        const v = this._localize(k);
+        return v === k ? fb : v;
+      };
+      const tabs = [
+        ['tag', t('powerwin_tab_day', 'Tag')],
+        ['speicher', t('powerwin_tab_storage', 'Speicher')],
+        ['bilanz', t('powerwin_tab_balance', 'Bilanz')],
+        ['anlage', t('powerwin_tab_system', 'Anlage')],
+      ];
+      const active = this._pwTab || 'tag';
+
+      // Phase powerwin-1 renders the shell and the header only. The panes
+      // carry a placeholder so an empty tab is obviously unfinished rather
+      // than looking like a sensor that returned nothing.
+      const body = html`<div class="pw-placeholder">${t('powerwin_soon', 'kommt in der nächsten Etappe')}</div>`;
+
+      return html`
+        <dialog class="pw-dialog" @close=${this._pwHide} @cancel=${this._pwHide}>
+          <div class="pw-head">
+            <div class="pw-head-top">
+              <span class="pw-brand">HEIMDALL · POWER</span>
+              <span class="pw-stamp">${this._pwStamp()}</span>
+              <button class="pw-x" aria-label="${t('powerwin_close', 'Fenster schließen')}"
+                      @click=${this._pwHide}>&times;</button>
+            </div>
+            <div class="pw-now">${this._renderPowerWindowNow()}</div>
+          </div>
+          <div class="pw-tabs" role="tablist">
+            ${tabs.map(([id, label]) => html`
+              <button class="pw-tab" role="tab" aria-selected=${active === id}
+                      @click=${() => { this._pwTab = id; }}>${label}</button>`)}
+          </div>
+          <div class="pw-body" role="tabpanel">${body}</div>
+        </dialog>`;
+    }
+
+    _pwStamp() {
+      const d = new Date();
+      const p = n => String(n).padStart(2, '0');
+      return `${p(d.getDate())}.${p(d.getMonth() + 1)}. ${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+
+    // The header never changes when the tab does. It is the anchor the eye
+    // comes back to, and it repeats no value that is not already on a bubble
+    // -- these ARE the bubble values, gathered in one row.
+    _renderPowerWindowNow() {
+      const e = this.config.entities || {};
+      const num = (id) => {
+        const raw = this.hass?.states?.[id]?.state;
+        const v = parseFloat(raw);
+        return isNaN(v) ? null : v;
+      };
+      const solar = (num(e.solar) || 0) + (num(e.bkw) || 0);
+      const venusRaw = num(e.venus);
+      const venus = venusRaw === null ? null
+        : (this.config.invert_venus === true ? -venusRaw : venusRaw);
+      const batRaw = num(e.battery);
+      const battery = batRaw === null ? null
+        : (this.config.invert_battery === true ? -batRaw : batRaw);
+
+      const cells = [
+        ['PV', solar, 'var(--pipe-solar-color)', 'W'],
+        ['Haus', num(e.house), 'var(--pipe-house-color, var(--neon-blue))', 'W'],
+        ['Netz', num(e.grid_combined), 'var(--pipe-grid-color)', 'W'],
+        [this.config.battery_label || 'LG', battery, 'var(--pipe-battery-color)', 'W'],
+        [this.config.venus_label || 'Venus', venus, 'var(--pipe-venus-color)', 'W'],
+        ['Autarkie', num(e.power_autarkie), 'var(--export-color)', '%'],
+        ['heute', num(e.grid_rotate_daily_3), 'var(--export-color)', '€'],
+      ];
+      return cells.map(([k, v, col, unit]) => html`
+        <div class="pw-cell">
+          <div class="pw-k">${k}</div>
+          <div class="pw-v" style="color:${col}">${
+            v === null ? '–'
+              : unit === 'W' ? this._formatPower(v)
+              : `${Math.round(v * (unit === '€' ? 100 : 1)) / (unit === '€' ? 100 : 1)} ${unit}`
+          }</div>
+        </div>`);
+    }
+
     _requestRedraw() {
       this._forceNextUpdate = true;
       this.requestUpdate();
@@ -933,6 +1136,14 @@ console.log(
 
     updated(changedProps) {
       super.updated(changedProps);
+      // Phase powerwin-1: <dialog> is opened through its own API, not by a
+      // style. Kept in sync here so the reactive flag stays the single source
+      // of truth even when the browser closes it (Escape, backdrop).
+      const dlg = this.renderRoot && this.renderRoot.querySelector('dialog.pw-dialog');
+      if (dlg) {
+        if (this._pwOpen && !dlg.open) dlg.showModal();
+        else if (!this._pwOpen && dlg.open) dlg.close();
+      }
       // Phase A1.8: re-measure when config changes (e.g. toggling side panels)
       // so _cardWidth reflects the new layout instead of a stale value. The
       // observer may not fire on a pure config change, so seed it here.
@@ -1952,6 +2163,55 @@ console.log(
       .text-consumer-5 { fill: var(--pipe-consumer-5-color); }
       .text-consumer-6 { fill: var(--pipe-consumer-6-color); }
       .text-consumer-7 { fill: var(--pipe-consumer-7-color); }
+
+      /* ---- Phase powerwin-1: the window ---------------------------------
+         Colours come from the card's own tokens, so a colour changed on the
+         card travels into the window without a second setting. */
+      .bubble.power { cursor: pointer; }
+      .bubble.power:focus-visible { outline: 2px solid var(--pipe-solar-color); outline-offset: 3px; }
+
+      dialog.pw-dialog {
+        width: min(1180px, 96vw); max-width: 96vw; max-height: 92vh;
+        padding: 0; border: 1px solid var(--secondary-line-color, #232a3d);
+        border-radius: 18px; overflow: hidden;
+        background: var(--card-bg-color, #0a0c12);
+        color: var(--text-primary-color, #e9edf7);
+        font-family: var(--paper-font-body1_-_font-family, inherit);
+      }
+      dialog.pw-dialog::backdrop { background: rgba(0,0,0,.62); }
+      .pw-head { padding: 14px 18px 0; border-bottom: 1px solid var(--secondary-line-color, #232a3d); }
+      .pw-head-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+      .pw-brand { font-family: ui-monospace, monospace; font-size: 12px; letter-spacing: .3em;
+                  color: var(--pipe-solar-color); }
+      .pw-stamp { font-family: ui-monospace, monospace; font-size: 11px; opacity: .55; margin-left: auto; }
+      .pw-x { appearance: none; border: 0; background: none; color: inherit; font-size: 22px;
+              line-height: 1; cursor: pointer; padding: 0 2px; opacity: .55; }
+      .pw-x:hover { opacity: 1; }
+      .pw-now { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
+                background: var(--secondary-line-color, #232a3d);
+                border-radius: 10px 10px 0 0; overflow: hidden; }
+      .pw-cell { background: rgba(255,255,255,.04); padding: 9px 10px 11px; }
+      .pw-k { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: .16em;
+              text-transform: uppercase; opacity: .5; }
+      .pw-v { font-family: ui-monospace, monospace; font-size: 19px; margin-top: 3px;
+              font-variant-numeric: tabular-nums; }
+      .pw-tabs { display: flex; padding: 0 18px; border-bottom: 1px solid var(--secondary-line-color, #232a3d); }
+      .pw-tab { appearance: none; border: 0; background: none; color: inherit; cursor: pointer;
+                font-family: ui-monospace, monospace; font-size: 11.5px; letter-spacing: .18em;
+                text-transform: uppercase; padding: 12px 16px; opacity: .45;
+                border-bottom: 2px solid transparent; }
+      .pw-tab:hover { opacity: .75; }
+      .pw-tab[aria-selected="true"] { opacity: 1; border-bottom-color: var(--pipe-solar-color); }
+      .pw-body { padding: 18px; overflow-y: auto; }
+      .pw-placeholder { font-family: ui-monospace, monospace; font-size: 12px; opacity: .4;
+                        padding: 40px 0; text-align: center; }
+      @media (max-width: 820px) {
+        dialog.pw-dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh;
+                           border-radius: 0; border: 0; }
+        .pw-now { grid-template-columns: repeat(4, 1fr); }
+        .pw-tabs { overflow-x: auto; padding: 0 10px; }
+        .pw-body { padding: 12px; }
+      }
     `;
     }
 
@@ -5273,6 +5533,10 @@ console.log(
                   const pOffY = this.config.power_offset_y !== undefined ? parseFloat(this.config.power_offset_y) : 0;
                   return html`
                   <div class="bubble power node-power ${tintClass}"
+                       role=${this._pwEnabled() ? 'button' : 'presentation'}
+                       tabindex=${this._pwEnabled() ? '0' : '-1'}
+                       @click=${this._pwShow}
+                       @keydown=${this._pwTileKey}
                        style="--power-offset-x: ${pOffX}px; --power-offset-y: ${pOffY}px; --pw-frame: ${this._pFrameGradient()};">
                       <div class="power-tile-inner">${this._renderPowerTile()}</div>
                   </div>`;
@@ -5303,8 +5567,17 @@ console.log(
       // overflow, no feedback loop). center = host - 2*panelW - 2*gap.
       const flowBlock = html`<div class="hf-flow-host">${inner}</div>`;
 
+      // The dialog is deliberately a sibling of the scaled flow host, not a
+      // child of it. showModal() would lift it out of the transform anyway;
+      // keeping it outside means the DOM says so too.
+      const pwin = this._renderPowerWindow();
+
       if (this.config.side_panels_enabled !== true) {
-        return flowBlock;
+        // Returned as an array, not as html`${a}${b}`: the coverage audit reads
+        // every key-shaped template literal, and a bare two-variable template
+        // trips its unknown-variable guard. An array renders identically and
+        // adds no wrapper element.
+        return [flowBlock, pwin];
       }
 
       const panelW = this.config.side_panel_width !== undefined ? this.config.side_panel_width : 320;
@@ -5323,6 +5596,7 @@ console.log(
           ${flowBlock}
           <div class="hf-panel hf-panel-right">${this._panelRightEls || ''}</div>
         </div>
+        ${pwin}
       `;
     }
   }
