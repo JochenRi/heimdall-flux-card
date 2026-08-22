@@ -7185,7 +7185,11 @@ console.log(
           <div class="pw-k">${k}</div>
           <div class="pw-v" style="color:${col}">${
             v === null ? '–'
-              : unit === 'W' ? this._formatPower(v)
+              // _formatPower returns a bare "0" for zero, which reads right on
+              // a bubble that carries its own caption and wrong in a row where
+              // the neighbours say 553 W and 3.2 kW. The unit is restored here
+              // only, so bubble behaviour is untouched.
+              : unit === 'W' ? (v === 0 ? '0 W' : this._formatPower(v))
               : `${Math.round(v * (unit === '€' ? 100 : 1)) / (unit === '€' ? 100 : 1)} ${unit}`
           }</div>
         </div>`);
@@ -8298,7 +8302,16 @@ console.log(
       /* phase powerwin-2: the day chart. currentColor on .pw-chart is what the
          hatch pattern resolves against -- a pattern inherits colour from its
          own ancestors, not from the path that references it. */
-      .pw-chart { display: block; width: 100%; height: auto;
+      /* The card carries one global element rule -- svg { position: absolute;
+         top/left 0; 100% x 100%; z-index 1; pointer-events: none } -- for the
+         flow diagram. The window's chart is an svg too, so it was caught by it
+         and pinned to the dialog's top-left corner at full size, underneath the
+         header, the tabs and the table. Undone here by class specificity: the
+         global rule is what the whole flow layer stands on and must not be
+         weakened for one chart. Every property that rule sets is named again,
+         so nothing is left inherited by accident. */
+      .pw-chart { position: static; top: auto; left: auto; z-index: auto;
+                  pointer-events: auto; display: block; width: 100%; height: auto;
                   color: var(--primary-text-color, #e8eaed); }
       .pw-grid { fill: none; stroke: var(--divider-color, #444); stroke-width: 1; }
       .pw-ax { font-family: ui-monospace, monospace; font-size: 10px;
