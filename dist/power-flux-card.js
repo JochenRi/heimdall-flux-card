@@ -6973,6 +6973,11 @@ console.log(
       const ent = this.config.entities || {};
       let last = d.start;
       for (const arr of Object.values(d.series)) {
+        // _fetchStats drops empty series before returning, so this should not
+        // happen -- but the assumption was written nowhere, and an empty array
+        // here reads arr[-1].t and throws inside render(), which kills the
+        // whole Lit update and leaves the dialog unable to close.
+        if (!Array.isArray(arr) || arr.length === 0) continue;
         const t = arr[arr.length - 1].t;
         if (t > last) last = t;
       }
@@ -7130,7 +7135,7 @@ console.log(
       const rows = g.cons.map(c => ({
         label: c.label, color: c.color, e: sumKwh(c.data),
         run: c.data.filter(v => v > 20).length * hh,
-        sun: c.data.reduce((x, v, i) => x + (acc[i] <= g.pv[i] ? v : 0), 0) * hrs / 1000,
+        sun: c.data.reduce((x, v, i) => x + (acc[i] <= g.pv[i] ? v : 0), 0) * hh / 1000,
       })).sort((a2, b2) => b2.e - a2.e);
       const restE = sumKwh(g.rest);
       const total = rows.reduce((a2, r) => a2 + r.e, 0) + restE;
