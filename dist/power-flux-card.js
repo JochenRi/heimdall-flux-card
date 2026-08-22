@@ -5873,6 +5873,7 @@ console.log(
         _pwOpen: { state: true },
         _pwTab: { state: true },
         _pwDate: { state: true },
+        _pwFocus: { state: true },
       };
     }
 
@@ -6929,6 +6930,14 @@ console.log(
       this._pwLoadDay();
     }
 
+    // Focus: hover on a desktop, tap on the wall tablet. Everything but the
+    // chosen band drops to a trace so one appliance can be read against the
+    // arc on its own. Tap toggles, because a tablet has no mouseleave.
+    _pwSetFocus(id) {
+      if (this._pwFocus === id) return;
+      this._pwFocus = id;
+    }
+
     _pwToday() {
       if (this._pwIsToday()) return;
       this._pwDate = this._pwMidnight(new Date());
@@ -7061,84 +7070,124 @@ console.log(
           'Keine Statistik für diesen Tag.')}</div>`;
       }
 
-      // Day totals. Export and import are the MEASURED grid series, never the
-      // gap between stack and arc -- the garden PV runs into the Venus MPPTs
-      // past the house meter, and on a sunny midday that gap was found to be
-      // up to 810 W wide. Self-consumed PV is production minus what left the
-      // property, which is the figure HA's own energy dashboard has been asked
-      // for since discussion #15131 and still does not show in absolute kWh.
+      // ---- day totals, from the RAW series -------------------------------
+      // Export and import are the measured grid curve, never the gap between
+      // stack and arc: the garden PV runs into the Venus MPPTs past the house
+      // meter and that gap was measured at up to 810 W on a sunny midday.
       const hh = g.step / 3600000;
-      const sumKwh = a2 => a2.reduce((x, v) => x + v, 0) * hh / 1000;
+      const sumKwh = a => a.reduce((x, v) => x + v, 0) * hh / 1000;
       const pvE = sumKwh(g.pv);
       const expE = sumKwh(g.grid.map(v => Math.max(0, -v)));
       const impE = sumKwh(g.grid.map(v => Math.max(0, v)));
       const selfE = Math.max(0, pvE - expE);
       const quote = pvE > 0 ? Math.round(selfE / pvE * 100) : 0;
       const k2 = v => v.toFixed(2);
-
       const dLabel = new Date(g.slots[0]).toLocaleDateString(undefined,
         { weekday: 'short', day: '2-digit', month: '2-digit' });
       const atToday = this._pwIsToday();
 
-      const N = g.slots.length;
-      const W = 1000, H = 360, L = 48, R = 14, T = 14, B = 26;
-      const iw = W - L - R, ih = H - T - B;
+      // Raw stack, for the table's "from PV" column. The drawing is binned
+      // below, but a share should be judged on every bucket, not on averages.
+      const accRaw = new Array(g.slots.length).fill(0);
+      for (let i = 0; i < accRaw.length; i++) {
+        accRaw[i] = g.rest[i] + g.cons.reduce((a, c) => a + c.data[i], 0)
+                  + g.lgCharge[i] + g.veCharge[i];
+      }
 
+      // ---- binning, for the drawing only ---------------------------------
+      // A day of five-minute buckets is 288 points wide. Cloud flicker turned
+      // the PV line into a picket fence and the stacked bands into confetti --
+      // the shape of the day, which is the whole point of the arc, was lost in
+      // the noise. Averaging into quarter-hours keeps every kilowatt-hour (the
+      // totals above come from the raw series) and hands back the shape.
+      const bf = Math.max(1, Math.ceil(g.slots.length / 96));
+      const bin = a => {
+        if (bf === 1) return a;
+        const out = [];
+        for (let i = 0; i < a.length; i += bf) {
+          const s = a.slice(i, i + bf);
+          out.push(s.reduce((x, v) => x + v, 0) / s.length);
+        }
+        return out;
+      };
+      const slots = bf === 1 ? g.slots : g.slots.filter((_, i) => i % bf === 0);
+      const pv = bin(g.pv);
+
+      const focus = this._pwFocus === undefined ? null : this._pwFocus;
       const layers = [
-        { d: g.rest, fill: 'url(#pwHatch)', op: 1,
+        { cid: 'rest', d: bin(g.rest), fill: 'url(#pwinHatch)', op: 1, stroke: 'none',
           label: t('powerwin_rest', 'Rest, ungemessen'), swatch: 'hatch' },
-        ...g.cons.map(c => ({ d: c.data, fill: c.color, op: .92, label: c.label, swatch: c.color })),
-        { d: g.lgCharge, fill: 'var(--pipe-battery-color)', op: .42,
+        ...g.cons.map(c => ({ cid: c.idx, d: bin(c.data), fill: c.color, op: .62,
+          stroke: c.color, label: c.label, swatch: c.color })),
+        { cid: 'lg', d: bin(g.lgCharge), fill: 'var(--pipe-battery-color)', op: .22,
+          stroke: 'var(--pipe-battery-color)', dash: '5 4',
           label: `${this.config.battery_label || 'LG'} ${t('powerwin_charging', 'lädt')}`,
           swatch: 'var(--pipe-battery-color)' },
-        { d: g.veCharge, fill: 'var(--pipe-venus-color)', op: .48,
+        { cid: 'venus', d: bin(g.veCharge), fill: 'var(--pipe-venus-color)', op: .22,
+          stroke: 'var(--pipe-venus-color)', dash: '5 4',
           label: `${this.config.venus_label || 'Venus'} ${t('powerwin_charging', 'lädt')}`,
           swatch: 'var(--pipe-venus-color)' },
       ];
+
+      const N = slots.length;
+      const W = 1000, H = 340, L = 46, R = 12, T = 12, B = 24;
+      const iw = W - L - R, ih = H - T - B;
+
       let acc = new Array(N).fill(0);
       const bands = [];
       for (const l of layers) {
         const lo = acc.slice();
         acc = acc.map((v, i) => v + l.d[i]);
-        bands.push({ lo, hi: acc.slice(), fill: l.fill, op: l.op });
+        bands.push({ lo, hi: acc.slice(), l });
       }
 
       let peak = 0;
-      for (let i = 0; i < N; i++) peak = Math.max(peak, acc[i], g.pv[i]);
+      for (let i = 0; i < N; i++) peak = Math.max(peak, acc[i], pv[i]);
       const yMax = Math.max(1000, Math.ceil(peak / 500) * 500);
       const X = i => L + (N > 1 ? iw * i / (N - 1) : 0);
       const Y = v => T + ih * (1 - Math.min(Math.max(v, 0), yMax) / yMax);
-      const line = a2 => a2.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+      const line = a => a.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
       const band = (lo, hi) => line(hi)
         + lo.map((_, i) => `L${X(N - 1 - i).toFixed(1)},${Y(lo[N - 1 - i]).toFixed(1)}`).join('') + 'Z';
 
-      // Ten band slots: one rest, seven consumers, two storages. Unused slots
-      // carry an empty d rather than being dropped.
+      // Ten fixed band slots, blanked with an empty d when unused (phase
+      // 5.67.3). Focus dims everything that is not the chosen consumer to a
+      // trace, so one appliance can be read against the arc on its own.
       const bd = i => (bands[i] ? band(bands[i].lo, bands[i].hi) : '');
-      const bf = i => (bands[i] ? bands[i].fill : 'none');
-      const bo = i => (bands[i] ? bands[i].op : 0);
+      const bl = i => (bands[i] ? bands[i].l : null);
+      const bfill = i => (bl(i) ? bl(i).fill : 'none');
+      const bop = i => {
+        const l = bl(i);
+        if (!l) return 0;
+        if (focus === null) return l.op;
+        return l.cid === focus ? Math.min(1, l.op + .3) : .05;
+      };
+      const bstroke = i => {
+        const l = bl(i);
+        if (!l || l.stroke === 'none') return 'none';
+        return focus !== null && l.cid !== focus ? 'none' : l.stroke;
+      };
+      const bdash = i => (bl(i) && bl(i).dash ? bl(i).dash : '');
+      const btop = i => (bands[i] ? line(bands[i].hi) : '');
 
       const gridPath = [0, 1, 2, 3, 4, 5]
         .map(k => `M${L},${Y(yMax * k / 5).toFixed(1)}L${W - R},${Y(yMax * k / 5).toFixed(1)}`).join('');
       const yLab = k => `${(yMax * k / 5 / 1000).toFixed(yMax >= 5000 ? 0 : 1)}k`;
       const yPos = k => Y(yMax * k / 5) + 4;
-
-      // Eight fixed hour marks. A mark past the end of the day so far gets an
-      // empty label instead of disappearing.
-      const hourIdx = (hr) => {
-        for (let i = 0; i < N; i++) if (new Date(g.slots[i]).getHours() === hr) return i;
+      const hourIdx = hr => {
+        for (let i = 0; i < N; i++) if (new Date(slots[i]).getHours() === hr) return i;
         return -1;
       };
       const hx = k => { const i = hourIdx(k * 3); return i < 0 ? -100 : X(i); };
-      const hl = k => (hourIdx(k * 3) < 0 ? '' : `${String(k * 3).padStart(2, '0')}`);
+      const hl = k => (hourIdx(k * 3) < 0 ? '' : String(k * 3).padStart(2, '0'));
 
       const rows = g.cons.map(c => ({
-        label: c.label, color: c.color, e: sumKwh(c.data),
+        idx: c.idx, label: c.label, color: c.color, e: sumKwh(c.data),
         run: c.data.filter(v => v > 20).length * hh,
-        sun: c.data.reduce((x, v, i) => x + (acc[i] <= g.pv[i] ? v : 0), 0) * hh / 1000,
-      })).sort((a2, b2) => b2.e - a2.e);
+        sun: c.data.reduce((x, v, i) => x + (accRaw[i] <= g.pv[i] ? v : 0), 0) * hh / 1000,
+      })).sort((a, b) => b.e - a.e);
       const restE = sumKwh(g.rest);
-      const total = rows.reduce((a2, r) => a2 + r.e, 0) + restE;
+      const total = rows.reduce((a, r) => a + r.e, 0) + restE;
       const pct = v => (total > 0 ? `${(v / total * 100).toFixed(1)} %` : '–');
 
       return html`
@@ -7150,7 +7199,6 @@ console.log(
                   title="${t('powerwin_next', 'Tag vor')}">&#8250;</button>
           <button class="pwin-today" ?disabled=${atToday}
                   @click=${() => this._pwToday()}>${t('powerwin_today', 'heute')}</button>
-          <span class="pwin-res">${g.step === 3600000 ? t('powerwin_hourres', 'Stundenwerte') : ''}</span>
         </div>
         <div class="pwin-kpis">
           <span class="pwin-kpi"><b style="color:var(--pipe-solar-color)">${k2(pvE)}</b>
@@ -7162,11 +7210,13 @@ console.log(
           <span class="pwin-kpi"><b style="color:var(--pipe-grid-color)">${k2(impE)}</b>
             ${t('powerwin_kpi_import', 'kWh aus dem Netz')}</span>
         </div>
-        <svg class="pwin-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
+
+        <svg class="pwin-chart ${focus !== null ? 'pwin-focused' : ''}"
+             viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
              role="img" aria-label="${t('powerwin_chart_alt', 'Tagesverlauf der Erzeugung mit gestapelten Verbrauchern')}">
           <defs>
-            <pattern id="pwHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width="2.4" stroke-opacity=".38"/>
+            <pattern id="pwinHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="7" stroke="currentColor" stroke-width="2.2" stroke-opacity=".3"/>
             </pattern>
           </defs>
           <path d="${gridPath}" class="pwin-grid"/>
@@ -7176,36 +7226,46 @@ console.log(
           <text x="${L - 7}" y="${yPos(3)}" text-anchor="end" class="pwin-ax">${yLab(3)}</text>
           <text x="${L - 7}" y="${yPos(4)}" text-anchor="end" class="pwin-ax">${yLab(4)}</text>
           <text x="${L - 7}" y="${yPos(5)}" text-anchor="end" class="pwin-ax">${yLab(5)}</text>
-          <text x="${hx(0)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(0)}</text>
-          <text x="${hx(1)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(1)}</text>
-          <text x="${hx(2)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(2)}</text>
-          <text x="${hx(3)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(3)}</text>
-          <text x="${hx(4)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(4)}</text>
-          <text x="${hx(5)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(5)}</text>
-          <text x="${hx(6)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(6)}</text>
-          <text x="${hx(7)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(7)}</text>
-          <path d="${band(new Array(N).fill(0), g.pv)}" class="pwin-pvfill"/>
-          <path d="${bd(0)}" fill="${bf(0)}" opacity="${bo(0)}" class="pwin-hatchband"/>
-          <path d="${bd(1)}" fill="${bf(1)}" opacity="${bo(1)}"/>
-          <path d="${bd(2)}" fill="${bf(2)}" opacity="${bo(2)}"/>
-          <path d="${bd(3)}" fill="${bf(3)}" opacity="${bo(3)}"/>
-          <path d="${bd(4)}" fill="${bf(4)}" opacity="${bo(4)}"/>
-          <path d="${bd(5)}" fill="${bf(5)}" opacity="${bo(5)}"/>
-          <path d="${bd(6)}" fill="${bf(6)}" opacity="${bo(6)}"/>
-          <path d="${bd(7)}" fill="${bf(7)}" opacity="${bo(7)}"/>
-          <path d="${bd(8)}" fill="${bf(8)}" opacity="${bo(8)}"/>
-          <path d="${bd(9)}" fill="${bf(9)}" opacity="${bo(9)}"/>
-          <path d="${band(acc.map((v, i) => Math.min(v, g.pv[i])), g.pv)}" class="pwin-surplus"/>
-          <path d="${line(acc)}" class="pwin-stackline"/>
-          <path d="${line(g.pv)}" class="pwin-pvline"/>
+          <text x="${hx(0)}" y="${H - 6}" text-anchor="middle" class="pwin-ax">${hl(0)}</text>
+          <text x="${hx(1)}" y="${H - 6}" text-anchor="middle" class="pwin-ax">${hl(1)}</text>
+          <text x="${hx(2)}" y="${H - 6}" text-anchor="middle" class="pwin-ax">${hl(2)}</text>
+          <text x="${hx(3)}" y="${H - 6}" text-anchor="middle" class="pwin-ax">${hl(3)}</text>
+          <text x="${hx(4)}" y="${H - 6}" text-anchor="middle" class="pwin-ax">${hl(4)}</text>
+          <text x="${hx(5)}" y="${H - 6}" text-anchor="middle" class="pwin-ax">${hl(5)}</text>
+          <text x="${hx(6)}" y="${H - 6}" text-anchor="middle" class="pwin-ax">${hl(6)}</text>
+          <text x="${hx(7)}" y="${H - 6}" text-anchor="middle" class="pwin-ax">${hl(7)}</text>
+          <path d="${band(new Array(N).fill(0), pv)}" class="pwin-pvfill"/>
+          <path d="${bd(0)}" fill="${bfill(0)}" opacity="${bop(0)}" class="pwin-hatchband"/>
+          <path d="${bd(1)}" fill="${bfill(1)}" opacity="${bop(1)}"/>
+          <path d="${bd(2)}" fill="${bfill(2)}" opacity="${bop(2)}"/>
+          <path d="${bd(3)}" fill="${bfill(3)}" opacity="${bop(3)}"/>
+          <path d="${bd(4)}" fill="${bfill(4)}" opacity="${bop(4)}"/>
+          <path d="${bd(5)}" fill="${bfill(5)}" opacity="${bop(5)}"/>
+          <path d="${bd(6)}" fill="${bfill(6)}" opacity="${bop(6)}"/>
+          <path d="${bd(7)}" fill="${bfill(7)}" opacity="${bop(7)}"/>
+          <path d="${bd(8)}" fill="${bfill(8)}" opacity="${bop(8)}"/>
+          <path d="${bd(9)}" fill="${bfill(9)}" opacity="${bop(9)}"/>
+          <path d="${btop(1)}" class="pwin-edge" stroke="${bstroke(1)}" stroke-dasharray="${bdash(1)}"/>
+          <path d="${btop(2)}" class="pwin-edge" stroke="${bstroke(2)}" stroke-dasharray="${bdash(2)}"/>
+          <path d="${btop(3)}" class="pwin-edge" stroke="${bstroke(3)}" stroke-dasharray="${bdash(3)}"/>
+          <path d="${btop(4)}" class="pwin-edge" stroke="${bstroke(4)}" stroke-dasharray="${bdash(4)}"/>
+          <path d="${btop(5)}" class="pwin-edge" stroke="${bstroke(5)}" stroke-dasharray="${bdash(5)}"/>
+          <path d="${btop(6)}" class="pwin-edge" stroke="${bstroke(6)}" stroke-dasharray="${bdash(6)}"/>
+          <path d="${btop(7)}" class="pwin-edge" stroke="${bstroke(7)}" stroke-dasharray="${bdash(7)}"/>
+          <path d="${btop(8)}" class="pwin-edge" stroke="${bstroke(8)}" stroke-dasharray="${bdash(8)}"/>
+          <path d="${btop(9)}" class="pwin-edge" stroke="${bstroke(9)}" stroke-dasharray="${bdash(9)}"/>
+          <path d="${focus === null ? band(acc.map((v, i) => Math.min(v, pv[i])), pv) : ''}"
+                class="pwin-surplus"/>
+          <path d="${line(pv)}" class="pwin-pvline"/>
           <path d="M${X(N - 1).toFixed(1)},${T}L${X(N - 1).toFixed(1)},${H - B}" class="pwin-nowline"/>
-          <circle cx="${X(N - 1)}" cy="${Y(g.pv[N - 1])}" r="3.5" class="pwin-nowdot"/>
+          <circle cx="${X(N - 1)}" cy="${Y(pv[N - 1])}" r="3" class="pwin-nowdot"/>
         </svg>
 
         <div class="pwin-legend">
-          ${layers.map(l => html`<span class="pwin-li">${l.swatch === 'hatch'
-            ? html`<i class="pwin-sw pwin-sw-hatch"></i>`
-            : html`<i class="pwin-sw" style="background:${l.swatch}"></i>`}${l.label}</span>`)}
+          ${layers.map(l => html`<span class="pwin-li ${focus !== null && l.cid !== focus ? 'pwin-off' : ''}"
+            >${l.swatch === 'hatch'
+              ? html`<i class="pwin-sw pwin-sw-hatch"></i>`
+              : html`<i class="pwin-sw" style="background:${l.swatch}"></i>`}${l.label}</span>`)}
           <span class="pwin-li"><i class="pwin-sw" style="background:var(--export-color)"></i>${t('powerwin_surplus', 'Überschuss / Einspeisung')}</span>
           <span class="pwin-li"><i class="pwin-sw" style="background:var(--pipe-solar-color)"></i>${t('powerwin_pv_line', 'PV gesamt')}</span>
         </div>
@@ -7218,12 +7278,18 @@ console.log(
             <th>${t('powerwin_col_frompv', 'aus PV')}</th>
           </tr></thead>
           <tbody>
-            ${rows.map(r => html`<tr>
+            ${rows.map(r => html`<tr class="${focus === r.idx ? 'pwin-on' : ''}"
+                @mouseenter=${() => this._pwSetFocus(r.idx)}
+                @mouseleave=${() => this._pwSetFocus(null)}
+                @click=${() => this._pwSetFocus(focus === r.idx ? null : r.idx)}>
               <td><i class="pwin-sw" style="background:${r.color}"></i>${r.label}</td>
               <td>${r.e.toFixed(2)}</td><td>${pct(r.e)}</td>
               <td>${r.run.toFixed(1)} h</td>
               <td>${r.e > 0 ? `${Math.round(r.sun / r.e * 100)} %` : '–'}</td></tr>`)}
-            <tr class="pwin-ghost">
+            <tr class="pwin-ghost ${focus === 'rest' ? 'pwin-on' : ''}"
+                @mouseenter=${() => this._pwSetFocus('rest')}
+                @mouseleave=${() => this._pwSetFocus(null)}
+                @click=${() => this._pwSetFocus(focus === 'rest' ? null : 'rest')}>
               <td><i class="pwin-sw pwin-sw-hatch"></i>${t('powerwin_rest', 'Rest, ungemessen')}</td>
               <td>${restE.toFixed(2)}</td><td>${pct(restE)}</td><td>–</td><td>–</td></tr>
             <tr class="pwin-sum">
@@ -8423,7 +8489,8 @@ console.log(
       .pwin-sw { width: 9px; height: 9px; border-radius: 2px; flex: none; display: inline-block; }
       .pwin-sw-hatch { background: none; border: 1px dashed currentColor; }
       /* Day navigation and the four day totals. */
-      .pwin-daybar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+      .pwin-daybar { display: flex; align-items: center; justify-content: center;
+                gap: 8px; margin-bottom: 9px; }
       .pwin-nav, .pwin-today { appearance: none; border: 1px solid var(--divider-color, #444);
                 background: none; color: inherit; cursor: pointer; border-radius: 6px;
                 font-family: ui-monospace, monospace; line-height: 1; }
@@ -8435,15 +8502,21 @@ console.log(
       .pwin-nav:disabled, .pwin-today:disabled { opacity: .25; cursor: default; }
       .pwin-daylabel { font-family: ui-monospace, monospace; font-size: 13px; letter-spacing: .06em;
                 min-width: 108px; text-align: center; }
-      .pwin-res { font-family: ui-monospace, monospace; font-size: 10.5px; opacity: .45;
-                margin-left: auto; }
-      .pwin-kpis { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-bottom: 12px;
+      .pwin-kpis { display: flex; flex-wrap: wrap; justify-content: center;
+                gap: 4px 26px; margin-bottom: 14px;
                 font-family: ui-monospace, monospace; font-size: 11.5px; }
       .pwin-kpi { opacity: .62; }
       .pwin-kpi b { font-size: 15px; font-weight: 600; opacity: 1; margin-right: 5px;
                 font-variant-numeric: tabular-nums; }
       .pwin-kpi i { font-style: normal; opacity: .8; }
-      .pwin-surplus { fill: var(--export-color); opacity: .3; stroke: none; }
+      .pwin-surplus { fill: var(--export-color); opacity: .26; stroke: none; }
+      /* A crisp top edge on every band. Stacked areas read as mush without
+         one -- the fill says how much, the edge says where the boundary is.
+         Storage bands are dashed so charging never reads as an appliance. */
+      .pwin-edge { fill: none; stroke-width: 1.3; stroke-linejoin: round;
+                stroke-opacity: .85; }
+      .pwin-legend .pwin-off { opacity: .2; }
+      .pwin-chart, .pwin-edge, .pwin-surplus { transition: opacity .12s ease; }
 
       /* Zebra rows. The research is consistent on two points: striping helps
          accuracy on dense tables, and in a dark theme the stripe has to be
@@ -8460,7 +8533,9 @@ console.log(
       .pwin-tab th:first-child, .pwin-tab td:first-child { text-align: left; }
       .pwin-tab td { padding: 8px 10px; text-align: right; white-space: nowrap; border: 0; }
       .pwin-tab tbody tr:nth-child(odd) { background: rgba(255, 255, 255, .035); }
-      .pwin-tab tbody tr:hover { background: rgba(255, 255, 255, .075); }
+      .pwin-tab tbody tr:hover { background: rgba(255, 255, 255, .075); cursor: pointer; }
+      .pwin-tab tbody tr.pwin-on { background: rgba(255, 255, 255, .1);
+                box-shadow: inset 2px 0 0 currentColor; }
       .pwin-tab tbody tr:first-child td { padding-top: 10px; }
       .pwin-tab td .pwin-sw { width: 10px; height: 10px; margin-right: 9px; vertical-align: -1px; }
       .pwin-tab tr.pwin-ghost td { opacity: .72; font-style: italic; }
