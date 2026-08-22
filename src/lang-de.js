@@ -33,6 +33,8 @@ export default {
     "powerwin_tab_system": "Anlage",
     "powerwin_close": "Fenster schließen",
     "powerwin_soon": "kommt in der nächsten Etappe",
+    "powerwin_hint": "Unter der gelben Linie lief auf Sonne.",
+    "powerwin_hint_focus": "allein gegen die PV-Kurve",
     "powerwin_prev": "Tag zurück",
     "powerwin_next": "Tag vor",
     "powerwin_today": "heute",

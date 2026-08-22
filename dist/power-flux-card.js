@@ -38,6 +38,8 @@ const lang_de = {
     "powerwin_tab_system": "Anlage",
     "powerwin_close": "Fenster schließen",
     "powerwin_soon": "kommt in der nächsten Etappe",
+    "powerwin_hint": "Unter der gelben Linie lief auf Sonne.",
+    "powerwin_hint_focus": "allein gegen die PV-Kurve",
     "powerwin_prev": "Tag zurück",
     "powerwin_next": "Tag vor",
     "powerwin_today": "heute",
@@ -666,6 +668,8 @@ const lang_en = {
     "powerwin_tab_system": "System",
     "powerwin_close": "Close window",
     "powerwin_soon": "arriving in the next stage",
+    "powerwin_hint": "Anything under the yellow line ran on sun.",
+    "powerwin_hint_focus": "on its own against the PV curve",
     "powerwin_prev": "Previous day",
     "powerwin_next": "Next day",
     "powerwin_today": "today",
@@ -7151,25 +7155,44 @@ console.log(
         + lo.map((_, i) => `L${X(N - 1 - i).toFixed(1)},${Y(lo[N - 1 - i]).toFixed(1)}`).join('') + 'Z';
 
       // Ten fixed band slots, blanked with an empty d when unused (phase
-      // 5.67.3). Focus dims everything that is not the chosen consumer to a
-      // trace, so one appliance can be read against the arc on its own.
-      const bd = i => (bands[i] ? band(bands[i].lo, bands[i].hi) : '');
+      // 5.67.3).
+      //
+      // Focus UNSTACKS. Leaving the chosen band at its stacked height was the
+      // first attempt and it read as a lie: the band's lower edge is the sum
+      // of everything beneath it, so a consumer that drew nothing all night
+      // still traced a line at 500 W and looked like it was running. Focused,
+      // the consumer is drawn from the baseline and everything else is blanked
+      // outright -- the arc and one appliance, nothing between them.
+      const zeros = new Array(N).fill(0);
       const bl = i => (bands[i] ? bands[i].l : null);
+      const focused = i => (focus !== null && bl(i) && bl(i).cid === focus);
+      const bd = i => {
+        if (!bands[i]) return '';
+        if (focus === null) return band(bands[i].lo, bands[i].hi);
+        return focused(i) ? band(zeros, bl(i).d) : '';
+      };
       const bfill = i => (bl(i) ? bl(i).fill : 'none');
       const bop = i => {
         const l = bl(i);
         if (!l) return 0;
         if (focus === null) return l.op;
-        return l.cid === focus ? Math.min(1, l.op + .3) : .05;
+        return focused(i) ? .8 : 0;
       };
       const bstroke = i => {
         const l = bl(i);
         if (!l || l.stroke === 'none') return 'none';
-        return focus !== null && l.cid !== focus ? 'none' : l.stroke;
+        return focus !== null && !focused(i) ? 'none' : l.stroke;
       };
       const bdash = i => (bl(i) && bl(i).dash ? bl(i).dash : '');
-      const btop = i => (bands[i] ? line(bands[i].hi) : '');
+      const btop = i => {
+        if (!bands[i]) return '';
+        if (focus === null) return line(bands[i].hi);
+        return focused(i) ? line(bl(i).d) : '';
+      };
 
+      const caption = focus === null
+        ? t('powerwin_hint', 'Unter der gelben Linie lief auf Sonne.')
+        : `${(layers.find(l => l.cid === focus) || {}).label || ''} — ${t('powerwin_hint_focus', 'allein gegen die PV-Kurve')}`;
       const gridPath = [0, 1, 2, 3, 4, 5]
         .map(k => `M${L},${Y(yMax * k / 5).toFixed(1)}L${W - R},${Y(yMax * k / 5).toFixed(1)}`).join('');
       const yLab = k => `${(yMax * k / 5 / 1000).toFixed(yMax >= 5000 ? 0 : 1)}k`;
@@ -7211,6 +7234,7 @@ console.log(
             ${t('powerwin_kpi_import', 'kWh aus dem Netz')}</span>
         </div>
 
+        <div class="pwin-chartwrap">
         <svg class="pwin-chart ${focus !== null ? 'pwin-focused' : ''}"
              viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
              role="img" aria-label="${t('powerwin_chart_alt', 'Tagesverlauf der Erzeugung mit gestapelten Verbrauchern')}">
@@ -7218,6 +7242,10 @@ console.log(
             <pattern id="pwinHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
               <line x1="0" y1="0" x2="0" y2="7" stroke="currentColor" stroke-width="2.2" stroke-opacity=".3"/>
             </pattern>
+            <linearGradient id="pwinPvGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="var(--pipe-solar-color)" stop-opacity=".22"/>
+              <stop offset="1" stop-color="var(--pipe-solar-color)" stop-opacity="0"/>
+            </linearGradient>
           </defs>
           <path d="${gridPath}" class="pwin-grid"/>
           <text x="${L - 7}" y="${yPos(0)}" text-anchor="end" class="pwin-ax">${yLab(0)}</text>
@@ -7260,6 +7288,8 @@ console.log(
           <path d="M${X(N - 1).toFixed(1)},${T}L${X(N - 1).toFixed(1)},${H - B}" class="pwin-nowline"/>
           <circle cx="${X(N - 1)}" cy="${Y(pv[N - 1])}" r="3" class="pwin-nowdot"/>
         </svg>
+        <div class="pwin-caption">${caption}</div>
+        </div>
 
         <div class="pwin-legend">
           ${layers.map(l => html`<span class="pwin-li ${focus !== null && l.cid !== focus ? 'pwin-off' : ''}"
@@ -8469,20 +8499,35 @@ console.log(
          global rule is what the whole flow layer stands on and must not be
          weakened for one chart. Every property that rule sets is named again,
          so nothing is left inherited by accident. */
+      /* The chart sits on its own faint panel with a rounded edge, the way
+         every other surface on this card does. A chart drawn straight onto
+         the dialog background was the odd one out. */
+      .pwin-chartwrap { background: rgba(255, 255, 255, .022); border-radius: 12px;
+                border: 1px solid var(--divider-color, #444); padding: 12px 10px 4px; }
       .pwin-chart { position: static; top: auto; left: auto; z-index: auto;
                   pointer-events: auto; display: block; width: 100%; height: auto;
                   color: var(--primary-text-color, #e8eaed); }
-      .pwin-grid { fill: none; stroke: var(--divider-color, #444); stroke-width: 1; }
+      .pwin-caption { font-family: ui-monospace, monospace; font-size: 10.5px;
+                opacity: .4; text-align: center; padding: 2px 0 8px; letter-spacing: .05em; }
+      /* Dashed, and fainter than a default chart grid: the arc is the subject,
+         the grid is scaffolding. */
+      .pwin-grid { fill: none; stroke: var(--primary-text-color, #e8eaed);
+                stroke-opacity: .1; stroke-width: 1; stroke-dasharray: 2 6; }
       .pwin-ax { font-family: ui-monospace, monospace; font-size: 10px;
-               fill: var(--primary-text-color, #e8eaed); opacity: .6; }
-      .pwin-pvfill { fill: var(--pipe-solar-color); opacity: .16; stroke: none; }
-      .pwin-pvline { fill: none; stroke: var(--pipe-solar-color); stroke-width: 2.4;
-                   stroke-linejoin: round; stroke-linecap: round; }
+               letter-spacing: .1em;
+               fill: var(--primary-text-color, #e8eaed); opacity: .42; }
+      .pwin-pvfill { fill: url(#pwinPvGrad); stroke: none; }
+      /* The neon the rest of the card wears -- the bubbles glow through
+         box-shadow, an SVG stroke does it through drop-shadow. */
+      .pwin-pvline { fill: none; stroke: var(--pipe-solar-color); stroke-width: 2.2;
+                   stroke-linejoin: round; stroke-linecap: round;
+                   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--pipe-solar-color), transparent 45%)); }
       .pwin-stackline { fill: none; stroke: var(--primary-text-color, #e8eaed);
-                      stroke-opacity: .3; stroke-width: 1; }
+                      stroke-opacity: .22; stroke-width: 1; }
       .pwin-nowline { fill: none; stroke: var(--primary-text-color, #e8eaed);
-                    stroke-opacity: .45; stroke-dasharray: 3 4; }
-      .pwin-nowdot { fill: var(--pipe-solar-color); }
+                    stroke-opacity: .35; stroke-dasharray: 2 5; }
+      .pwin-nowdot { fill: var(--pipe-solar-color);
+                filter: drop-shadow(0 0 5px var(--pipe-solar-color)); }
       .pwin-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 10px 2px 2px; }
       .pwin-li { display: flex; align-items: center; gap: 6px; font-family: ui-monospace, monospace;
                font-size: 11px; opacity: .82; }
@@ -8513,8 +8558,10 @@ console.log(
       /* A crisp top edge on every band. Stacked areas read as mush without
          one -- the fill says how much, the edge says where the boundary is.
          Storage bands are dashed so charging never reads as an appliance. */
-      .pwin-edge { fill: none; stroke-width: 1.3; stroke-linejoin: round;
-                stroke-opacity: .85; }
+      .pwin-edge { fill: none; stroke-width: 1.4; stroke-linejoin: round;
+                stroke-linecap: round; stroke-opacity: .9; }
+      .pwin-focused .pwin-edge { stroke-width: 2;
+                filter: drop-shadow(0 0 4px currentColor); }
       .pwin-legend .pwin-off { opacity: .2; }
       .pwin-chart, .pwin-edge, .pwin-surplus { transition: opacity .12s ease; }
 

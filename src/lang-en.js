@@ -33,6 +33,8 @@ export default {
     "powerwin_tab_system": "System",
     "powerwin_close": "Close window",
     "powerwin_soon": "arriving in the next stage",
+    "powerwin_hint": "Anything under the yellow line ran on sun.",
+    "powerwin_hint_focus": "on its own against the PV curve",
     "powerwin_prev": "Previous day",
     "powerwin_next": "Next day",
     "powerwin_today": "today",
