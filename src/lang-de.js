@@ -33,6 +33,7 @@ export default {
     "powerwin_tab_system": "Anlage",
     "powerwin_close": "Fenster schließen",
     "powerwin_soon": "kommt in der nächsten Etappe",
+    "powerwin_storage_head": "Speicher geladen · Anteil an der Erzeugung",
     "powerwin_hint": "Unter der gelben Linie lief auf Sonne.",
     "powerwin_hint_focus": "allein gegen die PV-Kurve",
     "powerwin_prev": "Tag zurück",

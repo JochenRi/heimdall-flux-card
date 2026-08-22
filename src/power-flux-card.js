@@ -1386,6 +1386,27 @@ console.log(
       const total = rows.reduce((a, r) => a + r.e, 0) + restE;
       const pct = v => (total > 0 ? `${(v / total * 100).toFixed(1)} %` : '–');
 
+      // The chart draws ten bands; the table listed eight. Storage charging was
+      // in the picture and in no number, and could not be focused either.
+      //
+      // It gets its own section rather than a row in the first one: charging is
+      // NOT house demand. The 25.8 kWh above is what the house used; what went
+      // into the batteries is a different use of the same sun, and adding the
+      // two would produce a total that means nothing. Two sections, two
+      // denominators, each one named in its own heading.
+      const store = [
+        { cid: 'lg', label: `${this.config.battery_label || 'LG'} ${t('powerwin_charging', 'lädt')}`,
+          color: 'var(--pipe-battery-color)', data: g.lgCharge },
+        { cid: 'venus', label: `${this.config.venus_label || 'Venus'} ${t('powerwin_charging', 'lädt')}`,
+          color: 'var(--pipe-venus-color)', data: g.veCharge },
+      ].map(x => ({
+        ...x,
+        e: sumKwh(x.data),
+        run: x.data.filter(v => v > 20).length * hh,
+        sun: x.data.reduce((a, v, i) => a + (accRaw[i] <= g.pv[i] ? v : 0), 0) * hh / 1000,
+      })).filter(x => (this.config.entities || {})[x.cid === 'lg' ? 'battery' : 'venus']);
+      const pctPv = v => (pvE > 0 ? `${(v / pvE * 100).toFixed(1)} %` : '–');
+
       return html`
         <div class="pwin-daybar">
           <button class="pwin-nav" @click=${() => this._pwStep(-1)}
@@ -1498,6 +1519,16 @@ console.log(
             <tr class="pwin-sum">
               <td>${t('powerwin_total', 'Hausbedarf gesamt')}</td>
               <td>${total.toFixed(2)}</td><td>100 %</td><td></td><td></td></tr>
+            ${store.length ? html`<tr class="pwin-sect"><td colspan="5">${
+              t('powerwin_storage_head', 'Speicher geladen · Anteil an der Erzeugung')}</td></tr>` : ''}
+            ${store.map(x => html`<tr class="${focus === x.cid ? 'pwin-on' : ''}"
+                @mouseenter=${() => this._pwSetFocus(x.cid)}
+                @mouseleave=${() => this._pwSetFocus(null)}
+                @click=${() => this._pwSetFocus(focus === x.cid ? null : x.cid)}>
+              <td><i class="pwin-sw pwin-sw-dash" style="border-color:${x.color}"></i>${x.label}</td>
+              <td>${x.e.toFixed(2)}</td><td>${pctPv(x.e)}</td>
+              <td>${x.run.toFixed(1)} h</td>
+              <td>${x.e > 0 ? `${Math.round(x.sun / x.e * 100)} %` : '–'}</td></tr>`)}
           </tbody>
         </table>`;
     }
@@ -2761,6 +2792,13 @@ console.log(
       .pwin-tab tr.pwin-ghost td { opacity: .72; font-style: italic; }
       .pwin-tab tr.pwin-sum td { border-top: 2px solid var(--divider-color, #444);
                 font-weight: 700; background: none; padding-top: 10px; }
+      /* Section heading inside the table: charging is not house demand, and a
+         shared total across the two would mean nothing. */
+      .pwin-tab tr.pwin-sect td { background: none; padding: 16px 10px 6px;
+                font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+                opacity: .5; font-weight: 700; text-align: left; }
+      .pwin-sw-dash { background: none !important; border: 1.5px dashed currentColor;
+                border-color: inherit; }
       @media (max-width: 820px) {
         dialog.pwin-dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh;
                            border-radius: 0; border: 0; }
