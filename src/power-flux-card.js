@@ -2657,7 +2657,15 @@ console.log(
       /* .bubble already carries cursor: pointer -- only the focus ring is new. */
       .bubble.power:focus-visible { outline: 2px solid var(--pipe-solar-color); outline-offset: 3px; }
 
+      /* A column, so the body can be told how tall it is. As a plain block the
+         body grew past max-height and the dialog's overflow: hidden -- needed
+         for the rounded corner -- simply cut it off: the last table rows were
+         drawn and unreachable, with no scrollbar to say so. flex + min-height:0
+         is what makes overflow-y: auto mean anything on the body.
+         The :not([open]) guard keeps the browser's own display: none, or the
+         dialog would be visible while closed. */
       dialog.pwin-dialog {
+        display: flex; flex-direction: column;
         width: min(1180px, 96vw); max-width: 96vw; max-height: 92vh;
         padding: 0; border: 1px solid var(--divider-color, #444);
         border-radius: 18px; overflow: hidden;
@@ -2666,7 +2674,8 @@ console.log(
         font-family: var(--paper-font-body1_-_font-family, inherit);
       }
       dialog.pwin-dialog::backdrop { background: rgba(0,0,0,.62); }
-      .pwin-head { padding: 14px 18px 0; border-bottom: 1px solid var(--divider-color, #444); }
+      dialog.pwin-dialog:not([open]) { display: none; }
+      .pwin-head { flex: none; padding: 14px 18px 0; border-bottom: 1px solid var(--divider-color, #444); }
       .pwin-head-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
       .pwin-brand { font-family: ui-monospace, monospace; font-size: 12px; letter-spacing: .3em;
                   color: var(--pipe-solar-color); }
@@ -2682,14 +2691,19 @@ console.log(
               text-transform: uppercase; opacity: .5; }
       .pwin-v { font-family: ui-monospace, monospace; font-size: 19px; margin-top: 3px;
               font-variant-numeric: tabular-nums; }
-      .pwin-tabs { display: flex; padding: 0 18px; border-bottom: 1px solid var(--divider-color, #444); }
+      .pwin-tabs { flex: none; display: flex; padding: 0 18px;
+                border-bottom: 1px solid var(--divider-color, #444); }
       .pwin-tab { appearance: none; border: 0; background: none; color: inherit; cursor: pointer;
                 font-family: ui-monospace, monospace; font-size: 11.5px; letter-spacing: .18em;
                 text-transform: uppercase; padding: 12px 16px; opacity: .45;
                 border-bottom: 2px solid transparent; }
       .pwin-tab:hover { opacity: .75; }
       .pwin-tab[aria-selected="true"] { opacity: 1; border-bottom-color: var(--pipe-solar-color); }
-      .pwin-body { padding: 18px; overflow-y: auto; }
+      .pwin-body { flex: 1 1 auto; min-height: 0; padding: 18px; overflow-y: auto;
+                scrollbar-width: thin; }
+      .pwin-body::-webkit-scrollbar { width: 9px; }
+      .pwin-body::-webkit-scrollbar-thumb { background: var(--divider-color, #444);
+                border-radius: 5px; }
       .pwin-placeholder { font-family: ui-monospace, monospace; font-size: 12px; opacity: .4;
                         padding: 40px 0; text-align: center; }
       /* phase powerwin-2: the day chart. currentColor on .pwin-chart is what the
