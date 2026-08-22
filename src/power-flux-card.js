@@ -1041,25 +1041,25 @@ console.log(
 
       const body = active === 'tag'
         ? this._renderPowerWindowDay(t)
-        : html`<div class="pw-placeholder">${t('powerwin_soon', 'kommt in der nächsten Etappe')}</div>`;
+        : html`<div class="pwin-placeholder">${t('powerwin_soon', 'kommt in der nächsten Etappe')}</div>`;
 
       return html`
-        <dialog class="pw-dialog" @close=${this._pwHide} @cancel=${this._pwHide}>
-          <div class="pw-head">
-            <div class="pw-head-top">
-              <span class="pw-brand">HEIMDALL · POWER</span>
-              <span class="pw-stamp">${this._pwStamp()}</span>
-              <button class="pw-x" aria-label="${t('powerwin_close', 'Fenster schließen')}"
+        <dialog class="pwin-dialog" @close=${this._pwHide} @cancel=${this._pwHide}>
+          <div class="pwin-head">
+            <div class="pwin-head-top">
+              <span class="pwin-brand">HEIMDALL · POWER</span>
+              <span class="pwin-stamp">${this._pwStamp()}</span>
+              <button class="pwin-x" aria-label="${t('powerwin_close', 'Fenster schließen')}"
                       @click=${this._pwHide}>&times;</button>
             </div>
-            <div class="pw-now">${this._renderPowerWindowNow()}</div>
+            <div class="pwin-now">${this._renderPowerWindowNow()}</div>
           </div>
-          <div class="pw-tabs" role="tablist">
+          <div class="pwin-tabs" role="tablist">
             ${tabs.map(([id, label]) => html`
-              <button class="pw-tab" role="tab" aria-selected=${active === id}
+              <button class="pwin-tab" role="tab" aria-selected=${active === id}
                       @click=${() => { this._pwTab = id; }}>${label}</button>`)}
           </div>
-          <div class="pw-body" role="tabpanel">${body}</div>
+          <div class="pwin-body" role="tabpanel">${body}</div>
         </dialog>`;
     }
 
@@ -1194,11 +1194,11 @@ console.log(
     // and the whole chart renders invisible.
     _renderPowerWindowDay(t) {
       if (this._pwDayBusy && !this._pwDay) {
-        return html`<div class="pw-placeholder">${t('powerwin_loading', 'lädt …')}</div>`;
+        return html`<div class="pwin-placeholder">${t('powerwin_loading', 'lädt …')}</div>`;
       }
       const g = this._pwDayGrid();
       if (!g) {
-        return html`<div class="pw-placeholder">${t('powerwin_nodata',
+        return html`<div class="pwin-placeholder">${t('powerwin_nodata',
           'Keine Statistik für diesen Tag.')}</div>`;
       }
 
@@ -1266,30 +1266,30 @@ console.log(
       const pct = v => (total > 0 ? `${(v / total * 100).toFixed(1)} %` : '–');
 
       return html`
-        <svg class="pw-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
+        <svg class="pwin-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
              role="img" aria-label="${t('powerwin_chart_alt', 'Tagesverlauf der Erzeugung mit gestapelten Verbrauchern')}">
           <defs>
             <pattern id="pwHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
               <line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width="2.4" stroke-opacity=".38"/>
             </pattern>
           </defs>
-          <path d="${gridPath}" class="pw-grid"/>
-          <text x="${L - 7}" y="${yPos(0)}" text-anchor="end" class="pw-ax">${yLab(0)}</text>
-          <text x="${L - 7}" y="${yPos(1)}" text-anchor="end" class="pw-ax">${yLab(1)}</text>
-          <text x="${L - 7}" y="${yPos(2)}" text-anchor="end" class="pw-ax">${yLab(2)}</text>
-          <text x="${L - 7}" y="${yPos(3)}" text-anchor="end" class="pw-ax">${yLab(3)}</text>
-          <text x="${L - 7}" y="${yPos(4)}" text-anchor="end" class="pw-ax">${yLab(4)}</text>
-          <text x="${L - 7}" y="${yPos(5)}" text-anchor="end" class="pw-ax">${yLab(5)}</text>
-          <text x="${hx(0)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(0)}</text>
-          <text x="${hx(1)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(1)}</text>
-          <text x="${hx(2)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(2)}</text>
-          <text x="${hx(3)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(3)}</text>
-          <text x="${hx(4)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(4)}</text>
-          <text x="${hx(5)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(5)}</text>
-          <text x="${hx(6)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(6)}</text>
-          <text x="${hx(7)}" y="${H - 7}" text-anchor="middle" class="pw-ax">${hl(7)}</text>
-          <path d="${band(new Array(N).fill(0), g.pv)}" class="pw-pvfill"/>
-          <path d="${bd(0)}" fill="${bf(0)}" opacity="${bo(0)}" class="pw-hatchband"/>
+          <path d="${gridPath}" class="pwin-grid"/>
+          <text x="${L - 7}" y="${yPos(0)}" text-anchor="end" class="pwin-ax">${yLab(0)}</text>
+          <text x="${L - 7}" y="${yPos(1)}" text-anchor="end" class="pwin-ax">${yLab(1)}</text>
+          <text x="${L - 7}" y="${yPos(2)}" text-anchor="end" class="pwin-ax">${yLab(2)}</text>
+          <text x="${L - 7}" y="${yPos(3)}" text-anchor="end" class="pwin-ax">${yLab(3)}</text>
+          <text x="${L - 7}" y="${yPos(4)}" text-anchor="end" class="pwin-ax">${yLab(4)}</text>
+          <text x="${L - 7}" y="${yPos(5)}" text-anchor="end" class="pwin-ax">${yLab(5)}</text>
+          <text x="${hx(0)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(0)}</text>
+          <text x="${hx(1)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(1)}</text>
+          <text x="${hx(2)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(2)}</text>
+          <text x="${hx(3)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(3)}</text>
+          <text x="${hx(4)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(4)}</text>
+          <text x="${hx(5)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(5)}</text>
+          <text x="${hx(6)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(6)}</text>
+          <text x="${hx(7)}" y="${H - 7}" text-anchor="middle" class="pwin-ax">${hl(7)}</text>
+          <path d="${band(new Array(N).fill(0), g.pv)}" class="pwin-pvfill"/>
+          <path d="${bd(0)}" fill="${bf(0)}" opacity="${bo(0)}" class="pwin-hatchband"/>
           <path d="${bd(1)}" fill="${bf(1)}" opacity="${bo(1)}"/>
           <path d="${bd(2)}" fill="${bf(2)}" opacity="${bo(2)}"/>
           <path d="${bd(3)}" fill="${bf(3)}" opacity="${bo(3)}"/>
@@ -1299,20 +1299,20 @@ console.log(
           <path d="${bd(7)}" fill="${bf(7)}" opacity="${bo(7)}"/>
           <path d="${bd(8)}" fill="${bf(8)}" opacity="${bo(8)}"/>
           <path d="${bd(9)}" fill="${bf(9)}" opacity="${bo(9)}"/>
-          <path d="${line(acc)}" class="pw-stackline"/>
-          <path d="${line(g.pv)}" class="pw-pvline"/>
-          <path d="M${X(N - 1).toFixed(1)},${T}L${X(N - 1).toFixed(1)},${H - B}" class="pw-nowline"/>
-          <circle cx="${X(N - 1)}" cy="${Y(g.pv[N - 1])}" r="3.5" class="pw-nowdot"/>
+          <path d="${line(acc)}" class="pwin-stackline"/>
+          <path d="${line(g.pv)}" class="pwin-pvline"/>
+          <path d="M${X(N - 1).toFixed(1)},${T}L${X(N - 1).toFixed(1)},${H - B}" class="pwin-nowline"/>
+          <circle cx="${X(N - 1)}" cy="${Y(g.pv[N - 1])}" r="3.5" class="pwin-nowdot"/>
         </svg>
 
-        <div class="pw-legend">
-          ${layers.map(l => html`<span class="pw-li">${l.swatch === 'hatch'
-            ? html`<i class="pw-sw pw-sw-hatch"></i>`
-            : html`<i class="pw-sw" style="background:${l.swatch}"></i>`}${l.label}</span>`)}
-          <span class="pw-li"><i class="pw-sw" style="background:var(--pipe-solar-color)"></i>${t('powerwin_pv_line', 'PV gesamt')}</span>
+        <div class="pwin-legend">
+          ${layers.map(l => html`<span class="pwin-li">${l.swatch === 'hatch'
+            ? html`<i class="pwin-sw pwin-sw-hatch"></i>`
+            : html`<i class="pwin-sw" style="background:${l.swatch}"></i>`}${l.label}</span>`)}
+          <span class="pwin-li"><i class="pwin-sw" style="background:var(--pipe-solar-color)"></i>${t('powerwin_pv_line', 'PV gesamt')}</span>
         </div>
 
-        <table class="pw-tab">
+        <table class="pwin-tab">
           <thead><tr>
             <th>${t('powerwin_col_consumer', 'Verbraucher')}</th><th>kWh</th>
             <th>${t('powerwin_col_share', 'Anteil')}</th>
@@ -1321,14 +1321,14 @@ console.log(
           </tr></thead>
           <tbody>
             ${rows.map(r => html`<tr>
-              <td><i class="pw-sw" style="background:${r.color}"></i>${r.label}</td>
+              <td><i class="pwin-sw" style="background:${r.color}"></i>${r.label}</td>
               <td>${r.e.toFixed(2)}</td><td>${pct(r.e)}</td>
               <td>${r.run.toFixed(1)} h</td>
               <td>${r.e > 0 ? `${Math.round(r.sun / r.e * 100)} %` : '–'}</td></tr>`)}
-            <tr class="pw-ghost">
-              <td><i class="pw-sw pw-sw-hatch"></i>${t('powerwin_rest', 'Rest, ungemessen')}</td>
+            <tr class="pwin-ghost">
+              <td><i class="pwin-sw pwin-sw-hatch"></i>${t('powerwin_rest', 'Rest, ungemessen')}</td>
               <td>${restE.toFixed(2)}</td><td>${pct(restE)}</td><td>–</td><td>–</td></tr>
-            <tr class="pw-sum">
+            <tr class="pwin-sum">
               <td>${t('powerwin_total', 'Hausbedarf gesamt')}</td>
               <td>${total.toFixed(2)}</td><td>100 %</td><td></td><td></td></tr>
           </tbody>
@@ -1376,9 +1376,9 @@ console.log(
         ['heute', num(e.grid_rotate_daily_3), 'var(--export-color)', '€'],
       ];
       return cells.map(([k, v, col, unit]) => html`
-        <div class="pw-cell">
-          <div class="pw-k">${k}</div>
-          <div class="pw-v" style="color:${col}">${
+        <div class="pwin-cell">
+          <div class="pwin-k">${k}</div>
+          <div class="pwin-v" style="color:${col}">${
             v === null ? '–'
               // _formatPower returns a bare "0" for zero, which reads right on
               // a bubble that carries its own caption and wrong in a row where
@@ -1428,7 +1428,7 @@ console.log(
       // Phase powerwin-1: <dialog> is opened through its own API, not by a
       // style. Kept in sync here so the reactive flag stays the single source
       // of truth even when the browser closes it (Escape, backdrop).
-      const dlg = this.renderRoot && this.renderRoot.querySelector('dialog.pw-dialog');
+      const dlg = this.renderRoot && this.renderRoot.querySelector('dialog.pwin-dialog');
       if (dlg) {
         if (this._pwOpen && !dlg.open) dlg.showModal();
         else if (!this._pwOpen && dlg.open) dlg.close();
@@ -2459,7 +2459,7 @@ console.log(
       /* .bubble already carries cursor: pointer -- only the focus ring is new. */
       .bubble.power:focus-visible { outline: 2px solid var(--pipe-solar-color); outline-offset: 3px; }
 
-      dialog.pw-dialog {
+      dialog.pwin-dialog {
         width: min(1180px, 96vw); max-width: 96vw; max-height: 92vh;
         padding: 0; border: 1px solid var(--divider-color, #444);
         border-radius: 18px; overflow: hidden;
@@ -2467,34 +2467,34 @@ console.log(
         color: var(--primary-text-color, #e8eaed);
         font-family: var(--paper-font-body1_-_font-family, inherit);
       }
-      dialog.pw-dialog::backdrop { background: rgba(0,0,0,.62); }
-      .pw-head { padding: 14px 18px 0; border-bottom: 1px solid var(--divider-color, #444); }
-      .pw-head-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
-      .pw-brand { font-family: ui-monospace, monospace; font-size: 12px; letter-spacing: .3em;
+      dialog.pwin-dialog::backdrop { background: rgba(0,0,0,.62); }
+      .pwin-head { padding: 14px 18px 0; border-bottom: 1px solid var(--divider-color, #444); }
+      .pwin-head-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+      .pwin-brand { font-family: ui-monospace, monospace; font-size: 12px; letter-spacing: .3em;
                   color: var(--pipe-solar-color); }
-      .pw-stamp { font-family: ui-monospace, monospace; font-size: 11px; opacity: .55; margin-left: auto; }
-      .pw-x { appearance: none; border: 0; background: none; color: inherit; font-size: 22px;
+      .pwin-stamp { font-family: ui-monospace, monospace; font-size: 11px; opacity: .55; margin-left: auto; }
+      .pwin-x { appearance: none; border: 0; background: none; color: inherit; font-size: 22px;
               line-height: 1; cursor: pointer; padding: 0 2px; opacity: .55; }
-      .pw-x:hover { opacity: 1; }
-      .pw-now { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
+      .pwin-x:hover { opacity: 1; }
+      .pwin-now { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
                 background: var(--divider-color, #444);
                 border-radius: 10px 10px 0 0; overflow: hidden; }
-      .pw-cell { background: rgba(255,255,255,.04); padding: 9px 10px 11px; }
-      .pw-k { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: .16em;
+      .pwin-cell { background: rgba(255,255,255,.04); padding: 9px 10px 11px; }
+      .pwin-k { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: .16em;
               text-transform: uppercase; opacity: .5; }
-      .pw-v { font-family: ui-monospace, monospace; font-size: 19px; margin-top: 3px;
+      .pwin-v { font-family: ui-monospace, monospace; font-size: 19px; margin-top: 3px;
               font-variant-numeric: tabular-nums; }
-      .pw-tabs { display: flex; padding: 0 18px; border-bottom: 1px solid var(--divider-color, #444); }
-      .pw-tab { appearance: none; border: 0; background: none; color: inherit; cursor: pointer;
+      .pwin-tabs { display: flex; padding: 0 18px; border-bottom: 1px solid var(--divider-color, #444); }
+      .pwin-tab { appearance: none; border: 0; background: none; color: inherit; cursor: pointer;
                 font-family: ui-monospace, monospace; font-size: 11.5px; letter-spacing: .18em;
                 text-transform: uppercase; padding: 12px 16px; opacity: .45;
                 border-bottom: 2px solid transparent; }
-      .pw-tab:hover { opacity: .75; }
-      .pw-tab[aria-selected="true"] { opacity: 1; border-bottom-color: var(--pipe-solar-color); }
-      .pw-body { padding: 18px; overflow-y: auto; }
-      .pw-placeholder { font-family: ui-monospace, monospace; font-size: 12px; opacity: .4;
+      .pwin-tab:hover { opacity: .75; }
+      .pwin-tab[aria-selected="true"] { opacity: 1; border-bottom-color: var(--pipe-solar-color); }
+      .pwin-body { padding: 18px; overflow-y: auto; }
+      .pwin-placeholder { font-family: ui-monospace, monospace; font-size: 12px; opacity: .4;
                         padding: 40px 0; text-align: center; }
-      /* phase powerwin-2: the day chart. currentColor on .pw-chart is what the
+      /* phase powerwin-2: the day chart. currentColor on .pwin-chart is what the
          hatch pattern resolves against -- a pattern inherits colour from its
          own ancestors, not from the path that references it. */
       /* The card carries one global element rule -- svg { position: absolute;
@@ -2505,42 +2505,42 @@ console.log(
          global rule is what the whole flow layer stands on and must not be
          weakened for one chart. Every property that rule sets is named again,
          so nothing is left inherited by accident. */
-      .pw-chart { position: static; top: auto; left: auto; z-index: auto;
+      .pwin-chart { position: static; top: auto; left: auto; z-index: auto;
                   pointer-events: auto; display: block; width: 100%; height: auto;
                   color: var(--primary-text-color, #e8eaed); }
-      .pw-grid { fill: none; stroke: var(--divider-color, #444); stroke-width: 1; }
-      .pw-ax { font-family: ui-monospace, monospace; font-size: 10px;
+      .pwin-grid { fill: none; stroke: var(--divider-color, #444); stroke-width: 1; }
+      .pwin-ax { font-family: ui-monospace, monospace; font-size: 10px;
                fill: var(--primary-text-color, #e8eaed); opacity: .45; }
-      .pw-pvfill { fill: var(--pipe-solar-color); opacity: .16; stroke: none; }
-      .pw-pvline { fill: none; stroke: var(--pipe-solar-color); stroke-width: 2.4;
+      .pwin-pvfill { fill: var(--pipe-solar-color); opacity: .16; stroke: none; }
+      .pwin-pvline { fill: none; stroke: var(--pipe-solar-color); stroke-width: 2.4;
                    stroke-linejoin: round; stroke-linecap: round; }
-      .pw-stackline { fill: none; stroke: var(--primary-text-color, #e8eaed);
+      .pwin-stackline { fill: none; stroke: var(--primary-text-color, #e8eaed);
                       stroke-opacity: .3; stroke-width: 1; }
-      .pw-nowline { fill: none; stroke: var(--primary-text-color, #e8eaed);
+      .pwin-nowline { fill: none; stroke: var(--primary-text-color, #e8eaed);
                     stroke-opacity: .45; stroke-dasharray: 3 4; }
-      .pw-nowdot { fill: var(--pipe-solar-color); }
-      .pw-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 10px 2px 2px; }
-      .pw-li { display: flex; align-items: center; gap: 6px; font-family: ui-monospace, monospace;
+      .pwin-nowdot { fill: var(--pipe-solar-color); }
+      .pwin-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 10px 2px 2px; }
+      .pwin-li { display: flex; align-items: center; gap: 6px; font-family: ui-monospace, monospace;
                font-size: 11px; opacity: .72; }
-      .pw-sw { width: 9px; height: 9px; border-radius: 2px; flex: none; display: inline-block; }
-      .pw-sw-hatch { background: none; border: 1px dashed currentColor; }
-      .pw-tab { width: 100%; border-collapse: collapse; margin-top: 12px;
+      .pwin-sw { width: 9px; height: 9px; border-radius: 2px; flex: none; display: inline-block; }
+      .pwin-sw-hatch { background: none; border: 1px dashed currentColor; }
+      .pwin-tab { width: 100%; border-collapse: collapse; margin-top: 12px;
                 font-family: ui-monospace, monospace; font-size: 12.5px;
                 font-variant-numeric: tabular-nums; }
-      .pw-tab th { text-align: right; font-size: 9.5px; letter-spacing: .14em; font-weight: 500;
+      .pwin-tab th { text-align: right; font-size: 9.5px; letter-spacing: .14em; font-weight: 500;
                    text-transform: uppercase; opacity: .45; padding: 0 0 8px; white-space: nowrap; }
-      .pw-tab th:first-child, .pw-tab td:first-child { text-align: left; }
-      .pw-tab td { padding: 7px 0; border-top: 1px solid var(--divider-color, #444);
+      .pwin-tab th:first-child, .pwin-tab td:first-child { text-align: left; }
+      .pwin-tab td { padding: 7px 0; border-top: 1px solid var(--divider-color, #444);
                    text-align: right; white-space: nowrap; }
-      .pw-tab td .pw-sw { margin-right: 8px; vertical-align: 1px; }
-      .pw-tab tr.pw-ghost td { opacity: .6; }
-      .pw-tab tr.pw-sum td { border-top: 1px solid currentColor; }
+      .pwin-tab td .pwin-sw { margin-right: 8px; vertical-align: 1px; }
+      .pwin-tab tr.pwin-ghost td { opacity: .6; }
+      .pwin-tab tr.pwin-sum td { border-top: 1px solid currentColor; }
       @media (max-width: 820px) {
-        dialog.pw-dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh;
+        dialog.pwin-dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh;
                            border-radius: 0; border: 0; }
-        .pw-now { grid-template-columns: repeat(4, 1fr); }
-        .pw-tabs { overflow-x: auto; padding: 0 10px; }
-        .pw-body { padding: 12px; }
+        .pwin-now { grid-template-columns: repeat(4, 1fr); }
+        .pwin-tabs { overflow-x: auto; padding: 0 10px; }
+        .pwin-body { padding: 12px; }
       }
     `;
     }
