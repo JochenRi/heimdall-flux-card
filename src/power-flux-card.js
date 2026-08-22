@@ -1042,8 +1042,10 @@ console.log(
       ];
       const active = this._pwTab || 'tag';
 
-      const body = active === 'tag'
-        ? this._renderPowerWindowDay(t)
+      const body = active === 'tag' ? this._renderPowerWindowDay(t)
+        : active === 'speicher' ? this._renderPowerWindowStorage(t)
+        : active === 'bilanz' ? this._renderPowerWindowBalance(t)
+        : active === 'anlage' ? this._renderPowerWindowSystem(t)
         : html`<div class="pwin-placeholder">${t('powerwin_soon', 'kommt in der nächsten Etappe')}</div>`;
 
       return html`
@@ -1084,6 +1086,10 @@ console.log(
       if (cfg.battery_enabled !== false) plan.push({ key: 'battery', role: 'batt' });
       if (cfg.venus_enabled !== false) plan.push({ key: 'venus', role: 'batt' });
       plan.push({ key: 'grid_combined', role: 'grid' });
+      // The storage tab needs the day's state of charge, so it is fetched with
+      // everything else rather than in a second round trip when the tab opens.
+      plan.push({ key: 'battery_soc', role: 'soc' });
+      plan.push({ key: 'venus_soc', role: 'soc' });
       return plan.filter(p => (cfg.entities || {})[p.key]);
     }
 
@@ -1221,6 +1227,11 @@ console.log(
         pv, rest, cons,
         lgCharge: batt.map(v => Math.max(0, v)),
         veCharge: venus.map(v => Math.max(0, v)),
+        lgDis: batt.map(v => Math.max(0, -v)),
+        veDis: venus.map(v => Math.max(0, -v)),
+        socLg: at.battery_soc || null,
+        socVe: at.venus_soc || null,
+        house,
         grid: get('grid_combined'),
       };
     }
@@ -1531,6 +1542,249 @@ console.log(
               <td>${x.e > 0 ? `${Math.round(x.sun / x.e * 100)} %` : '–'}</td></tr>`)}
           </tbody>
         </table>`;
+    }
+
+    // ---- shared helpers for the three secondary tabs --------------------
+    //
+    // Every figure below is derived from the same statistics the day tab
+    // already fetched. No new entity, no second round trip -- which also means
+    // these tabs work for anyone whose card is configured at all, not only for
+    // an installation that happens to carry a particular set of helpers.
+    _pwGuard(t) {
+      if (this._pwDayBusy && !this._pwDay) {
+        return html`<div class="pwin-placeholder">${t('powerwin_loading', 'lädt …')}</div>`;
+      }
+      if (!this._pwDayGrid()) {
+        return html`<div class="pwin-placeholder">${t('powerwin_nodata',
+          'Keine Statistik für diesen Tag.')}</div>`;
+      }
+      return null;
+    }
+
+    // Small state-of-charge trace. Fixed element count, empty d when there is
+    // no series -- the same rule the day chart follows.
+    _pwSoc(series, color) {
+      const W = 300, H = 60, p = 4;
+      if (!Array.isArray(series) || series.length < 2) {
+        return { line: '', area: '', cx: -10, cy: -10, lo: null, hi: null, now: null };
+      }
+      const v = series.map(x => Math.min(100, Math.max(0, x)));
+      const X = i => p + (W - 2 * p) * i / (v.length - 1);
+      const Y = x => H - p - (H - 2 * p) * x / 100;
+      const line = v.map((x, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(x).toFixed(1)}`).join('');
+      return {
+        line, area: `${line}L${W - p},${H - p}L${p},${H - p}Z`,
+        cx: X(v.length - 1), cy: Y(v[v.length - 1]),
+        lo: Math.min(...v), hi: Math.max(...v), now: v[v.length - 1], color,
+      };
+    }
+
+    // ---- Phase powerwin-6: storage --------------------------------------
+    _renderPowerWindowStorage(t) {
+      const stop = this._pwGuard(t); if (stop) return stop;
+      const g = this._pwDayGrid();
+      const hh = g.step / 3600000;
+      const kwh = a => a.reduce((x, v) => x + v, 0) * hh / 1000;
+      const hrsOver = a => a.filter(v => v > 20).length * hh;
+      const houseE = kwh(g.house);
+
+      const units = [
+        { key: 'lg', name: this.config.battery_label || 'LG',
+          color: 'var(--pipe-battery-color)', soc: g.socLg,
+          chg: g.lgCharge, dis: g.lgDis },
+        { key: 'venus', name: this.config.venus_label || 'Venus',
+          color: 'var(--pipe-venus-color)', soc: g.socVe,
+          chg: g.veCharge, dis: g.veDis },
+      ].filter(u => (this.config.entities || {})[u.key === 'lg' ? 'battery' : 'venus']);
+
+      const panel = (u) => {
+        const s = this._pwSoc(u.soc, u.color);
+        const cE = kwh(u.chg), dE = kwh(u.dis);
+        // Round-trip is only meaningful once a real amount has moved; below
+        // half a kilowatt-hour the ratio is noise, so it is not shown at all
+        // rather than shown wrong.
+        const rt = cE > 0.5 && dE > 0 ? `${Math.round(dE / cE * 100)} %` : '–';
+        return html`
+          <div class="pwin-panel">
+            <div class="pwin-panel-h">
+              <span class="pwin-panel-t" style="color:${u.color}">${u.name}</span>
+              <span class="pwin-panel-v">${s.now === null ? '–' : `${Math.round(s.now)} %`}</span>
+            </div>
+            <svg class="pwin-soc" viewBox="0 0 300 60" preserveAspectRatio="none">
+              <path d="${s.area}" fill="${u.color}" opacity=".16"/>
+              <path d="${s.line}" fill="none" stroke="${u.color}" stroke-width="1.6"
+                    stroke-linejoin="round"/>
+              <circle cx="${s.cx}" cy="${s.cy}" r="2.6" fill="${u.color}"/>
+            </svg>
+            <div class="pwin-kv"><span>${t('powerwin_soc_span', 'Tageshub')}</span>
+              <b>${s.lo === null ? '–' : `${Math.round(s.lo)} → ${Math.round(s.hi)} %`}</b></div>
+            <div class="pwin-kv"><span>${t('powerwin_charged', 'geladen')}</span>
+              <b style="color:var(--export-color)">${cE.toFixed(2)} kWh</b></div>
+            <div class="pwin-kv"><span>${t('powerwin_discharged', 'entladen')}</span>
+              <b style="color:var(--pipe-solar-color)">${dE.toFixed(2)} kWh</b></div>
+            <div class="pwin-kv"><span>${t('powerwin_roundtrip', 'zurückgegeben')}</span><b>${rt}</b></div>
+            <div class="pwin-kv"><span>${t('powerwin_t_charge', 'Zeit ladend')}</span>
+              <b>${hrsOver(u.chg).toFixed(1)} h</b></div>
+            <div class="pwin-kv"><span>${t('powerwin_t_dis', 'Zeit entladend')}</span>
+              <b>${hrsOver(u.dis).toFixed(1)} h</b></div>
+            <div class="pwin-kv"><span>${t('powerwin_house_share', 'Anteil am Hausbedarf')}</span>
+              <b>${houseE > 0 ? `${Math.round(dE / houseE * 100)} %` : '–'}</b></div>
+          </div>`;
+      };
+
+      const disTotal = kwh(g.lgDis) + kwh(g.veDis);
+      const chgTotal = kwh(g.lgCharge) + kwh(g.veCharge);
+      return html`
+        <div class="pwin-cols">${units.map(panel)}</div>
+        <div class="pwin-note">
+          ${t('powerwin_store_note', 'Zusammen geladen')} <b>${chgTotal.toFixed(2)} kWh</b> ·
+          ${t('powerwin_store_note2', 'zusammen abgegeben')} <b>${disTotal.toFixed(2)} kWh</b> ·
+          ${t('powerwin_store_note3', 'das deckte')}
+          <b>${houseE > 0 ? Math.round(disTotal / houseE * 100) : 0} %</b>
+          ${t('powerwin_store_note4', 'des Hausbedarfs')}
+        </div>`;
+    }
+
+    // ---- Phase powerwin-6: balance --------------------------------------
+    _renderPowerWindowBalance(t) {
+      const stop = this._pwGuard(t); if (stop) return stop;
+      const g = this._pwDayGrid();
+      const hh = g.step / 3600000;
+      const kwh = a => a.reduce((x, v) => x + v, 0) * hh / 1000;
+
+      // Solar straight into the house is what is left of house demand once the
+      // measured storage discharge and the measured grid import are taken off.
+      // Computed per bucket and clamped, not from day totals: doing it on
+      // totals lets a surplus at noon cancel a deficit at midnight and quietly
+      // invents self-consumption that never happened.
+      const pvDirect = g.house.map((h, i) =>
+        Math.max(0, h - g.lgDis[i] - g.veDis[i] - Math.max(0, g.grid[i])));
+      const src = [
+        [t('powerwin_src_pv', 'PV direkt'), kwh(pvDirect), 'var(--pipe-solar-color)'],
+        [`${this.config.battery_label || 'LG'}`, kwh(g.lgDis), 'var(--pipe-battery-color)'],
+        [`${this.config.venus_label || 'Venus'}`, kwh(g.veDis), 'var(--pipe-venus-color)'],
+        [t('powerwin_src_grid', 'Netz'), kwh(g.grid.map(v => Math.max(0, v))), 'var(--pipe-grid-color)'],
+      ].filter(x => x[1] > 0.005);
+
+      const use = [
+        [t('powerwin_use_house', 'Haus direkt'), kwh(pvDirect), 'var(--pipe-solar-color)'],
+        [`${this.config.battery_label || 'LG'}`, kwh(g.lgCharge), 'var(--pipe-battery-color)'],
+        [`${this.config.venus_label || 'Venus'}`, kwh(g.veCharge), 'var(--pipe-venus-color)'],
+        [t('powerwin_use_export', 'eingespeist'), kwh(g.grid.map(v => Math.max(0, -v))), 'var(--export-color)'],
+      ].filter(x => x[1] > 0.005);
+
+      const bar = (rows) => {
+        const sum = rows.reduce((a, r) => a + r[1], 0) || 1;
+        return html`
+          <div class="pwin-bar">${rows.map(r => html`
+            <i style="width:${(r[1] / sum * 100).toFixed(2)}%;background:${r[2]}"></i>`)}</div>
+          <div class="pwin-barlabels">${rows.map(r => html`
+            <span class="pwin-li"><i class="pwin-sw" style="background:${r[2]}"></i>${r[0]}
+              <b>${r[1].toFixed(2)}</b> kWh · ${Math.round(r[1] / sum * 100)} %</span>`)}</div>`;
+      };
+
+      const houseE = kwh(g.house);
+      const pvE = kwh(g.pv);
+      const expE = kwh(g.grid.map(v => Math.max(0, -v)));
+      const impE = kwh(g.grid.map(v => Math.max(0, v)));
+      const autark = houseE > 0 ? Math.round((houseE - impE) / houseE * 100) : 0;
+      const selfQ = pvE > 0 ? Math.round((pvE - expE) / pvE * 100) : 0;
+
+      return html`
+        <h4 class="pwin-h">${t('powerwin_bal_src', 'Woher der Strom kam')} ·
+          ${houseE.toFixed(2)} kWh ${t('powerwin_bal_need', 'Hausbedarf')}</h4>
+        ${bar(src)}
+        <h4 class="pwin-h">${t('powerwin_bal_use', 'Wohin die Erzeugung ging')} ·
+          ${pvE.toFixed(2)} kWh</h4>
+        ${bar(use)}
+        <div class="pwin-cols pwin-cols-3">
+          <div class="pwin-panel"><div class="pwin-panel-s">${t('powerwin_autarky', 'Autarkie')}</div>
+            <div class="pwin-big" style="color:var(--export-color)">${autark}<span>%</span></div>
+            <div class="pwin-kv"><span>${t('powerwin_kpi_import', 'kWh aus dem Netz')}</span>
+              <b>${impE.toFixed(2)}</b></div></div>
+          <div class="pwin-panel"><div class="pwin-panel-s">${t('powerwin_selfq', 'Eigenverbrauchsquote')}</div>
+            <div class="pwin-big" style="color:var(--pipe-solar-color)">${selfQ}<span>%</span></div>
+            <div class="pwin-kv"><span>${t('powerwin_kpi_export', 'kWh eingespeist')}</span>
+              <b>${expE.toFixed(2)}</b></div></div>
+          <div class="pwin-panel"><div class="pwin-panel-s">${t('powerwin_gen', 'Erzeugung')}</div>
+            <div class="pwin-big" style="color:var(--pipe-solar-color)">${pvE.toFixed(1)}<span>kWh</span></div>
+            <div class="pwin-kv"><span>${t('powerwin_peak', 'Spitze')}</span>
+              <b>${(Math.max(...g.pv) / 1000).toFixed(2)} kW</b></div></div>
+        </div>`;
+    }
+
+    // ---- Phase powerwin-6: system ---------------------------------------
+    //
+    // The tab where a measurement error shows up before it disappears into a
+    // number. Every line here is a check, not a decoration.
+    _renderPowerWindowSystem(t) {
+      const stop = this._pwGuard(t); if (stop) return stop;
+      const g = this._pwDayGrid();
+      const d = this._pwDay;
+      const hh = g.step / 3600000;
+      const kwh = a => a.reduce((x, v) => x + v, 0) * hh / 1000;
+
+      // Balance probe: everything that came in against everything that went
+      // out, per bucket. A residual means a meter is lying somewhere, and the
+      // garden PV running past the house meter is exactly such a case.
+      const resid = g.house.map((h, i) =>
+        (g.pv[i] + Math.max(0, g.grid[i]) + g.lgDis[i] + g.veDis[i])
+        - (h + g.lgCharge[i] + g.veCharge[i] + Math.max(0, -g.grid[i])));
+      const residMean = resid.reduce((a, v) => a + v, 0) / (resid.length || 1);
+      const residMax = resid.reduce((a, v) => Math.abs(v) > Math.abs(a) ? v : a, 0);
+
+      let worst = 0;
+      for (let i = 1; i < g.rest.length; i++) if (g.rest[i] > g.rest[worst]) worst = i;
+      const worstAt = new Date(g.slots[worst]).toLocaleTimeString(undefined,
+        { hour: '2-digit', minute: '2-digit' });
+
+      const ent = this.config.entities || {};
+      const expected = g.slots.length;
+      const feeds = (d.plan || []).map(p => {
+        const arr = (d.series || {})[ent[p.key]];
+        return { key: p.key, id: ent[p.key], n: arr ? arr.length : 0 };
+      });
+      const missing = feeds.filter(f => f.n === 0);
+      const thin = feeds.filter(f => f.n > 0 && f.n < expected * 0.9);
+
+      const row = (k, v, cls) => html`
+        <div class="pwin-kv"><span>${k}</span><b class="${cls || ''}">${v}</b></div>`;
+
+      return html`
+        <div class="pwin-cols">
+          <div class="pwin-panel">
+            <div class="pwin-panel-s">${t('powerwin_sys_data', 'Datenlage')}</div>
+            ${row(t('powerwin_sys_res', 'Auflösung'),
+                  d.period === 'hour' ? t('powerwin_hourres', 'Stundenwerte')
+                                      : t('powerwin_5min', '5 Minuten'))}
+            ${row(t('powerwin_sys_buckets', 'Messpunkte je Reihe'), expected)}
+            ${row(t('powerwin_sys_feeds', 'Reihen geliefert'),
+                  `${feeds.length - missing.length} / ${feeds.length}`,
+                  missing.length ? 'pwin-warn' : '')}
+            ${row(t('powerwin_sys_thin', 'Reihen mit Lücken'), thin.length,
+                  thin.length ? 'pwin-warn' : '')}
+          </div>
+          <div class="pwin-panel">
+            <div class="pwin-panel-s">${t('powerwin_sys_checks', 'Prüfungen')}</div>
+            ${row(t('powerwin_sys_bal', 'Bilanzabweichung Ø'),
+                  `${residMean >= 0 ? '+' : ''}${Math.round(residMean)} W`,
+                  Math.abs(residMean) > 150 ? 'pwin-warn' : '')}
+            ${row(t('powerwin_sys_balmax', 'größte Abweichung'), `${Math.round(residMax)} W`)}
+            ${row(t('powerwin_sys_worst', 'größter ungemessener Rest'),
+                  `${Math.round(g.rest[worst])} W · ${worstAt}`)}
+            ${row(t('powerwin_sys_restday', 'Rest über den Tag'),
+                  `${kwh(g.rest).toFixed(2)} kWh`)}
+          </div>
+        </div>
+        ${missing.length || thin.length ? html`
+          <div class="pwin-panel" style="margin-top:14px">
+            <div class="pwin-panel-s">${t('powerwin_sys_problems', 'Reihen, die auffallen')}</div>
+            ${missing.map(f => row(f.key, `${t('powerwin_sys_nodata', 'keine Daten')} — ${f.id}`, 'pwin-warn'))}
+            ${thin.map(f => row(f.key, `${f.n} / ${expected} — ${f.id}`, 'pwin-warn'))}
+          </div>` : ''}
+        <div class="pwin-note">
+          ${t('powerwin_sys_hint', 'Eine Bilanzabweichung ist kein Fehler der Karte, sondern ein Hinweis, dass irgendwo ein Zähler an einem Pfad vorbeimisst.')}
+        </div>`;
     }
 
     _pwStamp() {
@@ -2813,6 +3067,48 @@ console.log(
                 opacity: .5; font-weight: 700; text-align: left; }
       .pwin-sw-dash { background: none !important; border: 1.5px dashed currentColor;
                 border-color: inherit; }
+
+      /* ---- phase powerwin-6: the three secondary tabs ------------------- */
+      .pwin-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .pwin-cols-3 { grid-template-columns: repeat(3, 1fr); margin-top: 16px; }
+      .pwin-panel { background: rgba(255, 255, 255, .022); border-radius: 12px;
+                border: 1px solid var(--divider-color, #444); padding: 14px 16px; }
+      .pwin-panel-h { display: flex; align-items: baseline; justify-content: space-between;
+                margin-bottom: 6px; }
+      .pwin-panel-t { font-family: ui-monospace, monospace; font-size: 13px;
+                letter-spacing: .12em; text-transform: uppercase; }
+      .pwin-panel-v { font-family: ui-monospace, monospace; font-size: 26px; font-weight: 600;
+                font-variant-numeric: tabular-nums; }
+      .pwin-panel-s { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: .16em;
+                text-transform: uppercase; opacity: .5; margin-bottom: 10px; font-weight: 700; }
+      .pwin-soc { position: static; top: auto; left: auto; z-index: auto; pointer-events: auto;
+                display: block; width: 100%; height: 58px; margin: 2px 0 10px; }
+      .pwin-kv { display: flex; justify-content: space-between; gap: 12px;
+                font-family: ui-monospace, monospace; font-size: 12px; padding: 6px 0;
+                border-top: 1px solid var(--divider-color, #444);
+                font-variant-numeric: tabular-nums; }
+      .pwin-kv span { opacity: .6; }
+      .pwin-kv b { font-weight: 600; }
+      .pwin-kv b.pwin-warn { color: var(--pipe-grid-color); }
+      .pwin-big { font-family: ui-monospace, monospace; font-size: 34px; font-weight: 600;
+                line-height: 1; font-variant-numeric: tabular-nums; margin-bottom: 12px; }
+      .pwin-big span { font-size: 13px; opacity: .55; margin-left: 4px; font-weight: 400; }
+      .pwin-h { font-family: ui-monospace, monospace; font-size: 10.5px; letter-spacing: .16em;
+                text-transform: uppercase; opacity: .55; font-weight: 700;
+                margin: 18px 0 8px; }
+      .pwin-h:first-child { margin-top: 0; }
+      .pwin-bar { display: flex; height: 26px; border-radius: 6px; overflow: hidden;
+                background: rgba(255, 255, 255, .05); }
+      .pwin-bar i { display: block; height: 100%; }
+      .pwin-barlabels { display: flex; flex-wrap: wrap; gap: 4px 20px; padding: 9px 2px 0; }
+      .pwin-barlabels b { font-weight: 600; opacity: 1; }
+      .pwin-note { font-family: ui-monospace, monospace; font-size: 11px; opacity: .55;
+                line-height: 1.7; margin-top: 16px; padding-top: 12px;
+                border-top: 1px dashed var(--divider-color, #444); }
+      .pwin-note b { opacity: 1; font-weight: 600; }
+      @media (max-width: 820px) {
+        .pwin-cols, .pwin-cols-3 { grid-template-columns: 1fr; }
+      }
       @media (max-width: 820px) {
         dialog.pwin-dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh;
                            border-radius: 0; border: 0; }

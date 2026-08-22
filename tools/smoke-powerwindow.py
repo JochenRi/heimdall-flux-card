@@ -39,7 +39,9 @@ import sys
 import tempfile
 
 CARD = os.path.join(os.path.dirname(__file__), '..', 'src', 'power-flux-card.js')
-METHODS = ['_pwDayPlan', '_pwDayGrid', '_renderPowerWindowDay']
+METHODS = ['_pwDayPlan', '_pwDayGrid', '_pwGuard', '_pwSoc', '_renderPowerWindowDay',
+           '_renderPowerWindowStorage', '_renderPowerWindowBalance',
+           '_renderPowerWindowSystem']
 TIMEOUT = 30
 
 
@@ -132,6 +134,9 @@ for (const [name, d] of cases) {
     d.plan = stub._pwDayPlan();
     const g = stub._pwDayGrid();
     stub._renderPowerWindowDay(t);
+    stub._renderPowerWindowStorage(t);
+    stub._renderPowerWindowBalance(t);
+    stub._renderPowerWindowSystem(t);
     const slots = g ? g.slots.length : 0;
     console.log('  ' + name.padEnd(34) + 'ok'
                 + (g ? '   ' + slots + ' slots' : '   guarded'));
