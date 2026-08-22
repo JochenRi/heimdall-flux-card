@@ -49,6 +49,7 @@ console.log(
         _panelRightEls: { state: true },
         _pwOpen: { state: true },
         _pwTab: { state: true },
+        _pwDate: { state: true },
       };
     }
 
@@ -1013,6 +1014,7 @@ console.log(
     _pwShow() {
       if (!this._pwEnabled()) return;
       if (!this._pwTab) this._pwTab = 'tag';
+      if (!this._pwDate) this._pwDate = this._pwMidnight(new Date());
       this._pwOpen = true;
       this._pwLoadDay();
     }
@@ -1084,23 +1086,52 @@ console.log(
       return plan.filter(p => (cfg.entities || {})[p.key]);
     }
 
+    _pwMidnight(d) {
+      const x = new Date(d); x.setHours(0, 0, 0, 0); return x;
+    }
+
+    _pwIsToday() {
+      return !this._pwDate
+        || this._pwDate.getTime() === this._pwMidnight(new Date()).getTime();
+    }
+
+    // Forward is capped at today. There is no data in the future and a chart
+    // that scrolls into an empty tomorrow teaches the wrong thing about what
+    // the card knows.
+    _pwStep(days) {
+      const base = this._pwDate || this._pwMidnight(new Date());
+      const next = new Date(base.getTime() + days * 86400000);
+      if (next.getTime() > this._pwMidnight(new Date()).getTime()) return;
+      this._pwDate = this._pwMidnight(next);
+      this._pwLoadDay();
+    }
+
+    _pwToday() {
+      if (this._pwIsToday()) return;
+      this._pwDate = this._pwMidnight(new Date());
+      this._pwLoadDay();
+    }
+
     async _pwLoadDay() {
       if (this._pwDayBusy) return;
       const now = Date.now();
-      // Refetched at most once a minute; five-minute buckets cannot move
-      // faster than that, so anything more often is pure traffic.
-      if (this._pwDay && now - this._pwDay.at < 60000) return;
+      const start = this._pwDate || this._pwMidnight(new Date());
+      const key = start.getTime();
+      // A past day is finished and never changes, so it is fetched once. Today
+      // is refetched at most once a minute -- five-minute buckets cannot move
+      // faster than that, and anything more often is pure traffic.
+      if (this._pwDay && this._pwDay.key === key
+          && (!this._pwIsToday() || now - this._pwDay.at < 60000)) return;
       this._pwDayBusy = true;
-      this._pwDayErr = null;
+      this._requestRedraw();
       try {
         const ent = this.config.entities || {};
         const plan = this._pwDayPlan();
         const ids = plan.map(p => ent[p.key]);
-        const start = new Date(); start.setHours(0, 0, 0, 0);
-        const res = await this._fetchStats(ids, { start, end: new Date(), period: '5minute' });
+        const end = new Date(Math.min(Date.now(), key + 86400000));
+        const res = await this._fetchStats(ids, { start, end, period: '5minute' });
         if (!this.isConnected) return;
-        this._pwDay = { at: now, start: start.getTime(), plan, ...res };
-        if (Object.keys(res.series).length === 0) this._pwDayErr = 'empty';
+        this._pwDay = { at: now, key, start: key, end: end.getTime(), plan, ...res };
       } finally {
         this._pwDayBusy = false;
         this._requestRedraw();
@@ -1202,6 +1233,25 @@ console.log(
           'Keine Statistik für diesen Tag.')}</div>`;
       }
 
+      // Day totals. Export and import are the MEASURED grid series, never the
+      // gap between stack and arc -- the garden PV runs into the Venus MPPTs
+      // past the house meter, and on a sunny midday that gap was found to be
+      // up to 810 W wide. Self-consumed PV is production minus what left the
+      // property, which is the figure HA's own energy dashboard has been asked
+      // for since discussion #15131 and still does not show in absolute kWh.
+      const hh = g.step / 3600000;
+      const sumKwh = a2 => a2.reduce((x, v) => x + v, 0) * hh / 1000;
+      const pvE = sumKwh(g.pv);
+      const expE = sumKwh(g.grid.map(v => Math.max(0, -v)));
+      const impE = sumKwh(g.grid.map(v => Math.max(0, v)));
+      const selfE = Math.max(0, pvE - expE);
+      const quote = pvE > 0 ? Math.round(selfE / pvE * 100) : 0;
+      const k2 = v => v.toFixed(2);
+
+      const dLabel = new Date(g.slots[0]).toLocaleDateString(undefined,
+        { weekday: 'short', day: '2-digit', month: '2-digit' });
+      const atToday = this._pwIsToday();
+
       const N = g.slots.length;
       const W = 1000, H = 360, L = 48, R = 14, T = 14, B = 26;
       const iw = W - L - R, ih = H - T - B;
@@ -1254,18 +1304,36 @@ console.log(
       const hx = k => { const i = hourIdx(k * 3); return i < 0 ? -100 : X(i); };
       const hl = k => (hourIdx(k * 3) < 0 ? '' : `${String(k * 3).padStart(2, '0')}`);
 
-      const hrs = g.step / 3600000;
-      const kwh = a2 => a2.reduce((x, v) => x + v, 0) * hrs / 1000;
       const rows = g.cons.map(c => ({
-        label: c.label, color: c.color, e: kwh(c.data),
-        run: c.data.filter(v => v > 20).length * hrs,
+        label: c.label, color: c.color, e: sumKwh(c.data),
+        run: c.data.filter(v => v > 20).length * hh,
         sun: c.data.reduce((x, v, i) => x + (acc[i] <= g.pv[i] ? v : 0), 0) * hrs / 1000,
       })).sort((a2, b2) => b2.e - a2.e);
-      const restE = kwh(g.rest);
+      const restE = sumKwh(g.rest);
       const total = rows.reduce((a2, r) => a2 + r.e, 0) + restE;
       const pct = v => (total > 0 ? `${(v / total * 100).toFixed(1)} %` : '–');
 
       return html`
+        <div class="pwin-daybar">
+          <button class="pwin-nav" @click=${() => this._pwStep(-1)}
+                  title="${t('powerwin_prev', 'Tag zurück')}">&#8249;</button>
+          <span class="pwin-daylabel">${dLabel}</span>
+          <button class="pwin-nav" ?disabled=${atToday} @click=${() => this._pwStep(1)}
+                  title="${t('powerwin_next', 'Tag vor')}">&#8250;</button>
+          <button class="pwin-today" ?disabled=${atToday}
+                  @click=${() => this._pwToday()}>${t('powerwin_today', 'heute')}</button>
+          <span class="pwin-res">${g.step === 3600000 ? t('powerwin_hourres', 'Stundenwerte') : ''}</span>
+        </div>
+        <div class="pwin-kpis">
+          <span class="pwin-kpi"><b style="color:var(--pipe-solar-color)">${k2(pvE)}</b>
+            ${t('powerwin_kpi_pv', 'kWh erzeugt')}</span>
+          <span class="pwin-kpi"><b>${k2(selfE)}</b>
+            ${t('powerwin_kpi_self', 'kWh selbst genutzt')} <i>(${quote} %)</i></span>
+          <span class="pwin-kpi"><b style="color:var(--export-color)">${k2(expE)}</b>
+            ${t('powerwin_kpi_export', 'kWh eingespeist')}</span>
+          <span class="pwin-kpi"><b style="color:var(--pipe-grid-color)">${k2(impE)}</b>
+            ${t('powerwin_kpi_import', 'kWh aus dem Netz')}</span>
+        </div>
         <svg class="pwin-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet"
              role="img" aria-label="${t('powerwin_chart_alt', 'Tagesverlauf der Erzeugung mit gestapelten Verbrauchern')}">
           <defs>
@@ -1299,6 +1367,7 @@ console.log(
           <path d="${bd(7)}" fill="${bf(7)}" opacity="${bo(7)}"/>
           <path d="${bd(8)}" fill="${bf(8)}" opacity="${bo(8)}"/>
           <path d="${bd(9)}" fill="${bf(9)}" opacity="${bo(9)}"/>
+          <path d="${band(acc.map((v, i) => Math.min(v, g.pv[i])), g.pv)}" class="pwin-surplus"/>
           <path d="${line(acc)}" class="pwin-stackline"/>
           <path d="${line(g.pv)}" class="pwin-pvline"/>
           <path d="M${X(N - 1).toFixed(1)},${T}L${X(N - 1).toFixed(1)},${H - B}" class="pwin-nowline"/>
@@ -1309,6 +1378,7 @@ console.log(
           ${layers.map(l => html`<span class="pwin-li">${l.swatch === 'hatch'
             ? html`<i class="pwin-sw pwin-sw-hatch"></i>`
             : html`<i class="pwin-sw" style="background:${l.swatch}"></i>`}${l.label}</span>`)}
+          <span class="pwin-li"><i class="pwin-sw" style="background:var(--export-color)"></i>${t('powerwin_surplus', 'Überschuss / Einspeisung')}</span>
           <span class="pwin-li"><i class="pwin-sw" style="background:var(--pipe-solar-color)"></i>${t('powerwin_pv_line', 'PV gesamt')}</span>
         </div>
 
@@ -2510,7 +2580,7 @@ console.log(
                   color: var(--primary-text-color, #e8eaed); }
       .pwin-grid { fill: none; stroke: var(--divider-color, #444); stroke-width: 1; }
       .pwin-ax { font-family: ui-monospace, monospace; font-size: 10px;
-               fill: var(--primary-text-color, #e8eaed); opacity: .45; }
+               fill: var(--primary-text-color, #e8eaed); opacity: .6; }
       .pwin-pvfill { fill: var(--pipe-solar-color); opacity: .16; stroke: none; }
       .pwin-pvline { fill: none; stroke: var(--pipe-solar-color); stroke-width: 2.4;
                    stroke-linejoin: round; stroke-linecap: round; }
@@ -2521,20 +2591,53 @@ console.log(
       .pwin-nowdot { fill: var(--pipe-solar-color); }
       .pwin-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 10px 2px 2px; }
       .pwin-li { display: flex; align-items: center; gap: 6px; font-family: ui-monospace, monospace;
-               font-size: 11px; opacity: .72; }
+               font-size: 11px; opacity: .82; }
       .pwin-sw { width: 9px; height: 9px; border-radius: 2px; flex: none; display: inline-block; }
       .pwin-sw-hatch { background: none; border: 1px dashed currentColor; }
-      .pwin-tab { width: 100%; border-collapse: collapse; margin-top: 12px;
+      /* Day navigation and the four day totals. */
+      .pwin-daybar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+      .pwin-nav, .pwin-today { appearance: none; border: 1px solid var(--divider-color, #444);
+                background: none; color: inherit; cursor: pointer; border-radius: 6px;
+                font-family: ui-monospace, monospace; line-height: 1; }
+      .pwin-nav { font-size: 17px; padding: 3px 11px 5px; }
+      .pwin-today { font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+                padding: 6px 11px; }
+      .pwin-nav:hover:not(:disabled), .pwin-today:hover:not(:disabled) {
+                border-color: var(--pipe-solar-color); color: var(--pipe-solar-color); }
+      .pwin-nav:disabled, .pwin-today:disabled { opacity: .25; cursor: default; }
+      .pwin-daylabel { font-family: ui-monospace, monospace; font-size: 13px; letter-spacing: .06em;
+                min-width: 108px; text-align: center; }
+      .pwin-res { font-family: ui-monospace, monospace; font-size: 10.5px; opacity: .45;
+                margin-left: auto; }
+      .pwin-kpis { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-bottom: 12px;
+                font-family: ui-monospace, monospace; font-size: 11.5px; }
+      .pwin-kpi { opacity: .62; }
+      .pwin-kpi b { font-size: 15px; font-weight: 600; opacity: 1; margin-right: 5px;
+                font-variant-numeric: tabular-nums; }
+      .pwin-kpi i { font-style: normal; opacity: .8; }
+      .pwin-surplus { fill: var(--export-color); opacity: .3; stroke: none; }
+
+      /* Zebra rows. The research is consistent on two points: striping helps
+         accuracy on dense tables, and in a dark theme the stripe has to be
+         tuned low or it becomes noise. 3.5 % white is enough to follow a row
+         across five columns and not enough to read as a highlight. Row text
+         runs at full contrast -- the earlier version dimmed everything to
+         .45 and the whole table read as disabled. */
+      .pwin-tab { width: 100%; border-collapse: collapse; margin-top: 14px;
                 font-family: ui-monospace, monospace; font-size: 12.5px;
                 font-variant-numeric: tabular-nums; }
-      .pwin-tab th { text-align: right; font-size: 9.5px; letter-spacing: .14em; font-weight: 500;
-                   text-transform: uppercase; opacity: .45; padding: 0 0 8px; white-space: nowrap; }
+      .pwin-tab th { text-align: right; font-size: 10px; letter-spacing: .14em; font-weight: 700;
+                   text-transform: uppercase; opacity: .55; padding: 0 10px 9px;
+                   white-space: nowrap; border-bottom: 1px solid var(--divider-color, #444); }
       .pwin-tab th:first-child, .pwin-tab td:first-child { text-align: left; }
-      .pwin-tab td { padding: 7px 0; border-top: 1px solid var(--divider-color, #444);
-                   text-align: right; white-space: nowrap; }
-      .pwin-tab td .pwin-sw { margin-right: 8px; vertical-align: 1px; }
-      .pwin-tab tr.pwin-ghost td { opacity: .6; }
-      .pwin-tab tr.pwin-sum td { border-top: 1px solid currentColor; }
+      .pwin-tab td { padding: 8px 10px; text-align: right; white-space: nowrap; border: 0; }
+      .pwin-tab tbody tr:nth-child(odd) { background: rgba(255, 255, 255, .035); }
+      .pwin-tab tbody tr:hover { background: rgba(255, 255, 255, .075); }
+      .pwin-tab tbody tr:first-child td { padding-top: 10px; }
+      .pwin-tab td .pwin-sw { width: 10px; height: 10px; margin-right: 9px; vertical-align: -1px; }
+      .pwin-tab tr.pwin-ghost td { opacity: .72; font-style: italic; }
+      .pwin-tab tr.pwin-sum td { border-top: 2px solid var(--divider-color, #444);
+                font-weight: 700; background: none; padding-top: 10px; }
       @media (max-width: 820px) {
         dialog.pwin-dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh;
                            border-radius: 0; border: 0; }
