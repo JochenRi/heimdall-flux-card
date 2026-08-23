@@ -7398,7 +7398,11 @@ console.log(
         </div>
 
         <div class="pwin-legend">
-          ${layers.map(l => html`<span class="pwin-li ${focus !== null && l.cid !== focus ? 'pwin-off' : ''}"
+          ${layers.map(l => html`<span
+              class="pwin-li pwin-hit ${focus === l.cid ? 'pwin-on' : ''} ${focus !== null && l.cid !== focus ? 'pwin-off' : ''}"
+              @mouseenter=${() => this._pwSetFocus(l.cid)}
+              @mouseleave=${() => this._pwSetFocus(null)}
+              @click=${() => this._pwSetFocus(focus === l.cid ? null : l.cid)}
             >${l.swatch === 'hatch'
               ? html`<i class="pwin-sw pwin-sw-hatch"></i>`
               : html`<i class="pwin-sw" style="background:${l.swatch}"></i>`}${l.label}</span>`)}
@@ -8936,6 +8940,13 @@ console.log(
       .pwin-focused .pwin-edge { stroke-width: 2;
                 filter: drop-shadow(0 0 4px currentColor); }
       .pwin-legend .pwin-off { opacity: .2; }
+      /* The legend sits directly under the chart, so it is the shorter reach
+         than the table. Same focus, same toggle-on-tap for the wall tablet. */
+      .pwin-hit { cursor: pointer; border-radius: 4px; padding: 2px 6px; margin: -2px -2px;
+                transition: opacity .12s ease, background .12s ease; }
+      .pwin-hit:hover { background: rgba(255, 255, 255, .07); }
+      .pwin-legend .pwin-on { opacity: 1; background: rgba(255, 255, 255, .1);
+                box-shadow: inset 0 -2px 0 currentColor; }
       .pwin-chart, .pwin-edge, .pwin-surplus { transition: opacity .12s ease; }
 
       /* Zebra rows. The research is consistent on two points: striping helps
