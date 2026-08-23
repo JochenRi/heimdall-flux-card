@@ -39,7 +39,7 @@ import sys
 import tempfile
 
 CARD = os.path.join(os.path.dirname(__file__), '..', 'src', 'power-flux-card.js')
-METHODS = ['_pwDayPlan', '_pwDayGrid', '_pwGuard', '_pwSoc', '_renderPowerWindowDay',
+METHODS = ['_pwDayPlan', '_pwDayGrid', '_pwGuard', '_pwSoc', '_pwDayBar', '_renderPowerWindowDay',
            '_renderPowerWindowStorage', '_renderPowerWindowBalance',
            '_renderPowerWindowSystem']
 TIMEOUT = 30
@@ -80,6 +80,7 @@ class Stub {
     this._pwDate = null;
   }
   _pwIsToday() { return true; }
+  _pwMidnight(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
   _localize(k) { return k; }
 @@METHODS@@
 }
@@ -133,6 +134,7 @@ for (const [name, d] of cases) {
   try {
     d.plan = stub._pwDayPlan();
     const g = stub._pwDayGrid();
+    stub._pwDayBar(t);
     stub._renderPowerWindowDay(t);
     stub._renderPowerWindowStorage(t);
     stub._renderPowerWindowBalance(t);

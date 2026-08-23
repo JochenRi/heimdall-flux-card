@@ -6965,6 +6965,7 @@ console.log(
               <button class="pwin-tab" role="tab" aria-selected=${active === id}
                       @click=${() => { this._pwTab = id; }}>${label}</button>`)}
           </div>
+          ${this._pwDayBar(t)}
           <div class="pwin-body" role="tabpanel">${body}</div>
         </dialog>`;
     }
@@ -7171,9 +7172,6 @@ console.log(
       const selfE = Math.max(0, pvE - expE);
       const quote = pvE > 0 ? Math.round(selfE / pvE * 100) : 0;
       const k2 = v => v.toFixed(2);
-      const dLabel = new Date(g.slots[0]).toLocaleDateString(undefined,
-        { weekday: 'short', day: '2-digit', month: '2-digit' });
-      const atToday = this._pwIsToday();
 
       // Raw stack, for the table's "from PV" column. The drawing is binned
       // below, but a share should be judged on every bucket, not on averages.
@@ -7320,15 +7318,6 @@ console.log(
       const pctPv = v => (pvE > 0 ? `${(v / pvE * 100).toFixed(1)} %` : '–');
 
       return html`
-        <div class="pwin-daybar">
-          <button class="pwin-nav" @click=${() => this._pwStep(-1)}
-                  title="${t('powerwin_prev', 'Tag zurück')}">&#8249;</button>
-          <span class="pwin-daylabel">${dLabel}</span>
-          <button class="pwin-nav" ?disabled=${atToday} @click=${() => this._pwStep(1)}
-                  title="${t('powerwin_next', 'Tag vor')}">&#8250;</button>
-          <button class="pwin-today" ?disabled=${atToday}
-                  @click=${() => this._pwToday()}>${t('powerwin_today', 'heute')}</button>
-        </div>
         <div class="pwin-kpis">
           <span class="pwin-kpi"><b style="color:var(--pipe-solar-color)">${k2(pvE)}</b>
             ${t('powerwin_kpi_pv', 'kWh erzeugt')}</span>
@@ -7689,6 +7678,26 @@ console.log(
           </div>` : ''}
         <div class="pwin-note">
           ${t('powerwin_sys_hint', 'Eine Bilanzabweichung ist kein Fehler der Karte, sondern ein Hinweis, dass irgendwo ein Zähler an einem Pfad vorbeimisst.')}
+        </div>`;
+    }
+
+    // The day bar belongs to the window, not to one tab: all four tabs read
+    // the same day, and only the day tab let you change it. It is also built
+    // from _pwDate rather than from the first bucket of the series, so it
+    // still says which day is being looked at when that day has no data.
+    _pwDayBar(t) {
+      const d = this._pwDate || this._pwMidnight(new Date());
+      const atToday = this._pwIsToday();
+      return html`
+        <div class="pwin-daybar">
+          <button class="pwin-nav" @click=${() => this._pwStep(-1)}
+                  title="${t('powerwin_prev', 'Tag zurück')}">&#8249;</button>
+          <span class="pwin-daylabel">${d.toLocaleDateString(undefined,
+            { weekday: 'short', day: '2-digit', month: '2-digit' })}</span>
+          <button class="pwin-nav" ?disabled=${atToday} @click=${() => this._pwStep(1)}
+                  title="${t('powerwin_next', 'Tag vor')}">&#8250;</button>
+          <button class="pwin-today" ?disabled=${atToday}
+                  @click=${() => this._pwToday()}>${t('powerwin_today', 'heute')}</button>
         </div>`;
     }
 
@@ -8911,8 +8920,9 @@ console.log(
       .pwin-sw { width: 9px; height: 9px; border-radius: 2px; flex: none; display: inline-block; }
       .pwin-sw-hatch { background: none; border: 1px dashed currentColor; }
       /* Day navigation and the four day totals. */
-      .pwin-daybar { display: flex; align-items: center; justify-content: center;
-                gap: 8px; margin-bottom: 9px; }
+      .pwin-daybar { flex: none; display: flex; align-items: center; justify-content: center;
+                gap: 8px; padding: 9px 18px;
+                border-bottom: 1px solid var(--divider-color, #444); }
       .pwin-nav, .pwin-today { appearance: none; border: 1px solid var(--divider-color, #444);
                 background: none; color: inherit; cursor: pointer; border-radius: 6px;
                 font-family: ui-monospace, monospace; line-height: 1; }
